@@ -28,6 +28,14 @@
   --heritage-gold: #fed100;
   --heritage-black: #000000;
 
+  /* Heritage signature keylines (design-spec §1): gold is nearly invisible on
+     the light background and black on the dark one, so each gets a keyline in
+     that theme only, drawn in the control-border gray of the active theme. */
+  --heritage-gold-keyline: var(--color-control-border);
+  --heritage-black-keyline: transparent;
+  --signature-stripe-length: 1.25rem; /* 20px */
+  --signature-stripe-weight: 0.1875rem; /* 3px */
+
   /* Type: families come from Astro's Fonts API (astro.config.ts), whose
      variables carry the generated metric-matched fallbacks. */
   --font-sans: var(--font-geist-sans);
@@ -59,6 +67,7 @@
 
   /* Rules, corners and controls */
   --rule-width: 1px;
+  --underline-offset: 0.25em; /* gap between text and a link or active-state underline */
   --radius-sm: 2px;
   --radius-md: 4px;
   --target-min: 2.75rem; /* 44 × 44 CSS px standalone control target (design-spec §6) */
@@ -91,6 +100,8 @@
   --color-control-border: #858585;
   --color-link: #f4f4f2;
   --color-focus: #f4f4f2;
+  --heritage-gold-keyline: transparent;
+  --heritage-black-keyline: var(--color-control-border);
 
   color-scheme: dark;
 }
@@ -105,6 +116,8 @@
     --color-control-border: #858585;
     --color-link: #f4f4f2;
     --color-focus: #f4f4f2;
+    --heritage-gold-keyline: transparent;
+    --heritage-black-keyline: var(--color-control-border);
 
     color-scheme: dark;
   }

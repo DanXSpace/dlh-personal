@@ -1,0 +1,129 @@
+---
+import { navState } from '../../lib/nav.ts';
+import { site } from '../../site.config.ts';
+import ThemeControl from './ThemeControl.astro';
+
+const path = Astro.url.pathname;
+const homeIsCurrent = navState(path, '/') === 'page';
+---
+
+<!--
+  Global header (design-spec §3, architecture §8.0). `dlh.` leads, then the
+  navigation, then the theme control. Below 768px the links collapse into a
+  native popover opened by the Menu button: no JavaScript, Escape and outside
+  clicks close it, and the browser exposes the button's expanded state.
+-->
+<header class="site-header mx-auto flex w-full max-w-shell flex-wrap items-center gap-x-2 gap-y-2 px-gutter py-4 md:gap-x-8">
+  <a
+    href="/"
+    class="home-link me-auto inline-flex min-h-target min-w-target items-center text-body-large font-medium no-underline"
+    aria-current={homeIsCurrent ? 'page' : undefined}
+  >
+    {site.monogram}
+  </a>
+  <nav aria-label="Main" class="flex items-center">
+    <button
+      type="button"
+      class="menu-button inline-flex min-h-target min-w-target cursor-pointer items-center justify-center rounded-sm border border-control-border px-2 font-mono text-caption uppercase tracking-label text-muted transition-colors hover:text-text md:hidden"
+      popovertarget="site-nav"
+    >
+      Menu
+    </button>
+    <ul id="site-nav" class="nav-list" popover>
+      {
+        site.nav.map((item) => {
+          const state = navState(path, item.href);
+          return (
+            <li>
+              <a
+                href={item.href}
+                class="nav-link"
+                aria-current={state === 'page' ? 'page' : undefined}
+                data-active={state === 'none' ? undefined : state}
+              >
+                {item.label}
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </nav>
+  <ThemeControl />
+</header>
+
+<style>
+  @reference '../../styles/global.css';
+
+  .home-link {
+    color: var(--color-text);
+  }
+
+  /*
+   * Below 768px: a panel under the header, opened by the Menu button. The
+   * fallback `top` is the header's height: its py-4 padding plus the bordered
+   * theme control. Anchor positioning, where supported, makes it exact.
+   */
+  .nav-list {
+    position: absolute;
+    inset: auto 0;
+    top: calc(var(--space-unit) * 8 + var(--target-min) + var(--rule-width) * 2);
+    width: auto;
+    margin: 0;
+    padding: calc(var(--space-unit) * 2) var(--gutter);
+    border: 0;
+    border-block: var(--rule-width) solid var(--color-rule);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  /* Pin the panel to the header's bottom edge where anchor positioning exists. */
+  @supports (top: anchor(bottom)) {
+    .site-header {
+      anchor-name: --site-header;
+    }
+
+    .nav-list {
+      position-anchor: --site-header;
+      top: anchor(bottom);
+    }
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: var(--target-min);
+    color: var(--color-muted);
+    text-decoration-line: none;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .nav-link:hover {
+    color: var(--color-text);
+  }
+
+  /* The current page or its parent section: text color plus an underline, so the state never relies on color alone. */
+  .nav-link[data-active] {
+    color: var(--color-text);
+    text-decoration-line: underline;
+  }
+
+  .menu-button:has(+ :popover-open) {
+    background-color: var(--color-text);
+    color: var(--color-bg);
+  }
+
+  /* 768px and up: the links sit inline and the Menu button is hidden. */
+  @media (width >= theme(--breakpoint-md)) {
+    .nav-list {
+      position: static;
+      display: flex;
+      gap: calc(var(--space-unit) * 6);
+      padding: 0;
+      border: 0;
+      background-color: transparent;
+    }
+  }
+</style>

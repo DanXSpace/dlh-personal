@@ -1,0 +1,29 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'a'> & { href: string };
+
+const { class: className, ...attributes } = Astro.props;
+---
+
+<!--
+  Standalone text link outside prose: underlined so it reads as a link without
+  relying on color, with a 44 px tall target (design-spec §1, §6).
+-->
+<a class:list={['text-link inline-flex min-h-target items-center font-mono text-label', className]} {...attributes}>
+  <slot />
+</a>
+
+<style>
+  .text-link {
+    color: var(--color-link);
+    text-decoration-line: underline;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .text-link:hover {
+    color: var(--color-muted);
+  }
+</style>

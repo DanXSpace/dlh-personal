@@ -1,21 +1,28 @@
 import { expect, test } from '@playwright/test';
 
-// Narrowest and widest review widths (design-spec §7).
-const reviewWidths = [320, 1440];
+// Review widths from design-spec §7.
+const reviewWidths = [320, 390, 768, 1024, 1440];
 
-for (const width of reviewWidths) {
-  test(`homepage renders without horizontal overflow at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 900 });
-    const response = await page.goto('/');
+const pages = [
+  { name: 'homepage', path: '/', status: 200 },
+  { name: '404 page', path: '/this-page-does-not-exist', status: 404 },
+];
 
-    expect(response?.status()).toBe(200);
-    await expect(page.locator('main')).toHaveCount(1);
-    await expect(page.locator('h1')).toHaveCount(1);
+for (const { name, path, status } of pages) {
+  for (const width of reviewWidths) {
+    test(`${name} renders without horizontal overflow at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      const response = await page.goto(path);
 
-    const widths = await page.evaluate(() => {
-      const root = document.documentElement;
-      return { scrollWidth: root.scrollWidth, clientWidth: root.clientWidth };
+      expect(response?.status()).toBe(status);
+      await expect(page.locator('main')).toHaveCount(1);
+      await expect(page.locator('h1')).toHaveCount(1);
+
+      const widths = await page.evaluate(() => {
+        const root = document.documentElement;
+        return { scrollWidth: root.scrollWidth, clientWidth: root.clientWidth };
+      });
+      expect(widths.scrollWidth).toBeLessThanOrEqual(widths.clientWidth);
     });
-    expect(widths.scrollWidth).toBeLessThanOrEqual(widths.clientWidth);
-  });
+  }
 }

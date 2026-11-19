@@ -1,10 +1,19 @@
 ---
-// Minimal stub so `not_found_handling: "404-page"` has a page to serve.
-// The designed 404 page arrives with the global shell (ticket 05).
+// Served for unknown routes through `not_found_handling: "404-page"` (wrangler.jsonc).
+import TextLink from '../components/ui/TextLink.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Page not found">
-  <h1>Page not found</h1>
-  <p><a href="/">Go to the homepage</a></p>
+  <div class="mx-auto max-w-shell px-gutter py-section">
+    <div class="flex max-w-measure flex-col items-start gap-6">
+      <p class="font-mono text-label uppercase tracking-label text-muted">404</p>
+      <h1 class="text-page-heading leading-heading font-medium">Page not found.</h1>
+      <p class="text-body-large text-muted">This page doesn’t exist, or it has moved.</p>
+      <TextLink href="/" class="uppercase tracking-label">
+        <span aria-hidden="true">←&nbsp;</span>Back to home
+      </TextLink>
+    </div>
+  </div>
 </BaseLayout>
+
