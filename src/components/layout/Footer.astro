@@ -1,13 +1,19 @@
 ---
 import { visibleLinks } from '../../lib/links.ts';
+import { resumeLinks, siteResumeAccess } from '../../lib/resume.ts';
 import { site } from '../../site.config.ts';
 import TextLink from '../ui/TextLink.astro';
 import HeritageSignature from './HeritageSignature.astro';
 
 const year = new Date().getFullYear();
 // Only owner-supplied links render; none exist until they are approved (PRD FR-10).
-// The RSS feed always exists, so it always follows them.
-const links = [...visibleLinks(site.links), { label: 'RSS', href: '/rss.xml' }];
+// The résumé joins them once its PDF is hosted (src/lib/resume.ts). The RSS
+// feed always exists, so it always comes last and the list is never empty.
+const links = [
+  ...visibleLinks(site.links),
+  ...resumeLinks(siteResumeAccess()),
+  { label: 'RSS', href: '/rss.xml' },
+];
 ---
 
 <!-- Global footer (design-spec §3). -->
@@ -17,7 +23,7 @@ const links = [...visibleLinks(site.links), { label: 'RSS', href: '/rss.xml' }];
       <HeritageSignature />
       <p class="font-mono text-caption tracking-label text-muted">© {year} {site.name}</p>
     </div>
-    <ul class="flex flex-wrap gap-x-6" aria-label="Contact, profiles and feed">
+    <ul class="flex flex-wrap gap-x-6" aria-label="Footer links">
       {
         links.map((link) => (
           <li>

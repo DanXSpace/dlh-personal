@@ -1,0 +1,44 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getNow } from '../lib/content.ts';
+import { formatDate, isoDate } from '../lib/dates.ts';
+import '../styles/prose.css';
+
+const now = await getNow();
+const Content = now ? (await render(now)).Content : undefined;
+// The entry's own summary when it has one; otherwise interim, factual wording (ticket 18).
+const description = now?.data.summary ?? 'What Daniel Lee Holung is focused on now.';
+---
+
+<!--
+  Now page (design-spec §4 `/now`, PRD FR-08, architecture §5.3). The entry's
+  body is the introduction followed by `##` sections (Building, Learning,
+  Exploring, Training, Listening), so a section the author leaves out is simply
+  absent. The header and body share the 680px reading column at the leading
+  edge of the shell, as on article pages.
+-->
+<BaseLayout title="Now" description={description}>
+  <div class="mx-auto flex max-w-shell flex-col gap-12 px-gutter py-section">
+    <header class="flex max-w-measure flex-col items-start gap-6">
+      <h1 class="text-page-heading leading-heading font-medium">In the present</h1>
+      {
+        now && (
+          <p class="font-mono text-label tracking-label text-muted">
+            Last updated <time datetime={isoDate(now.data.updated)}>{formatDate(now.data.updated)}</time>
+          </p>
+        )
+      }
+    </header>
+
+    {
+      Content ? (
+        <div class="prose">
+          <Content />
+        </div>
+      ) : (
+        <p class="text-body-large text-muted">No update published yet.</p>
+      )
+    }
+  </div>
+</BaseLayout>

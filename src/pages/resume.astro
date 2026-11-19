@@ -1,0 +1,38 @@
+---
+import TextLink from '../components/ui/TextLink.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteResumeAccess } from '../lib/resume.ts';
+
+// Download once `public/resume.pdf` exists; otherwise on request (PRD FR-10).
+const access = siteResumeAccess();
+---
+
+<!-- Résumé access (design-spec §4 `/resume`), in the 404 page's composition. -->
+<!-- Interim description in plain, factual terms; the owner may replace it (ticket 18). -->
+<BaseLayout title="Résumé" description="The résumé of Daniel Lee Holung.">
+  <div class="mx-auto max-w-shell px-gutter py-section">
+    <div class="flex max-w-measure flex-col items-start gap-6">
+      <h1 class="text-page-heading leading-heading font-medium">Résumé</h1>
+      {
+        access.kind === 'pdf' ? (
+          <TextLink href={access.href} type="application/pdf" download class="uppercase tracking-label">
+            Download résumé (PDF)
+          </TextLink>
+        ) : (
+          <>
+            <p class="text-body-large text-muted">My résumé is available on request.</p>
+            {access.contacts.length > 0 && (
+              <ul class="flex flex-wrap gap-x-6" aria-label="Contact">
+                {access.contacts.map((link) => (
+                  <li>
+                    <TextLink href={link.href}>{link.label}</TextLink>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>

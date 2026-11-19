@@ -9,6 +9,7 @@ import { z } from 'astro/zod';
 import { categories } from './lib/categories.ts';
 import { entryIds } from './lib/content-ids.ts';
 import { resolveContentSource } from './lib/content-source.ts';
+import { nowSchema } from './lib/now.ts';
 import { projectStatuses, projectTypes } from './lib/projects.ts';
 
 const { contentRoot } = resolveContentSource(process.env);
@@ -79,4 +80,10 @@ const writing = defineCollection({
       }),
 });
 
-export const collections = { projects, writing };
+/** A single entry, `now/index.md` (architecture §5.3); other files there are ignored. */
+const now = defineCollection({
+  loader: glob({ base: `${contentRoot}/now`, pattern: 'index.md' }),
+  schema: nowSchema,
+});
+
+export const collections = { projects, writing, now };
