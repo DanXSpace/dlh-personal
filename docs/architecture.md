@@ -169,7 +169,7 @@ The schema is `nowSchema` in `lib/now.ts`. `summary` is limited to 160 character
 
 ### 5.4 Site identity — `src/site.config.ts`
 
-Name, tagline, description, canonical origin, nav items, and social/contact links. **Contact fields start empty.** Components render a link only when its value is set, so nothing placeholder-shaped can reach production (FR-10, PRD §11). This file is typed so a missing required field is a type error.
+Name, tagline, description, canonical origin, nav items, and social/contact links. **Contact fields start empty.** Components render a link only when its value is set, so nothing placeholder-shaped can reach production (FR-10, PRD §11). This file is typed so a missing required field is a type error. `lib/links.ts` gives each link its kinds, in one table: contact channels (email, LinkedIn), profiles (GitHub, LinkedIn; schema.org `sameAs`) and code (GitHub). Callers ask `visibleLinks(links, kind)` for the kind they mean: `/resume` lists contact channels, structured data lists profiles, the homepage hero shows the code link, and the footer and About's contact invitation show every set link.
 
 ### 5.5 Drafts and validation
 

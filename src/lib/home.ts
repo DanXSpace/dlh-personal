@@ -51,6 +51,6 @@ export function heroActions({
 }): HeroActions {
   return {
     primary: hasProjects ? { label: 'Explore my work', href: '/work' } : undefined,
-    secondary: [...visibleLinks({ email: '', github: links.github, linkedin: '' }), ...resume],
+    secondary: [...visibleLinks(links, 'code'), ...resume],
   };
 }

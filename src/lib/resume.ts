@@ -16,8 +16,8 @@ export type ResumeAccess = { kind: 'pdf'; href: string } | { kind: 'on-request';
 
 export function resumeAccess(pdfPresent: boolean, links: SiteLinks): ResumeAccess {
   if (pdfPresent) return { kind: 'pdf', href: `/${PDF_FILE}` };
-  // A request goes through a contact channel; a GitHub profile isn't one.
-  return { kind: 'on-request', contacts: visibleLinks({ ...links, github: '' }) };
+  // A request goes through a contact channel (`links.ts`).
+  return { kind: 'on-request', contacts: visibleLinks(links, 'contact') };
 }
 
 /**

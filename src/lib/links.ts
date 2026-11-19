@@ -20,16 +20,33 @@ export interface Link {
   href: string;
 }
 
-/** Render order, label and href for each field. */
-const fields: { key: keyof SiteLinks; label: string; toHref: (value: string) => string }[] = [
-  { key: 'email', label: 'Email', toHref: (address) => `mailto:${address}` },
-  { key: 'github', label: 'GitHub', toHref: (url) => url },
-  { key: 'linkedin', label: 'LinkedIn', toHref: (url) => url },
+/**
+ * What a link is for (PRD FR-10). Each caller asks for the kinds it means, so
+ * the table below is the one place that says which link is which. A link can
+ * be more than one kind.
+ * - `contact`: a channel a visitor can send a message through.
+ * - `profile`: a public page about the owner (schema.org `sameAs`).
+ * - `code`: where the owner's code is published.
+ */
+export type LinkKind = 'contact' | 'profile' | 'code';
+
+/** Render order, label, href and kinds for each field. */
+const fields: {
+  key: keyof SiteLinks;
+  label: string;
+  toHref: (value: string) => string;
+  kinds: readonly LinkKind[];
+}[] = [
+  { key: 'email', label: 'Email', toHref: (address) => `mailto:${address}`, kinds: ['contact'] },
+  { key: 'github', label: 'GitHub', toHref: (url) => url, kinds: ['profile', 'code'] },
+  { key: 'linkedin', label: 'LinkedIn', toHref: (url) => url, kinds: ['contact', 'profile'] },
 ];
 
-export function visibleLinks(links: SiteLinks): Link[] {
-  return fields.flatMap(({ key, label, toHref }) => {
+/** The links that are set, in render order: all of them, or only those of `kind`. */
+export function visibleLinks(links: SiteLinks, kind?: LinkKind): Link[] {
+  return fields.flatMap(({ key, label, toHref, kinds }) => {
     const value = links[key].trim();
-    return value === '' ? [] : [{ label, href: toHref(value) }];
+    if (value === '' || (kind !== undefined && !kinds.includes(kind))) return [];
+    return [{ label, href: toHref(value) }];
   });
 }
