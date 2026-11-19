@@ -9,6 +9,7 @@ import { z } from 'astro/zod';
 import { categories } from './lib/categories.ts';
 import { entryIds } from './lib/content-ids.ts';
 import { resolveContentSource } from './lib/content-source.ts';
+import { nowSchema } from './lib/now.ts';
 import { projectStatuses, projectTypes } from './lib/projects.ts';
 
 const { contentRoot } = resolveContentSource(process.env);
@@ -121,9 +122,17 @@ const about = defineCollection({
        * the links set in site config, and only once at least one is set.
        */
       contact: text.optional(),
+      /** Meta description for search results and link previews. */
+      description: text.max(160).optional(),
       draft: z.boolean().default(false),
     });
   },
 });
 
-export const collections = { projects, writing, about };
+/** A single entry, `now/index.md` (architecture §5.3); other files there are ignored. */
+const now = defineCollection({
+  loader: glob({ base: `${contentRoot}/now`, pattern: 'index.md' }),
+  schema: nowSchema,
+});
+
+export const collections = { projects, writing, now, about };

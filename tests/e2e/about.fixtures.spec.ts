@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { headMetadata } from '../support/seo.ts';
 
 // The fixture About entry in tests/fixtures/content/about (ADR-0004).
 
@@ -165,6 +166,12 @@ test('sections follow the opener in order: career, heritage, interests', async (
     'Heritage',
     'Interests',
   ]);
+});
+
+test('the entry’s description becomes the page’s meta description', async ({ page }) => {
+  await page.goto('/about');
+  const meta = await headMetadata(page);
+  expect(meta.description).toBe('Fixture description for the About page.');
 });
 
 // Review widths from design-spec §7.

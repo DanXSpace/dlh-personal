@@ -7,8 +7,11 @@ import TableOfContents from '../components/ui/TableOfContents.astro';
 import TextLink from '../components/ui/TextLink.astro';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import { caseStudyImage } from '../lib/figures.ts';
+import { caseStudy } from '../lib/json-ld.ts';
 import { projectStatusLabels, projectTypeLabels } from '../lib/projects.ts';
+import { socialImage } from '../lib/social-image.ts';
 import { tableOfContents } from '../lib/toc.ts';
+import { site } from '../site.config.ts';
 import '../styles/prose.css';
 import BaseLayout from './BaseLayout.astro';
 
@@ -28,6 +31,18 @@ const links = [
 ].filter((link): link is { label: string; href: string } => link.href !== undefined);
 // Same rule as articles: contents once there are three or more sections.
 const contents = tableOfContents(headings, undefined);
+
+// The cover, when there is one, is the project's link-preview image.
+const path = Astro.url.pathname;
+const image = await socialImage(cover, coverAlt);
+const seo = {
+  image,
+  breadcrumbs: [
+    { label: 'Work', href: '/work' },
+    { label: title, href: path },
+  ],
+  structuredData: [caseStudy({ title, summary, path, image: image.src, repo }, site.origin)],
+};
 ---
 
 <!--
@@ -36,7 +51,7 @@ const contents = tableOfContents(headings, undefined);
   wide image spans the content shell (design-spec §5). At 1024px and up the
   contents sit in the space to the right of the body, as on an article.
 -->
-<BaseLayout title={title}>
+<BaseLayout title={title} description={summary} seo={seo}>
   <article class="case-study mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
     <header class="case-study-header flex max-w-measure flex-col items-start gap-6">
       <TextLink href="/work">Back to Work</TextLink>

@@ -20,6 +20,9 @@ const Content = entry ? (await render(entry)).Content : undefined;
 const hasIntro = (entry?.body ?? '').trim() !== '';
 // Only links set in site config, and none until the owner approves them (PRD FR-10).
 const contact = contactInvitation(site.links, data?.contact);
+// The entry's own description when it has one; otherwise interim, non-biographical
+// wording that the owner may replace (ticket 18).
+const description = data?.description ?? 'About Daniel Lee Holung: background, heritage and interests.';
 
 // Figures are numbered in page order, so a left-out image never leaves a gap.
 let figureCount = 0;
@@ -32,7 +35,7 @@ const nextFigure = () => ++figureCount;
   is omitted when the entry leaves it out. With no entry the page is the opener
   alone, so nothing biographical is invented.
 -->
-<BaseLayout title="About">
+<BaseLayout title="About" description={description}>
   <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
     <div class="about-opener">
       <div class="about-opener-text">
