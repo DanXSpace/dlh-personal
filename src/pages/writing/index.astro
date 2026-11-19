@@ -6,4 +6,10 @@ import { getPublished } from '../../lib/content.ts';
 const articles = await getPublished('writing');
 ---
 
-<WritingArchiveLayout title="Writing" articles={articles} categories={categoriesWithArticles(articles)} />
+<!-- Interim description in plain, factual terms; the owner may replace it (ticket 18). -->
+<WritingArchiveLayout
+  title="Writing"
+  description="Articles and build logs by Daniel Lee Holung."
+  articles={articles}
+  categories={categoriesWithArticles(articles)}
+/>

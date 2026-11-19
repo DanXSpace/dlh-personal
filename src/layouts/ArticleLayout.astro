@@ -4,7 +4,9 @@ import type { CollectionEntry } from 'astro:content';
 import TableOfContents from '../components/ui/TableOfContents.astro';
 import { categoryLabels } from '../lib/categories.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
+import { blogPosting } from '../lib/json-ld.ts';
 import { readingMinutes } from '../lib/reading-time.ts';
+import { socialImage } from '../lib/social-image.ts';
 import { tableOfContents } from '../lib/toc.ts';
 import { site } from '../site.config.ts';
 import '../styles/prose.css';
@@ -16,9 +18,21 @@ interface Props {
 }
 
 const { article, headings } = Astro.props;
-const { title, deck, published, updated, category, toc } = article.data;
+const { title, description, deck, published, updated, category, toc, ogImage } = article.data;
 const minutes = readingMinutes(article.body ?? '');
 const contents = tableOfContents(headings, toc);
+
+const path = Astro.url.pathname;
+const image = await socialImage(ogImage);
+const seo = {
+  image,
+  article: { published, updated },
+  breadcrumbs: [
+    { label: 'Writing', href: '/writing' },
+    { label: title, href: path },
+  ],
+  structuredData: [blogPosting({ title, description, published, updated, path, image: image.src }, site.origin)],
+};
 ---
 
 <!--
@@ -26,7 +40,7 @@ const contents = tableOfContents(headings, toc);
   the 680px reading column at the leading edge of the shell; at 1024px and up
   the table of contents sits in the space to its right, an asymmetric split.
 -->
-<BaseLayout title={title}>
+<BaseLayout title={title} description={description} seo={seo}>
   <article class="article mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
     <header class="article-header flex max-w-measure flex-col items-start gap-6">
       <p class="flex flex-wrap gap-x-3 font-mono text-label uppercase tracking-label text-muted">
