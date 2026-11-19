@@ -11,14 +11,15 @@ const options: { value: ThemeChoice; label: string }[] = [
 <!--
   Appearance selector (architecture §8): three native radios, so the group's
   name, each option's name, the selected state and arrow-key operation all come
-  from the platform. Each radio covers its label, making the whole 44 × 44 px
+  from the platform. The selected option is inverted and set in the medium
+  weight, so its state doesn't rely on color alone. Each radio covers its label, making the whole 44 × 44 px
   box the target and drawing the focus ring around it. Hidden without JS.
 -->
 <fieldset class="inline-flex rounded-sm border border-control-border" data-theme-control data-requires-js>
   <legend class="sr-only">Theme</legend>
   {
     options.map(({ value, label }) => (
-      <label class="relative inline-flex min-h-target min-w-target items-center justify-center px-3 font-mono text-label uppercase tracking-label text-muted transition-colors hover:text-text has-checked:bg-text has-checked:text-bg">
+      <label class="relative inline-flex min-h-target min-w-target items-center justify-center px-3 font-mono text-label uppercase tracking-label text-muted transition-colors hover:text-text has-checked:bg-text has-checked:font-medium has-checked:text-bg">
         <input
           class="absolute inset-0 cursor-pointer appearance-none"
           type="radio"
@@ -33,22 +34,26 @@ const options: { value: ThemeChoice; label: string }[] = [
 </fieldset>
 
 <script>
-  import { THEME_STORAGE_KEY, type ThemeChoice } from '../../lib/theme.ts';
+  import { parseThemeChoice, THEME_STORAGE_KEY, type ThemeChoice } from '../../lib/theme.ts';
 
   const root = document.documentElement;
+  const radios = document.querySelectorAll<HTMLInputElement>('[data-theme-control] input[name="theme"]');
 
   function storedChoice(): ThemeChoice {
     try {
-      const value = localStorage.getItem(THEME_STORAGE_KEY);
-      return value === 'light' || value === 'dark' ? value : 'system';
+      return parseThemeChoice(localStorage.getItem(THEME_STORAGE_KEY));
     } catch {
       return 'system';
     }
   }
 
-  function apply(choice: ThemeChoice) {
+  /** System leaves `data-theme` unset so CSS follows the OS live. */
+  function setRootTheme(choice: ThemeChoice) {
     if (choice === 'system') delete root.dataset['theme'];
     else root.dataset['theme'] = choice;
+  }
+
+  function store(choice: ThemeChoice) {
     try {
       if (choice === 'system') localStorage.removeItem(THEME_STORAGE_KEY);
       else localStorage.setItem(THEME_STORAGE_KEY, choice);
@@ -57,13 +62,10 @@ const options: { value: ThemeChoice; label: string }[] = [
     }
   }
 
-  const radios = document.querySelectorAll<HTMLInputElement>('[data-theme-control] input[name="theme"]');
-
-  /** Match the radios and <html> to storage, including after a back/forward cache restore. */
+  /** Match <html> and the radios to storage, including after a back/forward cache restore. */
   function sync() {
     const choice = storedChoice();
-    if (choice === 'system') delete root.dataset['theme'];
-    else root.dataset['theme'] = choice;
+    setRootTheme(choice);
     for (const radio of radios) radio.checked = radio.value === choice;
   }
 
@@ -73,7 +75,10 @@ const options: { value: ThemeChoice; label: string }[] = [
   });
   for (const radio of radios) {
     radio.addEventListener('change', () => {
-      if (radio.checked) apply(radio.value as ThemeChoice);
+      if (!radio.checked) return;
+      const choice = parseThemeChoice(radio.value);
+      setRootTheme(choice);
+      store(choice);
     });
   }
 </script>

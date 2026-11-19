@@ -11,6 +11,11 @@ export const THEME_STORAGE_KEY = 'theme';
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
+/** Reads a stored or submitted value; anything but `'light'` or `'dark'` means System. */
+export function parseThemeChoice(value: string | null): ThemeChoice {
+  return value === 'light' || value === 'dark' ? value : 'system';
+}
+
 /**
  * Runs inline at the top of `<head>`, before any stylesheet or body content,
  * so an explicit choice is applied before first paint. It also swaps the
