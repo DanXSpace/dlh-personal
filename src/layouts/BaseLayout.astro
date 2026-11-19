@@ -1,8 +1,10 @@
 ---
 import { Font } from 'astro:assets';
-import ThemeControl from '../components/layout/ThemeControl.astro';
+import Footer from '../components/layout/Footer.astro';
+import Header from '../components/layout/Header.astro';
 import { resolveSiteEnv } from '../lib/site-env.ts';
 import { THEME_INIT_SCRIPT } from '../lib/theme.ts';
+import { site } from '../site.config.ts';
 import '../styles/global.css';
 
 interface Props {
@@ -10,9 +12,8 @@ interface Props {
   title?: string;
 }
 
-const siteName = 'Daniel Lee Holung';
 const { title } = Astro.props;
-const documentTitle = title ? `${title} — ${siteName}` : siteName;
+const documentTitle = title ? `${title} — ${site.name}` : site.name;
 const { indexable } = resolveSiteEnv(process.env);
 ---
 
@@ -28,13 +29,18 @@ const { indexable } = resolveSiteEnv(process.env);
     <Font cssVariable="--font-geist-sans" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />
     <Font cssVariable="--font-geist-mono" />
   </head>
-  <body>
-    <!-- Placeholder position until the global shell (ticket 05) adds the header. -->
-    <header class="flex justify-end px-gutter pt-6">
-      <ThemeControl />
-    </header>
-    <main id="main">
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main"
+      class="sr-only z-10 border border-control-border bg-bg font-mono text-label uppercase tracking-label focus:not-sr-only focus:fixed focus:top-4 focus:left-gutter focus:inline-flex focus:min-h-target focus:items-center focus:px-3"
+    >
+      Skip to content
+    </a>
+    <Header />
+    <!-- tabindex="-1" lets the skip link move focus here, not just scroll. -->
+    <main id="main" tabindex="-1" class="flex-1 focus:outline-none">
       <slot />
     </main>
+    <Footer />
   </body>
 </html>

@@ -1,0 +1,32 @@
+---
+import { visibleLinks } from '../../lib/links.ts';
+import { site } from '../../site.config.ts';
+import TextLink from '../ui/TextLink.astro';
+import HeritageSignature from './HeritageSignature.astro';
+
+const year = new Date().getFullYear();
+// Only owner-supplied links render; none exist until they are approved (PRD FR-10).
+const links = visibleLinks(site.links);
+---
+
+<!-- Global footer (design-spec §3). RSS access joins the links with the feed (ticket 15). -->
+<footer class="mx-auto w-full max-w-shell px-gutter">
+  <div class="flex flex-col gap-6 border-t border-rule py-8 md:flex-row md:items-center md:justify-between">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
+      <HeritageSignature />
+      <p class="font-mono text-caption tracking-label text-muted">© {year} {site.name}</p>
+    </div>
+    {
+      links.length > 0 && (
+        <ul class="flex flex-wrap gap-x-6" aria-label="Contact and profiles">
+          {links.map((link) => (
+            <li>
+              <TextLink href={link.href}>{link.label}</TextLink>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</footer>
+

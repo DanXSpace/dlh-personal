@@ -1,0 +1,39 @@
+<!--
+  Heritage signature (design-spec §1): three short green, gold and black
+  stripes. Decorative only, so it is hidden from assistive technology. The
+  keyline tokens outline gold in light mode and black in dark mode.
+-->
+<span class="signature" data-heritage-signature aria-hidden="true">
+  <span class="stripe green"></span>
+  <span class="stripe gold"></span>
+  <span class="stripe black"></span>
+</span>
+
+<style>
+  .signature {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 1.5);
+  }
+
+  .stripe {
+    display: block;
+    width: var(--signature-stripe-length);
+    height: var(--signature-stripe-weight);
+    outline: var(--rule-width) solid transparent;
+  }
+
+  .green {
+    background-color: var(--heritage-green);
+  }
+
+  .gold {
+    background-color: var(--heritage-gold);
+    outline-color: var(--heritage-gold-keyline);
+  }
+
+  .black {
+    background-color: var(--heritage-black);
+    outline-color: var(--heritage-black-keyline);
+  }
+</style>
