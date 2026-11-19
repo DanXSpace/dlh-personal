@@ -22,7 +22,12 @@ export function resolveSiteEnv(env: Record<string, string | undefined>): SiteEnv
   return { indexable: env['PUBLIC_SITE_ENV'] === 'production' && !isPreviewBranch };
 }
 
-/** The `robots.txt` body: disallow-all for previews, allow-all for production. */
-export function robotsTxt({ indexable }: SiteEnv): string {
-  return indexable ? 'User-agent: *\nAllow: /\n' : 'User-agent: *\nDisallow: /\n';
+/**
+ * The `robots.txt` body: disallow-all for previews; allow-all for production,
+ * pointing to the sitemap index (architecture §10.4).
+ */
+export function robotsTxt({ indexable }: SiteEnv, sitemapUrl: string): string {
+  return indexable
+    ? `User-agent: *\nAllow: /\n\nSitemap: ${sitemapUrl}\n`
+    : 'User-agent: *\nDisallow: /\n';
 }

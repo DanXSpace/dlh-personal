@@ -1,0 +1,73 @@
+---
+/**
+ * Search and social metadata for the document head (architecture §10, PRD
+ * FR-13), rendered by `BaseLayout` from its props: title, description,
+ * canonical URL, Open Graph and Twitter tags, structured data, the RSS
+ * autodiscovery link, and `noindex` on non-production builds (§10.4).
+ */
+import { breadcrumbList, identityNodes, jsonLdScript } from '../../lib/json-ld.ts';
+import { visibleLinks } from '../../lib/links.ts';
+import { canonicalUrl, defaultSocialImage, documentTitle, type SeoDetails } from '../../lib/seo.ts';
+import { resolveSiteEnv } from '../../lib/site-env.ts';
+import { site } from '../../site.config.ts';
+
+interface Props {
+  title?: string | undefined;
+  description: string;
+  seo?: SeoDetails | undefined;
+}
+
+const { title, description, seo = {} } = Astro.props;
+const { indexable } = resolveSiteEnv(process.env);
+const { pathname } = Astro.url;
+const origin = site.origin;
+
+const canonical = canonicalUrl(pathname, origin);
+const shareTitle = title ?? site.name;
+const image = seo.image ?? defaultSocialImage;
+const imageUrl = new URL(image.src, origin).href;
+
+// Profile links only; an email address isn't a profile.
+const profiles = visibleLinks(site.links)
+  .map((link) => link.href)
+  .filter((href) => !href.startsWith('mailto:'));
+const structuredData = [
+  ...identityNodes(pathname, origin, profiles),
+  ...(seo.structuredData ?? []),
+  ...(seo.breadcrumbs ? [breadcrumbList(seo.breadcrumbs, origin)] : []),
+];
+---
+
+<title>{documentTitle(title)}</title>
+<meta name="description" content={description} />
+{canonical && <link rel="canonical" href={canonical} />}
+{!indexable && <meta name="robots" content="noindex, nofollow" />}
+<link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
+
+<meta property="og:title" content={shareTitle} />
+<meta property="og:description" content={description} />
+{canonical && <meta property="og:url" content={canonical} />}
+<meta property="og:type" content={seo.article ? 'article' : 'website'} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:locale" content="en_US" />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:width" content={String(image.width)} />
+<meta property="og:image:height" content={String(image.height)} />
+{image.alt && <meta property="og:image:alt" content={image.alt} />}
+{
+  seo.article && (
+    <>
+      <meta property="article:published_time" content={seo.article.published.toISOString()} />
+      {seo.article.updated && <meta property="article:modified_time" content={seo.article.updated.toISOString()} />}
+      <meta property="article:author" content={site.name} />
+    </>
+  )
+}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={shareTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
+{image.alt && <meta name="twitter:image:alt" content={image.alt} />}
+
+{structuredData.length > 0 && <script is:inline type="application/ld+json" set:html={jsonLdScript(structuredData)} />}

@@ -1,4 +1,5 @@
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import { satteri } from '@astrojs/markdown-satteri';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
@@ -6,11 +7,14 @@ import { resolveContentSource } from './src/lib/content-source.ts';
 import { scriptHash } from './src/lib/csp.ts';
 import { THEME_INIT_SCRIPT } from './src/lib/theme.ts';
 import { hastPlugins, shikiConfig } from './src/markdown/pipeline.ts';
+import { site } from './src/site.config.ts';
 
 const contentSource = resolveContentSource(process.env);
 
 // https://docs.astro.build/en/reference/configuration-reference/
 export default defineConfig({
+  // Canonical URLs, social tags, the sitemap and RSS are built from this (architecture §10).
+  site: site.origin,
   output: 'static',
   outDir: `./${contentSource.outDir}`,
   // Self-hosted at build time with generated, metric-matched fallbacks
@@ -43,7 +47,9 @@ export default defineConfig({
     shikiConfig,
   },
   // `.mdx` entries inherit the Markdown pipeline above, so both render alike.
-  integrations: [mdx()],
+  // The sitemap lists every built route; drafts are never built in production
+  // (architecture §5.5), and the 404 page is left out by the integration.
+  integrations: [mdx(), sitemap()],
   security: {
     // Astro emits the policy as a <meta> tag on every page and adds `script-src`
     // and `style-src` with hashes of the inline scripts and styles it renders, so

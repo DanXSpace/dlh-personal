@@ -52,6 +52,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 ├── tsconfig.json                 # extends astro/tsconfigs/strictest
 ├── wrangler.jsonc                # static assets config (§12)
 ├── .nvmrc
+├── scripts/                      # one-off tools, e.g. render-social-image.ts (§10.2)
 ├── docs/
 │   ├── prd.md
 │   ├── design-spec.md
@@ -60,6 +61,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   └── agents/
 ├── public/
 │   ├── _headers                  # security headers (§11)
+│   ├── _redirects                # /sitemap.xml → /sitemap-index.xml (§4)
+│   ├── social/default.png        # default link-preview image (§10.2)
 │   ├── resume.pdf                # only once supplied by the owner
 │   └── favicon.svg
 ├── src/
@@ -251,9 +254,13 @@ No UI framework (React, Svelte, etc.) is planned. If the command palette proves 
 
 Rendered by `BaseLayout` from page props: `<title>` (pattern `Page — Daniel Lee Holung`), meta description, canonical URL (from `site` in `astro.config.ts`), Open Graph and Twitter card tags.
 
+An ordinary page passes `title` and `description` and nothing else; `description` is required, so a page without one fails `astro check`. Entry layouts (article, case study) and category pages also pass an optional `seo` object with an image, article dates, a breadcrumb trail and further structured data. Canonical URLs end in a slash (`/work/`), because Cloudflare serves `work/index.html` at `/work/` and redirects `/work` there; the sitemap and RSS use the same form. The 404 page has no canonical URL. `Seo` also renders the RSS autodiscovery link and the non-production `noindex` (§10.4). Rules live in `lib/seo.ts`.
+
 ### 10.2 Social images
 
 A single default OG image (designed per the spec) at launch, with an optional per-entry `ogImage`. Generated per-article OG images are deferred; they would add a rendering dependency.
+
+The default is `public/social/default.png`, 1200 × 630: the light palette, the `dlh.` monogram in Geist Mono and the name in Geist Sans, nothing else. `scripts/render-social-image.ts` renders it with Playwright from the built fonts; rerun it after `npm run build` if the identity changes. An article's `ogImage`, or a case study's `cover`, replaces it with a 1200 × 630 JPEG crop made at build time (`lib/social-image.ts`).
 
 ### 10.3 Structured data
 
@@ -304,7 +311,7 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 
 ### 12.3 Domain
 
-The custom domain and canonical origin (`site` in `astro.config.ts`) are not yet decided. Sitemap, RSS, canonical URLs and OG tags all depend on it. Until then, `site` holds a clearly marked placeholder origin, and the production deployment ticket is blocked on this decision. The domain must be on a Cloudflare-managed zone (ADR-0001).
+The custom domain and canonical origin (`site` in `astro.config.ts`) are not yet decided. Sitemap, RSS, canonical URLs and OG tags all depend on it. Until then, `site` reads `origin` in `site.config.ts`, which holds the live `workers.dev` address as a clearly marked interim origin, and the production deployment ticket is blocked on this decision. The domain must be on a Cloudflare-managed zone (ADR-0001).
 
 ## 13. Testing and verification
 
