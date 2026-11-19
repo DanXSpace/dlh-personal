@@ -50,16 +50,17 @@ const seo = {
   writing share the 680px reading column at the leading edge of the shell; the
   wide image spans the content shell (design-spec §5). At 1024px and up the
   contents sit in the space to the right of the body, as on an article.
-  `data-pagefind-body` marks what full-text search indexes: the title, the
-  summary and the body (src/lib/search-index.ts).
+  `data-pagefind-body` marks what full-text search indexes: the body alone
+  (src/lib/search-index.ts). `data-pagefind-meta="title"` gives each result
+  the project's title, which Pagefind reads from outside the body.
 -->
 <BaseLayout title={title} description={summary} seo={seo}>
   <article class="case-study mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
     <header class="case-study-header flex max-w-measure flex-col items-start gap-6">
       <TextLink href="/work">Back to Work</TextLink>
       <p class="font-mono text-label uppercase tracking-label text-muted">Case study</p>
-      <h1 class="text-page-heading leading-heading font-medium" data-pagefind-body>{title}</h1>
-      <p class="text-body-large text-muted" data-pagefind-body>{summary}</p>
+      <h1 class="text-page-heading leading-heading font-medium" data-pagefind-meta="title">{title}</h1>
+      <p class="text-body-large text-muted">{summary}</p>
       <div class="w-full">
         <Meta
           items={{
