@@ -28,19 +28,19 @@ interface Project {
 }
 
 /**
- * Home and the primary navigation, then articles newest first, then projects
+ * Home and the other primary pages, then articles newest first, then projects
  * in the order `/work` lists them. Pass published entries only.
  */
 export function paletteEntries({
-  nav,
+  pages,
   articles,
   projects,
 }: {
-  nav: readonly Link[];
+  pages: readonly Link[];
   articles: readonly Article[];
   projects: readonly Project[];
 }): PaletteEntry[] {
-  const pages = [{ label: 'Home', href: '/' }, ...nav].map(
+  const primary = [{ label: 'Home', href: '/' }, ...pages].map(
     ({ label, href }): PaletteEntry => ({ title: label, href, kind: 'page' }),
   );
   const writing = [...articles]
@@ -49,7 +49,7 @@ export function paletteEntries({
   const work = directoryOrder(projects).map(
     ({ id, data }): PaletteEntry => ({ title: data.title, href: `/work/${id}`, kind: 'project' }),
   );
-  return [...pages, ...writing, ...work];
+  return [...primary, ...writing, ...work];
 }
 
 /** Lowercase with accents removed, so `resume` finds `Résumé`. */

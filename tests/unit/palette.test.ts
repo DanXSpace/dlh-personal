@@ -9,7 +9,7 @@ import {
   type ResultSource,
 } from '../../src/lib/palette.ts';
 
-const nav = [
+const pages = [
   { label: 'About', href: '/about' },
   { label: 'Work', href: '/work' },
 ];
@@ -24,7 +24,7 @@ function project(id: string, title: string, year: number, order?: number) {
 
 test('lists Home and the primary pages first, then articles newest first, then projects in directory order', () => {
   const entries = paletteEntries({
-    nav,
+    pages,
     articles: [
       article('older', 'An older note', '2025-03-01'),
       article('newer', 'A newer note', '2026-06-01'),
@@ -44,7 +44,7 @@ test('lists Home and the primary pages first, then articles newest first, then p
 
 test('with no content yet, only the pages are listed', () => {
   assert.deepEqual(
-    paletteEntries({ nav, articles: [], projects: [] }).map((entry) => entry.href),
+    paletteEntries({ pages, articles: [], projects: [] }).map((entry) => entry.href),
     ['/', '/about', '/work'],
   );
 });

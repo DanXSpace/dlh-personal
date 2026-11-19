@@ -18,6 +18,14 @@ test('the palette lists published articles and projects, never drafts', async ({
   await expect(palette.getByRole('option', { name: /Draft/ })).toHaveCount(0);
 });
 
+test('with the résumé PDF hosted, the palette lists the Résumé page after the primary pages', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('banner').getByRole('button', { name: 'Search' }).click();
+  const pages = page.getByRole('dialog', { name: 'Search' }).getByRole('option', { name: / Page$/ });
+  await expect(pages).toHaveText([/^Home/, /^About/, /^Work/, /^Writing/, /^Now/, /^Résumé/]);
+  await expect(pages.last()).toHaveAttribute('href', '/resume');
+});
+
 test('typing narrows the list to matching articles and projects, and Enter opens the match', async ({ page }) => {
   await page.goto('/');
   await page.keyboard.press('Control+k');
