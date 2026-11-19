@@ -1,0 +1,204 @@
+---
+/**
+ * The homepage hero (design-spec §4 `/`, §5; PRD FR-02): role label,
+ * full-name wordmark, tagline, the introduction from `home/index.md`, calls
+ * to action, and the landscape with its figure caption. Copy and actions
+ * come first in the source, so they stack before the image below 1024px; from
+ * 1024px the copy takes seven grid columns and the image five.
+ */
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import { heroImage } from '../../assets/hero.ts';
+import { figureLabel, heroImage as heroImageSizes } from '../../lib/figures.ts';
+import type { HeroActions } from '../../lib/home.ts';
+import { site } from '../../site.config.ts';
+import TextLink from '../ui/TextLink.astro';
+
+interface Props {
+  /** The homepage entry; without one the hero has no introduction. */
+  introduction: CollectionEntry<'home'> | undefined;
+  actions: HeroActions;
+}
+
+const { introduction, actions } = Astro.props;
+const Introduction = introduction ? (await render(introduction)).Content : undefined;
+const hasActions = actions.primary !== undefined || actions.secondary.length > 0;
+---
+
+<div class="hero">
+  <div class="hero-copy">
+    <p class="hero-role font-mono text-label tracking-label text-muted">Engineer / Builder</p>
+    <h1 class="text-hero leading-heading font-medium">{site.name}</h1>
+    <p class="text-body-large">{site.tagline}</p>
+    {
+      Introduction && (
+        <div class="hero-introduction text-body-large text-muted">
+          <Introduction />
+        </div>
+      )
+    }
+    {
+      hasActions && (
+        <ul class="hero-actions">
+          {actions.primary && (
+            <li>
+              <a href={actions.primary.href} class="hero-primary">
+                {actions.primary.label}
+              </a>
+            </li>
+          )}
+          {actions.secondary.map((link) => (
+            <li>
+              <TextLink href={link.href}>{link.label}</TextLink>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+
+  <figure class="hero-figure" data-preview-asset={heroImage.preview ? '' : undefined}>
+    <Image
+      src={heroImage.src}
+      alt={heroImage.alt}
+      widths={[...heroImageSizes.widths]}
+      sizes={heroImageSizes.sizes}
+      priority
+      class="hero-image"
+    />
+    <figcaption class="hero-caption font-mono text-caption tracking-label text-muted">
+      <span>{figureLabel(1, 'Roots')}</span>
+      {heroImage.preview && <span>Preview image, replaced before launch</span>}
+    </figcaption>
+  </figure>
+</div>
+
+<style>
+  @reference '../../styles/global.css';
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 12);
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(var(--space-unit) * 6);
+    min-width: 0;
+  }
+
+  .hero-role {
+    text-transform: uppercase;
+  }
+
+  .hero-copy h1 {
+    overflow-wrap: anywhere;
+  }
+
+  .hero-introduction {
+    max-width: var(--measure);
+  }
+
+  .hero-introduction > :global(*) {
+    margin: 0;
+  }
+
+  .hero-introduction > :global(* + *) {
+    margin-block-start: calc(var(--space-unit) * 4);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--space-unit) * 3) calc(var(--space-unit) * 6);
+    margin: 0;
+    margin-block-start: calc(var(--space-unit) * 2);
+    padding: 0;
+    list-style: none;
+  }
+
+  /* The primary link: a thin outlined box, so it reads as the first choice without fill or color. */
+  .hero-primary {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    padding-inline: calc(var(--space-unit) * 5);
+    border: var(--rule-width) solid var(--color-control-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: var(--tracking-label);
+    color: var(--color-link);
+    text-decoration-line: none;
+    transition:
+      background-color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .hero-primary:hover {
+    background-color: var(--color-surface);
+    border-color: var(--color-text);
+  }
+
+  .hero-figure {
+    margin: 0;
+    min-width: 0;
+  }
+
+  /*
+   * Each breakpoint crops the image to its own shape; the width and height
+   * attributes still reserve space before it loads. `object-position` is the
+   * image's focal point (src/assets/hero.ts), so every crop keeps it in view.
+   * It lives here because the CSP blocks inline `style` attributes.
+   */
+  .hero-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    object-position: 56% 42%;
+    border-radius: var(--radius-sm);
+  }
+
+  .hero-caption {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: calc(var(--space-unit) * 3);
+    margin-block-start: calc(var(--space-unit) * 3);
+    line-height: var(--leading-body);
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .hero-image {
+      aspect-ratio: 2 / 1;
+    }
+  }
+
+  /* 1024px and up: the 7/5 split, copy and image aligned along their lower edge. */
+  @media (width >= theme(--breakpoint-lg)) {
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      column-gap: calc(var(--space-unit) * 6);
+      align-items: end;
+    }
+
+    .hero-copy {
+      grid-column: 1 / span 7;
+    }
+
+    .hero-figure {
+      grid-column: 8 / span 5;
+    }
+
+    .hero-image {
+      aspect-ratio: 4 / 5;
+    }
+  }
+</style>

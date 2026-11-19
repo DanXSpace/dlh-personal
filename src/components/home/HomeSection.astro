@@ -1,0 +1,51 @@
+---
+/**
+ * A numbered homepage section (design-spec §4 `/`): a mono `01 / SELECTED
+ * WORK` label with a link to the full page, then the section's content. The
+ * number is decoration, so the section's accessible name is its title alone.
+ * The homepage leaves a section out entirely when it has nothing to show.
+ */
+import type { Link } from '../../lib/links.ts';
+import TextLink from '../ui/TextLink.astro';
+
+interface Props {
+  number: number;
+  title: string;
+  /** Unique id for the heading, which names the section. */
+  id: string;
+  /** The page this section summarizes. */
+  link: Link;
+}
+
+const { number, title, id, link } = Astro.props;
+---
+
+<section class="home-section" aria-labelledby={id}>
+  <header class="home-section-header">
+    <h2 id={id} class="home-section-title font-mono text-label tracking-label text-muted">
+      <span aria-hidden="true">{String(number).padStart(2, '0')} / </span>{title}
+    </h2>
+    <TextLink href={link.href}>{link.label}</TextLink>
+  </header>
+  <slot />
+</section>
+
+<style>
+  .home-section {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 4);
+  }
+
+  .home-section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: calc(var(--space-unit) * 6);
+  }
+
+  .home-section-title {
+    text-transform: uppercase;
+  }
+</style>

@@ -5,6 +5,7 @@ stack: [TypeScript, Astro, Tailwind CSS, Cloudflare Workers, Playwright, axe-cor
 status: active
 type: experiment
 year: 2024
+featured: true
 order: 1
 ---
 

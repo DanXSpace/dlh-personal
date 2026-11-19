@@ -7,6 +7,7 @@ stack: [HTML]
 status: active
 type: other
 year: 2026
+featured: true
 draft: true
 ---
 
