@@ -1,10 +1,203 @@
 ---
+import { Image } from 'astro:assets';
+import Hero from '../components/home/Hero.astro';
+import HomeSection from '../components/home/HomeSection.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { categoryLabels } from '../lib/categories.ts';
+import { getHomeIntroduction, getNowSummary, getPublished } from '../lib/content.ts';
+import { formatDate, isoDate } from '../lib/dates.ts';
+import { directoryImage } from '../lib/figures.ts';
+import { heroActions, recentWriting, selectedWork } from '../lib/home.ts';
+import { resumeLinks, siteResumeAccess } from '../lib/resume.ts';
 import { site } from '../site.config.ts';
+
+const projects = await getPublished('projects');
+const featured = selectedWork(projects);
+const articles = recentWriting(await getPublished('writing'));
+const nowSummary = await getNowSummary();
+const actions = heroActions({
+  hasProjects: projects.length > 0,
+  links: site.links,
+  resume: resumeLinks(siteResumeAccess()),
+});
 ---
 
+<!--
+  Homepage (design-spec §4 `/`, PRD FR-02): the hero, then Selected work,
+  Recent writing and In the present, each filled from its collection and left
+  out when it has nothing to show.
+-->
 <BaseLayout description={site.description}>
-  <div class="mx-auto max-w-shell px-gutter py-section">
-    <h1 class="text-hero leading-heading font-medium">Daniel Lee Holung</h1>
+  <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
+    <Hero introduction={await getHomeIntroduction()} actions={actions} />
+
+    {
+      featured.length > 0 && (
+        <HomeSection number={1} title="Selected work" id="selected-work" link={{ label: 'All work', href: '/work' }}>
+          <ul class="home-list">
+            {featured.map(({ id, data }) => (
+              <li class="home-row project-row">
+                {data.thumbnail && (
+                  <Image
+                    src={data.thumbnail}
+                    alt={data.thumbnailAlt ?? ''}
+                    widths={[...directoryImage.widths]}
+                    sizes={directoryImage.sizes}
+                    class="project-thumbnail"
+                  />
+                )}
+                <div class="project-body">
+                  <h3 class="text-section-heading leading-heading font-medium">
+                    <a href={`/work/${id}`} class="home-link">
+                      {data.title}
+                    </a>
+                  </h3>
+                  <p class="text-muted">{data.summary}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </HomeSection>
+      )
+    }
+
+    {
+      articles.length > 0 && (
+        <HomeSection
+          number={2}
+          title="Recent writing"
+          id="recent-writing"
+          link={{ label: 'Writing archive', href: '/writing' }}
+        >
+          <ol class="home-list">
+            {articles.map(({ id, data }) => (
+              <li class="home-row article-row">
+                <h3 class="text-body-large font-medium">
+                  <a href={`/writing/${id}`} class="home-link">
+                    {data.title}
+                  </a>
+                </h3>
+                <p class="flex flex-wrap gap-x-3 font-mono text-label tracking-label text-muted">
+                  <time datetime={isoDate(data.published)}>{formatDate(data.published)}</time>
+                  <span class="meta-item">
+                    <span aria-hidden="true">/</span>
+                    {categoryLabels[data.category]}
+                  </span>
+                </p>
+              </li>
+            ))}
+          </ol>
+        </HomeSection>
+      )
+    }
+
+    {
+      nowSummary && (
+        <HomeSection number={3} title="In the present" id="in-the-present" link={{ label: 'Now page', href: '/now' }}>
+          <div class="now-row">
+            <p class="now-summary text-body-large">{nowSummary}</p>
+          </div>
+        </HomeSection>
+      )
+    }
   </div>
 </BaseLayout>
+
+<style>
+  @reference '../styles/global.css';
+
+  .home-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .home-row {
+    border-block-start: var(--rule-width) solid var(--color-rule);
+  }
+
+  .home-row:last-child {
+    border-block-end: var(--rule-width) solid var(--color-rule);
+  }
+
+  .project-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 6);
+    padding-block: calc(var(--space-unit) * 8);
+  }
+
+  .project-thumbnail {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+  }
+
+  .project-body {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 3);
+    min-width: 0;
+  }
+
+  .article-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 2);
+    padding-block: calc(var(--space-unit) * 6);
+  }
+
+  /* A title with one long unbroken word still wraps at 320px. */
+  .home-row h3 {
+    overflow-wrap: anywhere;
+  }
+
+  /* Inline, as in the writing archive and /work, so a wrapped title keeps even line boxes. */
+  .home-link {
+    color: var(--color-link);
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .home-link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  /* A separator wraps with the item after it, so no line starts with a bare "/". */
+  .meta-item {
+    display: inline-flex;
+    gap: calc(var(--space-unit) * 3);
+    white-space: nowrap;
+  }
+
+  /* The rule spans the shell like the other sections'; the text keeps the reading measure. */
+  .now-row {
+    padding-block-start: calc(var(--space-unit) * 6);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+  }
+
+  .now-summary {
+    max-width: var(--measure);
+  }
+
+  /* 768px and up: as on /work, the thumbnail takes the leading four grid columns and the text the rest. */
+  @media (width >= theme(--breakpoint-md)) {
+    .project-row {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      column-gap: calc(var(--space-unit) * 6);
+      align-items: start;
+    }
+
+    .project-thumbnail {
+      grid-column: 1 / span 4;
+    }
+
+    .project-body {
+      grid-column: 5 / -1;
+    }
+  }
+</style>

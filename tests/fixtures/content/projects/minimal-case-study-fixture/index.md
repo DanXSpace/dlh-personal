@@ -7,6 +7,7 @@ stack: [HTML]
 status: archived
 type: experiment
 year: 2025
+featured: true
 ---
 
 A minimal fixture case study. It never ships, and nothing in it describes real work.

@@ -21,6 +21,15 @@ export async function getNow(): Promise<CollectionEntry<'now'> | undefined> {
   return entry;
 }
 
+/**
+ * The homepage entry (`home/index.md`), whose body is the hero's
+ * introduction, or undefined until the owner supplies one (ticket 18).
+ */
+export async function getHomeIntroduction(): Promise<CollectionEntry<'home'> | undefined> {
+  const [entry] = await getCollection('home');
+  return entry;
+}
+
 /** The Now entry's optional homepage summary, for the homepage's "In the present" section. */
 export async function getNowSummary(): Promise<string | undefined> {
   return (await getNow())?.data.summary;
