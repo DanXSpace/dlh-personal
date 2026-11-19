@@ -8,6 +8,10 @@ interface Dated {
   data: { published: Date };
 }
 
+interface Categorized {
+  data: { category: Category };
+}
+
 export interface ArchiveYear<T> {
   year: number;
   articles: T[];
@@ -35,7 +39,7 @@ export function archiveByYear<T extends Dated>(articles: readonly T[]): ArchiveY
  * `categories.ts`. Only these get a filter link and a prerendered page
  * (ADR-0002), so no filter ever leads to an empty list.
  */
-export function categoriesWithArticles(articles: readonly { data: { category: Category } }[]): Category[] {
+export function categoriesWithArticles(articles: readonly Categorized[]): Category[] {
   const used = new Set(articles.map((article) => article.data.category));
   return categories.filter((category) => used.has(category));
 }

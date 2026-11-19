@@ -1,11 +1,14 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { archiveByYear } from '../../lib/archive.ts';
-import { categoryLabels, type Category } from '../../lib/categories.ts';
-import { formatDate, isoDate } from '../../lib/dates.ts';
-import { readingMinutes } from '../../lib/reading-time.ts';
+import { archiveByYear } from '../lib/archive.ts';
+import { categoryLabels, type Category } from '../lib/categories.ts';
+import { formatDate, isoDate } from '../lib/dates.ts';
+import { readingMinutes } from '../lib/reading-time.ts';
+import BaseLayout from './BaseLayout.astro';
 
 interface Props {
+  /** Page-specific document title. */
+  title: string;
   /** The articles to list: every published article, or one category's. */
   articles: CollectionEntry<'writing'>[];
   /** Categories that have published articles; each gets a filter link. */
@@ -14,7 +17,7 @@ interface Props {
   current?: Category | undefined;
 }
 
-const { articles, categories, current } = Astro.props;
+const { title, articles, categories, current } = Astro.props;
 const years = archiveByYear(articles);
 const filters = [
   { label: 'All', href: '/writing', active: current === undefined },
@@ -27,71 +30,74 @@ const filters = [
 ---
 
 <!--
-  Writing archive (design-spec §4 `/writing`, ADR-0002). Filters are plain
-  links to prerendered category pages. From 768px each year sits in a narrow
-  leading column beside its rows, an asymmetric split on the 12-column grid.
+  Writing archive (design-spec §4 `/writing`, ADR-0002), shared by `/writing`
+  and the category pages. Filters are plain links to prerendered category
+  pages. From 768px each year sits in a narrow leading column beside its rows,
+  an asymmetric split on the 12-column grid.
 -->
-<div class="mx-auto flex max-w-shell flex-col gap-16 px-gutter py-section">
-  <header class="flex flex-col items-start gap-8">
-    <h1 class="text-page-heading leading-heading font-medium">Writing</h1>
-    {
-      categories.length > 0 && (
-        <nav aria-label="Categories">
-          <ul class="filter-list">
-            {filters.map(({ label, href, active }) => (
-              <li>
-                <a href={href} class="filter-link" aria-current={active ? 'page' : undefined}>
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )
-    }
-  </header>
-
-  {
-    years.length === 0 ? (
-      <p class="text-body-large text-muted">No articles published yet.</p>
-    ) : (
-      <div class="flex flex-col gap-16">
-        {years.map(({ year, articles: entries }) => (
-          <section class="archive-year" aria-labelledby={`year-${year}`}>
-            <h2 id={`year-${year}`} class="year-label font-mono text-label tracking-label text-muted">
-              {year}
-            </h2>
-            <ol class="archive-list">
-              {entries.map((article) => (
-                <li class="archive-row">
-                  <h3 class="text-body-large font-medium">
-                    <a href={`/writing/${article.id}`} class="archive-link">
-                      {article.data.title}
-                    </a>
-                  </h3>
-                  <p class="flex flex-wrap gap-x-3 font-mono text-label tracking-label text-muted">
-                    <time datetime={isoDate(article.data.published)}>{formatDate(article.data.published)}</time>
-                    <span class="meta-item">
-                      <span aria-hidden="true">/</span>
-                      {categoryLabels[article.data.category]}
-                    </span>
-                    <span class="meta-item">
-                      <span aria-hidden="true">·</span>
-                      {readingMinutes(article.body ?? '')} min read
-                    </span>
-                  </p>
+<BaseLayout title={title}>
+  <div class="mx-auto flex max-w-shell flex-col gap-16 px-gutter py-section">
+    <header class="flex flex-col items-start gap-8">
+      <h1 class="text-page-heading leading-heading font-medium">Writing</h1>
+      {
+        categories.length > 0 && (
+          <nav aria-label="Categories">
+            <ul class="filter-list">
+              {filters.map(({ label, href, active }) => (
+                <li>
+                  <a href={href} class="filter-link" aria-current={active ? 'page' : undefined}>
+                    {label}
+                  </a>
                 </li>
               ))}
-            </ol>
-          </section>
-        ))}
-      </div>
-    )
-  }
-</div>
+            </ul>
+          </nav>
+        )
+      }
+    </header>
+
+    {
+      years.length === 0 ? (
+        <p class="text-body-large text-muted">No articles published yet.</p>
+      ) : (
+        <div class="flex flex-col gap-16">
+          {years.map(({ year, articles: entries }) => (
+            <section class="archive-year" aria-labelledby={`year-${year}`}>
+              <h2 id={`year-${year}`} class="year-label font-mono text-label tracking-label text-muted">
+                {year}
+              </h2>
+              <ol class="archive-list">
+                {entries.map((article) => (
+                  <li class="archive-row">
+                    <h3 class="text-body-large font-medium">
+                      <a href={`/writing/${article.id}`} class="archive-link">
+                        {article.data.title}
+                      </a>
+                    </h3>
+                    <p class="flex flex-wrap gap-x-3 font-mono text-label tracking-label text-muted">
+                      <time datetime={isoDate(article.data.published)}>{formatDate(article.data.published)}</time>
+                      <span class="meta-item">
+                        <span aria-hidden="true">/</span>
+                        {categoryLabels[article.data.category]}
+                      </span>
+                      <span class="meta-item">
+                        <span aria-hidden="true">·</span>
+                        {readingMinutes(article.body ?? '')} min read
+                      </span>
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>
 
 <style>
-  @reference '../../styles/global.css';
+  @reference '../styles/global.css';
 
   .filter-list {
     display: flex;
@@ -173,11 +179,11 @@ const filters = [
     padding-block: calc(var(--space-unit) * 6);
   }
 
-  /* 768px and up: the year takes the leading three of twelve columns and the rows the rest. */
+  /* 768px and up: the year takes the leading three grid columns and the rows the rest. */
   @media (width >= theme(--breakpoint-md)) {
     .archive-year {
       display: grid;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
       column-gap: calc(var(--space-unit) * 6);
       align-items: start;
     }

@@ -1,7 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import WritingArchive from '../../../components/writing/WritingArchive.astro';
-import BaseLayout from '../../../layouts/BaseLayout.astro';
+import WritingArchiveLayout from '../../../layouts/WritingArchiveLayout.astro';
 import { categoriesWithArticles } from '../../../lib/archive.ts';
 import { categoryLabels, type Category } from '../../../lib/categories.ts';
 import { getPublished } from '../../../lib/content.ts';
@@ -29,6 +28,9 @@ interface Props {
 const { category, categories, articles } = Astro.props;
 ---
 
-<BaseLayout title={`${categoryLabels[category]} — Writing`}>
-  <WritingArchive articles={articles} categories={categories} current={category} />
-</BaseLayout>
+<WritingArchiveLayout
+  title={`${categoryLabels[category]} — Writing`}
+  articles={articles}
+  categories={categories}
+  current={category}
+/>
