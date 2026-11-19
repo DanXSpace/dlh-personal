@@ -176,7 +176,7 @@ Astro 7 replaced remark/rehype with the Rust-based **Sätteri** processor by def
 | Need | Approach |
 | --- | --- |
 | Heading IDs | Built in (`github-slugger`). |
-| Table of contents | `headings` returned by `render()`; rendered by `ArticleLayout` from `h2`/`h3`. |
+| Table of contents | `headings` returned by `render()`; `lib/toc.ts` picks the `h2`/`h3`s and `components/ui/TableOfContents.astro` renders them for `ArticleLayout` and `CaseStudyLayout`. |
 | Heading anchor links | In-repo Sätteri `hastPlugins` entry in `src/markdown/` (ordered after `satteriHeadingIdsPlugin()`). |
 | Syntax highlighting | Astro's built-in Shiki, which works under Sätteri (verified in ticket 06). Shiki colours tokens with inline `style` attributes, which the CSP (§11) blocks, so it uses Astro's `css-variables` theme plus an in-repo transformer (`src/markdown/shiki-token-classes.ts`) that turns each token into a class (`token-keyword`, `token-comment`, …) and drops every style attribute. `prose.css` styles those classes from the design tokens in the approved monochrome palette (owner decision, 2026-11-19), so code follows the theme with no extra colours. No fallback was needed. |
 | GFM tables, footnotes | Sätteri `features` (GFM on by default). |

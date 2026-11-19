@@ -9,6 +9,7 @@ import { z } from 'astro/zod';
 import { categories } from './lib/categories.ts';
 import { entryIds } from './lib/content-ids.ts';
 import { resolveContentSource } from './lib/content-source.ts';
+import { projectStatuses, projectTypes } from './lib/projects.ts';
 
 const { contentRoot } = resolveContentSource(process.env);
 
@@ -24,6 +25,26 @@ function entryLoader(collection: string) {
     generateId: entryIds({ collection, base, exists: existsSync }),
   });
 }
+
+const projects = defineCollection({
+  loader: entryLoader('projects'),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string().min(1),
+      summary: z.string().min(1).max(160),
+      thumbnail: image(),
+      thumbnailAlt: z.string().trim().min(1, 'Describe the thumbnail in `thumbnailAlt`, so the image is never missing alt text.'),
+      stack: z.array(z.string().trim().min(1)).min(1),
+      status: z.enum(projectStatuses),
+      type: z.enum(projectTypes),
+      year: z.number().int(),
+      featured: z.boolean().default(false),
+      order: z.number().optional(),
+      repo: z.url().optional(),
+      live: z.url().optional(),
+      draft: z.boolean().default(false),
+    }),
+});
 
 const writing = defineCollection({
   loader: entryLoader('writing'),
@@ -47,4 +68,4 @@ const writing = defineCollection({
       }),
 });
 
-export const collections = { writing };
+export const collections = { projects, writing };

@@ -1,0 +1,78 @@
+---
+/**
+ * Anchored contents for an article or case study (design-spec §4): `h2`
+ * sections with their `h3`s nested, from `tableOfContents` in `lib/toc.ts`.
+ * The layout decides where it sits.
+ */
+import type { TocItem } from '../../lib/toc.ts';
+
+interface Props {
+  items: TocItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="toc" aria-labelledby="contents-label">
+  <p id="contents-label" class="font-mono text-label uppercase tracking-label text-muted">Contents</p>
+  <ol class="contents-list">
+    {
+      items.map((item) => (
+        <li>
+          <a href={`#${item.slug}`}>{item.text}</a>
+          {item.children.length > 0 && (
+            <ol>
+              {item.children.map((child) => (
+                <li>
+                  <a href={`#${child.slug}`}>{child.text}</a>
+                </li>
+              ))}
+            </ol>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .toc {
+    padding-block-start: calc(var(--space-unit) * 6);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+    max-width: var(--measure);
+  }
+
+  .contents-list,
+  .contents-list ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contents-list {
+    margin-block-start: calc(var(--space-unit) * 2);
+  }
+
+  .contents-list ol {
+    padding-inline-start: calc(var(--space-unit) * 4);
+  }
+
+  .contents-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    color: var(--color-muted);
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition:
+      color var(--duration-fast) var(--ease-standard),
+      text-decoration-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .contents-list a:hover {
+    color: var(--color-text);
+    text-decoration-color: currentColor;
+  }
+</style>
