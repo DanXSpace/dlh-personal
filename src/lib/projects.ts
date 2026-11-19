@@ -2,6 +2,7 @@
  * Projects (PRD FR-03, FR-04; architecture §5.1). The label maps' keys are the
  * values allowed in frontmatter; the labels are what readers see.
  */
+import { newestFirst, type Dated } from './archive.ts';
 export const projectStatusLabels = {
   active: 'Active',
   maintained: 'Maintained',
@@ -23,9 +24,7 @@ export type ProjectType = keyof typeof projectTypeLabels;
 
 export const projectTypes = Object.keys(projectTypeLabels) as [ProjectType, ...ProjectType[]];
 
-interface Referencing {
-  data: { published: Date; project?: { id: string } | undefined };
-}
+type Referencing = Dated & { data: { project?: { id: string } | undefined } };
 
 /**
  * The articles that reference a project through their `project` frontmatter,
@@ -33,12 +32,11 @@ interface Referencing {
  * articles only, so drafts never appear.
  */
 export function relatedWriting<T extends Referencing>(projectId: string, articles: readonly T[]): T[] {
-  return articles
-    .filter((article) => article.data.project?.id === projectId)
-    .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
+  return newestFirst(articles.filter((article) => article.data.project?.id === projectId));
 }
 
-interface Orderable {
+/** A project, as far as its place in the directory goes. */
+export interface Orderable {
   data: { title: string; year: number; order?: number | undefined };
 }
 

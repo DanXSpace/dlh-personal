@@ -2,30 +2,23 @@
  * The homepage's content selection (PRD FR-02, design-spec §4 `/`). Pass
  * published entries only, so drafts never appear.
  */
+import { newestFirst, type Dated } from './archive.ts';
 import { visibleLinks, type Link, type SiteLinks } from './links.ts';
-import { directoryOrder } from './projects.ts';
+import { directoryOrder, type Orderable } from './projects.ts';
 
 const SELECTED_WORK_LIMIT = 3;
 const RECENT_WRITING_LIMIT = 3;
 
-interface Featurable {
-  data: { title: string; year: number; order?: number | undefined; featured: boolean };
-}
+type Featurable = Orderable & { data: { featured: boolean } };
 
 /** Selected work: up to three featured projects, in `/work`'s order. */
 export function selectedWork<T extends Featurable>(projects: readonly T[]): T[] {
   return directoryOrder(projects.filter((project) => project.data.featured)).slice(0, SELECTED_WORK_LIMIT);
 }
 
-interface Dated {
-  data: { published: Date };
-}
-
 /** Recent writing: the three newest articles, newest first. */
 export function recentWriting<T extends Dated>(articles: readonly T[]): T[] {
-  return [...articles]
-    .sort((a, b) => b.data.published.getTime() - a.data.published.getTime())
-    .slice(0, RECENT_WRITING_LIMIT);
+  return newestFirst(articles).slice(0, RECENT_WRITING_LIMIT);
 }
 
 /**
