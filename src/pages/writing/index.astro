@@ -1,0 +1,9 @@
+---
+import WritingArchiveLayout from '../../layouts/WritingArchiveLayout.astro';
+import { categoriesWithArticles } from '../../lib/archive.ts';
+import { getPublished } from '../../lib/content.ts';
+
+const articles = await getPublished('writing');
+---
+
+<WritingArchiveLayout title="Writing" articles={articles} categories={categoriesWithArticles(articles)} />

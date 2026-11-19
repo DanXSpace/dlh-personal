@@ -1,0 +1,200 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { archiveByYear } from '../lib/archive.ts';
+import { categoryLabels, type Category } from '../lib/categories.ts';
+import { formatDate, isoDate } from '../lib/dates.ts';
+import { readingMinutes } from '../lib/reading-time.ts';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  /** Page-specific document title. */
+  title: string;
+  /** The articles to list: every published article, or one category's. */
+  articles: CollectionEntry<'writing'>[];
+  /** Categories that have published articles; each gets a filter link. */
+  categories: Category[];
+  /** The category this page filters to, or undefined for the full archive. */
+  current?: Category | undefined;
+}
+
+const { title, articles, categories, current } = Astro.props;
+const years = archiveByYear(articles);
+const filters = [
+  { label: 'All', href: '/writing', active: current === undefined },
+  ...categories.map((category) => ({
+    label: categoryLabels[category],
+    href: `/writing/category/${category}`,
+    active: category === current,
+  })),
+];
+---
+
+<!--
+  Writing archive (design-spec §4 `/writing`, ADR-0002), shared by `/writing`
+  and the category pages. Filters are plain links to prerendered category
+  pages. From 768px each year sits in a narrow leading column beside its rows,
+  an asymmetric split on the 12-column grid.
+-->
+<BaseLayout title={title}>
+  <div class="mx-auto flex max-w-shell flex-col gap-16 px-gutter py-section">
+    <header class="flex flex-col items-start gap-8">
+      <h1 class="text-page-heading leading-heading font-medium">Writing</h1>
+      {
+        categories.length > 0 && (
+          <nav aria-label="Categories">
+            <ul class="filter-list">
+              {filters.map(({ label, href, active }) => (
+                <li>
+                  <a href={href} class="filter-link" aria-current={active ? 'page' : undefined}>
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </header>
+
+    {
+      years.length === 0 ? (
+        <p class="text-body-large text-muted">No articles published yet.</p>
+      ) : (
+        <div class="flex flex-col gap-16">
+          {years.map(({ year, articles: entries }) => (
+            <section class="archive-year" aria-labelledby={`year-${year}`}>
+              <h2 id={`year-${year}`} class="year-label font-mono text-label tracking-label text-muted">
+                {year}
+              </h2>
+              <ol class="archive-list">
+                {entries.map((article) => (
+                  <li class="archive-row">
+                    <h3 class="text-body-large font-medium">
+                      <a href={`/writing/${article.id}`} class="archive-link">
+                        {article.data.title}
+                      </a>
+                    </h3>
+                    <p class="flex flex-wrap gap-x-3 font-mono text-label tracking-label text-muted">
+                      <time datetime={isoDate(article.data.published)}>{formatDate(article.data.published)}</time>
+                      <span class="meta-item">
+                        <span aria-hidden="true">/</span>
+                        {categoryLabels[article.data.category]}
+                      </span>
+                      <span class="meta-item">
+                        <span aria-hidden="true">·</span>
+                        {readingMinutes(article.body ?? '')} min read
+                      </span>
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  @reference '../styles/global.css';
+
+  .filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: calc(var(--space-unit) * 6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Like the header navigation: the current filter gets text color plus an underline, never color alone. */
+  .filter-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: var(--tracking-label);
+    color: var(--color-muted);
+    text-decoration-line: none;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .filter-link:hover,
+  .filter-link[aria-current] {
+    color: var(--color-text);
+  }
+
+  .filter-link[aria-current] {
+    text-decoration-line: underline;
+  }
+
+  .archive-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .archive-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 2);
+    padding-block: calc(var(--space-unit) * 6);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+  }
+
+  .archive-row:last-child {
+    border-block-end: var(--rule-width) solid var(--color-rule);
+  }
+
+  /*
+   * Inline, so a wrapped title keeps one even line box per line (28.8px, above
+   * the 24px WCAG 2.5.8 minimum) and short and long titles sit the same
+   * distance from their metadata.
+   */
+  .archive-link {
+    color: var(--color-link);
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .archive-link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  /* A separator wraps with the item after it, so no line starts with a bare "·". */
+  .meta-item {
+    display: inline-flex;
+    gap: calc(var(--space-unit) * 3);
+    white-space: nowrap;
+  }
+
+  .year-label {
+    padding-block: calc(var(--space-unit) * 6);
+  }
+
+  /* 768px and up: the year takes the leading three grid columns and the rows the rest. */
+  @media (width >= theme(--breakpoint-md)) {
+    .archive-year {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      column-gap: calc(var(--space-unit) * 6);
+      align-items: start;
+    }
+
+    .year-label {
+      grid-column: 1 / span 3;
+      border-block-start: var(--rule-width) solid var(--color-rule);
+    }
+
+    .archive-list {
+      grid-column: 4 / -1;
+    }
+  }
+</style>
