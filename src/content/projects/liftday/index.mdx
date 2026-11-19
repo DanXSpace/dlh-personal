@@ -1,0 +1,37 @@
+---
+# LiftDay case study (/work/liftday). Published with the verified details so
+# far while the app is in development (owner, 2026-11-19): the summary is
+# adapted from the repo's own description, the stack is the repo's language.
+# Add the Problem, Architecture, Decisions, Testing and Lessons sections as
+# the owner supplies them.
+
+title: LiftDay
+summary: A workout tracker that tells you what to lift today, logs it, and explains your progress in plain English.
+stack: [Swift]                      # FILL IN: confirm, and add frameworks (e.g. SwiftUI) if you want them listed
+status: active
+type: application
+year: 2026
+featured: true                      # shows it in the homepage's Selected Work
+# live: https://FILL-IN             # App Store or TestFlight link, if there is one
+---
+
+import today from './today.png';
+
+LiftDay is an iPhone workout tracker. It tells you what to lift today, logs it, and explains your progress in plain English.
+
+LiftDay is still in development.
+
+## Screenshots
+
+{/* A gallery, so the tall phone screenshot sits a third of the width on desktop; add more screens to fill the row. */}
+<Gallery
+  columns={3}
+  figures={[
+    {
+      src: today,
+      alt: "LiftDay's Today screen for a Squat / Bench day: 8 exercises and 28 sets. Barbell Back Squat is first up at 140 lb for 6 reps with 180 seconds of rest, followed by a list of the remaining exercises with their weights and reps, a tab bar for Today, Library, Template and History, and a Start Squat / Bench button.",
+      number: 1,
+      label: 'Today',
+    },
+  ]}
+/>

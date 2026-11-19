@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { paletteTitles, resultCount, startsWith } from '../support/palette.ts';
 
 /** Same-origin paths the page has requested so far, recorded from the start of the test. */
 function recordRequests(page: Page): string[] {
@@ -36,23 +37,28 @@ test.describe('at desktop width', () => {
     });
   }
 
-  test('lists the primary pages and filters them as the user types', async ({ page }) => {
+  test('lists the primary pages and filters them as the user types', async ({ page, request }) => {
+    const titles = await paletteTitles(request);
+    // The primary pages come first; published content follows them.
+    expect(titles.slice(0, 5)).toEqual(['Home', 'About', 'Work', 'Writing', 'Now']);
     await page.goto('/');
     await trigger(page).click();
     const options = palette(page).getByRole('option');
-    await expect(options).toHaveText([/^Home/, /^About/, /^Work/, /^Writing/, /^Now/]);
-    await expect(palette(page).getByRole('status')).toHaveText('5 results');
+    await expect(options).toHaveText(titles.map(startsWith));
+    await expect(palette(page).getByRole('status')).toHaveText(resultCount(titles.length));
 
     await page.keyboard.type('wr');
     await expect(options).toHaveText([/^Writing/]);
     await expect(palette(page).getByRole('status')).toHaveText('1 result');
 
-    await page.keyboard.type('zzz');
+    // A fresh query, not "wrzzz": Pagefind's partial matching can find published pages for that.
+    await palette(page).getByRole('combobox').fill('zzz');
     await expect(options).toHaveCount(0);
     await expect(palette(page).getByRole('status')).toHaveText('No matches');
   });
 
-  test('arrow keys move the active option and Enter goes to it', async ({ page }) => {
+  test('arrow keys move the active option and Enter goes to it', async ({ page, request }) => {
+    const titles = await paletteTitles(request);
     await page.goto('/');
     await trigger(page).click();
     const input = palette(page).getByRole('combobox');
@@ -65,14 +71,18 @@ test.describe('at desktop width', () => {
     await expect(option('Home')).toHaveAttribute('aria-selected', 'false');
     await expect(input).toHaveAttribute('aria-activedescendant', (await option('Work').getAttribute('id'))!);
 
-    // Up from the first option wraps to the last.
+    // Up from the first option wraps to the last, and down from the last back to the first.
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('ArrowUp');
+    await expect(option('Home')).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('ArrowUp');
-    await expect(option('Now')).toHaveAttribute('aria-selected', 'true');
+    const last = palette(page).getByRole('option', { name: startsWith(titles.at(-1)!) });
+    await expect(last).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('ArrowDown');
+    await expect(option('Home')).toHaveAttribute('aria-selected', 'true');
 
-    await page.keyboard.press('ArrowUp');
-    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
     await expect(option('Work')).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL('/work');
@@ -142,7 +152,8 @@ test.describe('at desktop width', () => {
     await expect(close).toBeFocused();
   });
 
-  test('reopening starts from an empty query', async ({ page }) => {
+  test('reopening starts from an empty query', async ({ page, request }) => {
+    const titles = await paletteTitles(request);
     await page.goto('/');
     await trigger(page).click();
     await expect(palette(page).getByRole('combobox')).toBeFocused();
@@ -152,10 +163,14 @@ test.describe('at desktop width', () => {
     await expect(palette(page)).toBeHidden();
     await trigger(page).click();
     await expect(palette(page).getByRole('combobox')).toHaveValue('');
-    await expect(palette(page).getByRole('option')).toHaveCount(5);
+    await expect(palette(page).getByRole('option')).toHaveCount(titles.length);
   });
 
-  test('screen readers get the dialog, the field’s purpose, the result list and the result count', async ({ page }) => {
+  test('screen readers get the dialog, the field’s purpose, the result list and the result count', async ({
+    page,
+    request,
+  }) => {
+    const titles = await paletteTitles(request);
     await page.goto('/');
     await trigger(page).click();
     // A dialog named Search: a native modal <dialog>, so the rest of the page is inert.
@@ -167,7 +182,7 @@ test.describe('at desktop width', () => {
     await expect(input).toHaveAttribute('aria-expanded', 'true');
     const listbox = dialog.getByRole('listbox', { name: 'Results' });
     await expect(input).toHaveAttribute('aria-controls', (await listbox.getAttribute('id'))!);
-    await expect(dialog.getByRole('status')).toHaveText('5 results');
+    await expect(dialog.getByRole('status')).toHaveText(resultCount(titles.length));
 
     await page.keyboard.type('zzz');
     await expect(input).toHaveAttribute('aria-expanded', 'false');

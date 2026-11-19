@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { site } from '../../src/site.config.ts';
 
 /**
  * The expanded state Chromium exposes to assistive technology, read from its
@@ -157,15 +158,13 @@ test('the skip link is the first focusable element and moves focus to the main c
   await expect(page.getByRole('main')).toBeFocused();
 });
 
-test('the footer shows the copyright and no contact or professional links while none are supplied', async ({
-  page,
-}) => {
+test('the footer shows the copyright and the contact and professional links from site config', async ({ page }) => {
   await page.goto('/');
   const footer = page.getByRole('contentinfo');
   await expect(footer).toContainText(/© \d{4} Daniel Lee Holung/);
-  for (const name of ['Email', 'GitHub', 'LinkedIn']) {
-    await expect(page.getByRole('link', { name })).toHaveCount(0);
-  }
+  await expect(footer.getByRole('link', { name: 'Email' })).toHaveAttribute('href', `mailto:${site.links.email}`);
+  await expect(footer.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', site.links.github);
+  await expect(footer.getByRole('link', { name: 'LinkedIn' })).toHaveAttribute('href', site.links.linkedin);
 });
 
 interface Stripe {

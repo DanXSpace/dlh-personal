@@ -148,23 +148,22 @@ test.describe('the interests', () => {
   });
 });
 
-// Site config has no contact or professional links in either build yet, so
-// only the omitted invitation can be seen here; the unit tests for
-// `contactInvitation` cover which links it offers once some are set.
-test('the contact invitation is omitted while site config has no links, even though the entry has a sentence', async ({
-  page,
-}) => {
+// Both builds share site config, which now has the owner's links; the unit
+// tests for `contactInvitation` cover the invitation being omitted without them.
+test('the contact invitation shows the entry’s sentence and the links set in site config', async ({ page }) => {
   await page.goto('/about');
-  await expect(page.getByRole('region', { name: 'Get in touch' })).toHaveCount(0);
-  await expect(page.getByText('Fixture invitation sentence')).toHaveCount(0);
+  const invitation = page.getByRole('region', { name: 'Get in touch' });
+  await expect(invitation).toContainText('Fixture invitation sentence');
+  await expect(invitation.getByRole('link')).toHaveText(['Email', 'GitHub', 'LinkedIn']);
 });
 
-test('sections follow the opener in order: career, heritage, interests', async ({ page }) => {
+test('sections follow the opener in order: career, heritage, interests, contact', async ({ page }) => {
   await page.goto('/about');
   await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText([
     'Career',
     'Heritage',
     'Interests',
+    'Get in touch',
   ]);
 });
 

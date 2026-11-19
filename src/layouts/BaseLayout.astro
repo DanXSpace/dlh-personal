@@ -34,6 +34,8 @@ const { title, description, seo } = Astro.props;
     <script is:inline set:html={THEME_INIT_SCRIPT} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Seo title={title} description={description} seo={seo} />
+    {/* The simplified `d.` monogram (design-spec §1). Drafted in ticket 18, pending owner approval. */}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <Font cssVariable="--font-geist-sans" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />
     <Font cssVariable="--font-geist-mono" />
   </head>

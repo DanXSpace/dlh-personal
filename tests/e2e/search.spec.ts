@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { paletteTitles, resultCount } from '../support/palette.ts';
 import { indexedPages, publishedEntries } from '../support/search.ts';
 
 // Full-text search (ticket 17) in the production build, whose Pagefind index
@@ -15,7 +16,7 @@ test('search loads only once the visitor types a query, and runs without errors'
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await page.keyboard.press('Control+k');
-  await expect(palette(page).getByRole('status')).toHaveText('5 results');
+  await expect(palette(page).getByRole('status')).toHaveText(resultCount((await paletteTitles(request)).length));
   expect(requests.filter((path) => path.startsWith('/pagefind/'))).toEqual([]);
 
   await page.keyboard.type('now');
