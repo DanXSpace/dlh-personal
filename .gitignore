@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.astro/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# cloudflare / wrangler
+.wrangler/
+.dev.vars
+
+# test artifacts
+playwright-report/
+test-results/
+blob-report/
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# local Claude Code settings
+.claude/settings.local.json
