@@ -161,6 +161,8 @@ Author is a single constant from `site.config.ts`, not a per-post field.
 
 Single entry (`now/index.md`) with `updated: date` (required) and a body using `##` headings for Building, Learning, Exploring, Training and Listening. The homepage summary comes from an optional `summary` frontmatter field.
 
+The schema is `nowSchema` in `lib/now.ts`. `summary` is limited to 160 characters, like the other collections' summaries. A missing or invalid `updated` fails the build with a message asking for a `YYYY-MM-DD` date. The text before the first `##` is the page's introduction, and a section the entry leaves out doesn't render. The entry has no `draft` flag. Pages read it through `getNow()` and `getNowSummary()` in `lib/content.ts`. Until the entry exists, `/now` shows its heading and "No update published yet." (ticket 11).
+
 ### 5.4 Site identity — `src/site.config.ts`
 
 Name, tagline, description, canonical origin, nav items, and social/contact links. **Contact fields start empty.** Components render a link only when its value is set, so nothing placeholder-shaped can reach production (FR-10, PRD §11). This file is typed so a missing required field is a type error.
