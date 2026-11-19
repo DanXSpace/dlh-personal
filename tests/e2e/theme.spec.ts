@@ -126,12 +126,12 @@ test('the theme control is a named group of System, Light and Dark operable by k
     await expect(radios.nth(index)).toHaveAccessibleName(name);
   }
 
-  // The control follows the skip link, home link and navigation in tab order.
+  // The control follows the skip link, home link, navigation and Search button in tab order.
   const system = group.getByRole('radio', { name: 'System' });
   await expect(async () => {
     await page.keyboard.press('Tab');
     await expect(system).toBeFocused({ timeout: 100 });
-  }).toPass({ timeout: 5000 });
+  }).toPass({ intervals: [0], timeout: 5000 });
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ArrowRight');
   await expect(group.getByRole('radio', { name: 'Dark' })).toBeChecked();
