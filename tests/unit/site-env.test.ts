@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveSiteEnv, robotsTxt } from '../../src/lib/site-env.ts';
+import { launchOriginProblem, resolveSiteEnv, robotsTxt } from '../../src/lib/site-env.ts';
 
 test('a build is not indexable when PUBLIC_SITE_ENV is unset', () => {
   assert.equal(resolveSiteEnv({}).indexable, false);
@@ -43,4 +43,20 @@ test('an indexable build allows every crawler and points to the sitemap index', 
     robotsTxt({ indexable: true }, sitemap),
     'User-agent: *\nAllow: /\n\nSitemap: https://example.com/sitemap-index.xml\n',
   );
+});
+
+const interimOrigin = 'https://dlh-personal.dan-holung.workers.dev';
+
+test('an indexable build fails while the origin is still the interim workers.dev address', () => {
+  const problem = launchOriginProblem({ indexable: true }, interimOrigin);
+  assert.match(problem ?? '', /workers\.dev/);
+  assert.match(problem ?? '', /origin/);
+});
+
+test('a preview build may use the interim workers.dev origin', () => {
+  assert.equal(launchOriginProblem({ indexable: false }, interimOrigin), undefined);
+});
+
+test('an indexable build with a custom-domain origin passes', () => {
+  assert.equal(launchOriginProblem({ indexable: true }, 'https://example.com'), undefined);
 });

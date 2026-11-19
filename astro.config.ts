@@ -9,11 +9,17 @@ import type { AstroIntegration } from 'astro';
 import { resolveContentSource } from './src/lib/content-source.ts';
 import { scriptHash } from './src/lib/csp.ts';
 import { searchIndex } from './src/lib/search-index.ts';
+import { launchOriginProblem, resolveSiteEnv } from './src/lib/site-env.ts';
 import { THEME_INIT_SCRIPT } from './src/lib/theme.ts';
 import { hastPlugins, shikiConfig } from './src/markdown/pipeline.ts';
 import { site } from './src/site.config.ts';
 
 const contentSource = resolveContentSource(process.env);
+
+// An indexable build must not publish canonical URLs on the interim origin.
+const originProblem = launchOriginProblem(resolveSiteEnv(process.env), site.origin);
+if (originProblem) throw new Error(originProblem);
+
 const [publicDir, ...publicOverlays] = contentSource.publicDirs;
 
 // Astro serves one public directory; later layers (fixture files such as a

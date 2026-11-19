@@ -24,27 +24,25 @@ test('words from an article’s body find it, titled, with a short excerpt', asy
   await expect(result.locator('.palette-option-excerpt')).toContainText('hanging indent');
 });
 
-test('only the body is searched, not the deck or summary, the site header and footer, bylines, project details or heading links', async ({
+test('a deck or summary is searched along with the body', async ({ page }) => {
+  await openPalette(page);
+  // Only the article fixtures' decks use this word.
+  await page.keyboard.type('accessibility');
+  await expect(palette(page).locator('.palette-option-excerpt', { hasText: 'accessibility' }).first()).toBeVisible();
+  // Only the minimal case study's summary uses this word.
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.type('required');
+  await expect(palette(page).locator('.palette-option-excerpt', { hasText: 'required' }).first()).toBeVisible();
+});
+
+test('the site header and footer, bylines, project details and heading links are not searched', async ({
   page,
 }) => {
   await openPalette(page);
   const options = palette(page).getByRole('option');
   const status = palette(page).getByRole('status');
-  const listbox = palette(page).getByRole('listbox', { name: 'Results', includeHidden: true });
-
-  // Only the article fixtures' decks use this word. Pagefind answers an
-  // unknown word with matches for a shorter prefix of it, so the check is that
-  // no excerpt quotes the deck, rather than that nothing is found.
-  await page.keyboard.type('accessibility');
-  await expect(listbox).toHaveAttribute('aria-busy', 'false');
-  await expect(palette(page).locator('.palette-option-excerpt', { hasText: 'accessibility' })).toHaveCount(0);
-  // Only the minimal case study's summary uses this word.
-  await page.keyboard.press('ControlOrMeta+a');
-  await page.keyboard.type('required');
-  await expect(status).toHaveText('No matches');
 
   // The theme selector's first option, in the site header.
-  await page.keyboard.press('ControlOrMeta+a');
   await page.keyboard.type('System');
   await expect(status).toHaveText('No matches');
   // In the site footer and every article's byline.
