@@ -166,7 +166,7 @@ Name, tagline, description, canonical origin, nav items, and social/contact link
 - Collection loaders take their `base` from `resolveContentSource(process.env).contentRoot` (`lib/content-source.ts`), so template tests can build against fixtures into `dist-fixtures/` without fixtures ever reaching `dist/` (ADR-0004).
 - `lib/content.ts` exposes `getPublished(collection)`, which filters `draft: true` when `import.meta.env.PROD`. Every page, RSS, sitemap and search reads through it, so the FR-06 rule lives in one place. Drafts still render in `astro dev`.
 - Schema violations fail the build with Astro's field-level error messages.
-- **Duplicate slugs:** the glob loader warns rather than fails on a duplicate id. A small integration (`astro:build:start` hook) or test asserts unique ids per collection and fails with the conflicting file paths.
+- **Duplicate slugs:** the glob loader warns rather than fails on a duplicate id, and its optional `prerenderConflictBehavior: 'error'` check can miss a duplicate when two new files load concurrently. Instead each collection's loader takes its `generateId` from `lib/content-ids.ts`, which sees every file in turn and fails the build naming both files. Entries are `<slug>.md` or `<slug>/index.md`, and a slug that isn't lowercase and hyphenated also fails the build (ticket 06).
 - **Reading time** is computed in `lib/reading-time.ts` from the entry's raw `body` (word count ÷ ~230 wpm, code blocks stripped). No dependency or Markdown plugin needed.
 
 ## 6. Markdown and MDX pipeline
@@ -178,11 +178,11 @@ Astro 7 replaced remark/rehype with the Rust-based **Sätteri** processor by def
 | Heading IDs | Built in (`github-slugger`). |
 | Table of contents | `headings` returned by `render()`; rendered by `ArticleLayout` from `h2`/`h3`. |
 | Heading anchor links | In-repo Sätteri `hastPlugins` entry in `src/markdown/` (ordered after `satteriHeadingIdsPlugin()`). |
-| Syntax highlighting | Astro's built-in Shiki with dual light/dark themes driven by CSS variables. **Verify behaviour under Sätteri in the article ticket**; if gaps appear, evaluate `astro-expressive-code` (0.44.x supports Astro 7) before falling back to `unified()`. |
+| Syntax highlighting | Astro's built-in Shiki, which works under Sätteri (verified in ticket 06). Shiki colours tokens with inline `style` attributes, which the CSP (§11) blocks, so it uses Astro's `css-variables` theme plus an in-repo transformer (`src/markdown/shiki-token-classes.ts`) that turns each token into a class (`token-keyword`, `token-comment`, …) and drops every style attribute. `prose.css` styles those classes from the design tokens in the approved monochrome palette (owner decision, 2026-11-19), so code follows the theme with no extra colours. No fallback was needed. |
 | GFM tables, footnotes | Sätteri `features` (GFM on by default). |
 | Diagrams | `<Diagram>` MDX component wrapping inline SVG or a static image with caption. No client-side diagram rendering. |
 | Reusable components | `Callout`, `Figure`, `Gallery`, `Diagram`, `Meta`, mapped through the MDX `components` export in the layouts so authors don't import them. `Figure` renders mono captions in the spec's `FIG. 01 / ROOTS` form; `Diagram` requires a text equivalent prop (design-spec §6). |
-| Overflow | Code blocks and tables wrap in a scroll container with `tabindex="0"` and an accessible label so keyboard users can scroll them (design-spec §7). |
+| Overflow | Code blocks and tables wrap in a scroll container with `role="region"`, `tabindex="0"` and an accessible label (`Code: TypeScript`, `Code`, `Table`) so keyboard users can scroll them (design-spec §7). In-repo Sätteri plugin `src/markdown/scroll-regions.ts`. |
 
 **Astro 7 gotchas to remember:** the Rust compiler errors on unclosed tags and no longer fixes invalid nesting (e.g. `<div>` inside `<p>`); `compressHTML` now defaults to `'jsx'`, which can remove spaces between adjacent inline elements (use `{" "}` or set `compressHTML: true`).
 
@@ -320,8 +320,8 @@ Node's built-in test runner keeps unit tests dependency-free; switch to Vitest o
 
 ## 14. Dependencies
 
-**Runtime/build:** `astro`, `@astrojs/mdx`, `@astrojs/sitemap`, `@astrojs/rss`, `tailwindcss`, `@tailwindcss/vite`, `sharp`.
-**Dev:** `typescript@6`, `@types/node` (types for `node:test` and `process.env` under `astro check`), `@astrojs/check`, `@playwright/test`, `@axe-core/playwright`, `wrangler`.
+**Runtime/build:** `astro`, `@astrojs/markdown-satteri` (to pass in-repo plugins to Astro's default processor), `@astrojs/mdx`, `@astrojs/sitemap`, `@astrojs/rss`, `tailwindcss`, `@tailwindcss/vite`, `sharp`.
+**Dev:** `typescript@6`, `@types/node` (types for `node:test` and `process.env` under `astro check`), `@types/hast` (types for the in-repo Markdown plugins), `@astrojs/check`, `@playwright/test`, `@axe-core/playwright`, `wrangler`.
 **Secondary (added with their tickets):** `pagefind`.
 **Explicitly not used:** UI frameworks, `@tailwindcss/typography`, `reading-time`, rehype/remark plugins, CSS-in-JS, analytics SDKs, any CMS.
 

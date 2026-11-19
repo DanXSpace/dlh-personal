@@ -1,8 +1,10 @@
+import { satteri } from '@astrojs/markdown-satteri';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
 import { resolveContentSource } from './src/lib/content-source.ts';
 import { scriptHash } from './src/lib/csp.ts';
 import { THEME_INIT_SCRIPT } from './src/lib/theme.ts';
+import { hastPlugins, shikiConfig } from './src/markdown/pipeline.ts';
 
 const contentSource = resolveContentSource(process.env);
 
@@ -32,6 +34,13 @@ export default defineConfig({
       fallbacks: ['ui-monospace', 'monospace'],
     },
   ],
+  // Astro 7's default Sätteri processor, extended with in-repo plugins for
+  // heading anchors and scroll regions, and Shiki with CSP-safe token classes
+  // (architecture §6, src/markdown/).
+  markdown: {
+    processor: satteri({ hastPlugins }),
+    shikiConfig,
+  },
   security: {
     // Astro emits the policy as a <meta> tag on every page and adds `script-src`
     // and `style-src` with hashes of the inline scripts and styles it renders, so
