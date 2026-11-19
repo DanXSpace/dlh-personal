@@ -32,11 +32,15 @@ test('a Workers Builds build of main with PUBLIC_SITE_ENV=production is indexabl
   );
 });
 
-test('a non-indexable build disallows every crawler from every path', () => {
-  assert.equal(robotsTxt({ indexable: false }), 'User-agent: *\nDisallow: /\n');
+const sitemap = 'https://example.com/sitemap-index.xml';
+
+test('a non-indexable build disallows every crawler from every path and names no sitemap', () => {
+  assert.equal(robotsTxt({ indexable: false }, sitemap), 'User-agent: *\nDisallow: /\n');
 });
 
-test('an indexable build allows every crawler', () => {
-  assert.equal(robotsTxt({ indexable: true }), 'User-agent: *\nAllow: /\n');
+test('an indexable build allows every crawler and points to the sitemap index', () => {
+  assert.equal(
+    robotsTxt({ indexable: true }, sitemap),
+    'User-agent: *\nAllow: /\n\nSitemap: https://example.com/sitemap-index.xml\n',
+  );
 });
-

@@ -52,6 +52,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 ├── tsconfig.json                 # extends astro/tsconfigs/strictest
 ├── wrangler.jsonc                # static assets config (§12)
 ├── .nvmrc
+├── scripts/                      # one-off tools, e.g. render-social-image.ts (§10.2)
 ├── docs/
 │   ├── prd.md
 │   ├── design-spec.md
@@ -60,6 +61,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   └── agents/
 ├── public/
 │   ├── _headers                  # security headers (§11)
+│   ├── _redirects                # /sitemap.xml → /sitemap-index.xml (§4)
+│   ├── social/default.png        # default link-preview image (§10.2)
 │   ├── resume.pdf                # only once supplied by the owner
 │   └── favicon.svg
 ├── src/
@@ -69,8 +72,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   │   ├── projects/<slug>/index.mdx (+ colocated images)
 │   │   ├── writing/<slug>/index.{md,mdx} (+ colocated images)
 │   │   ├── now/index.md
-│   │   └── home/index.md         # hero introduction (§5.6)
-│   ├── assets/                   # site-wide images (hero, portrait); hero.ts (§5.6)
+│   │   └── home/index.md         # hero introduction (§5.7)
+│   ├── assets/                   # site-wide images (hero, portrait); hero.ts (§5.7)
 │   ├── components/
 │   │   ├── layout/               # Header, Footer, Nav, ThemeToggle, Seo
 │   │   ├── content/              # MDX components: Callout, Figure, Gallery, Diagram, Meta
@@ -97,8 +100,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 
 | Route | File | Source |
 | --- | --- | --- |
-| `/` | `pages/index.astro` | `home` introduction, featured `projects`, 3 newest `writing`, `now` summary (§5.6) |
-| `/about` | `pages/about.astro` | page content in an MDX partial so copy edits avoid template edits |
+| `/` | `pages/index.astro` | `home` introduction, featured `projects`, 3 newest `writing`, `now` summary (§5.7) |
+| `/about` | `pages/about.astro` | the single `about` entry (§5.6), so copy edits avoid template edits |
 | `/work` | `pages/work/index.astro` | published `projects` |
 | `/work/[slug]` | `pages/work/[slug].astro` | `getStaticPaths` over published `projects` |
 | `/writing` | `pages/writing/index.astro` | published `writing`, grouped by year |
@@ -176,7 +179,24 @@ Name, tagline, description, canonical origin, nav items, and social/contact link
 - **Duplicate slugs:** the glob loader warns rather than fails on a duplicate id, and its optional `prerenderConflictBehavior: 'error'` check can miss a duplicate when two new files load concurrently. Instead each collection's loader takes its `generateId` from `lib/content-ids.ts`, which sees every file in turn and fails the build naming both files. Entries are `<slug>.md` or `<slug>/index.md`, and a slug that isn't lowercase and hyphenated also fails the build (ticket 06).
 - **Reading time** is computed in `lib/reading-time.ts` from the entry's raw `body` (word count ÷ ~230 wpm, code blocks stripped). No dependency or Markdown plugin needed.
 
-### 5.6 `home` and the hero image
+### 5.6 `about`
+
+Single entry (`about/index.md(x)`), read through `getPublished`. A collection rather than an imported MDX partial, so the fixture build (ADR-0004) can supply its own entry. Every field is optional, and `/about` omits each section whose field is absent (ticket 12).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| body | MDX | the opener's introduction, under the fixed "More than an engineer." heading |
+| `portrait` | `{ image, alt, label, caption? }` | numbered figure paired with the opener |
+| `timeline` | `{ period, title, detail? }[]` (≥ 1) | career timeline, in the order listed |
+| `heritage` | `{ text?: string[], figure? }` | at least one of the two (refinement); `figure` as for `portrait` |
+| `interests` | `{ name, detail?, photo?: { image, alt } }[]` (≥ 1) | photo tiles shown only where `photo` is set |
+| `contact` | string | the invitation sentence; the invitation shows only site-config links (§5.4), and only once one is set |
+| `description` | string (≤ 160) | meta description; falls back to interim, non-biographical wording |
+| `draft` | boolean | default `false` |
+
+With no entry, production `/about` is the opener heading alone: no copy, imagery or sections are invented (ticket 12, needs owner review).
+
+### 5.7 `home` and the hero image
 
 Single entry (`home/index.md`) whose Markdown body is the homepage hero's introduction. It has no frontmatter fields and no `draft` flag. Pages read it through `getHomeIntroduction()` in `lib/content.ts`. Until the owner supplies it (ticket 18), the hero shows the role label, wordmark, tagline, calls to action and image with no introduction and no stand-in text (ticket 14).
 
@@ -254,6 +274,8 @@ Filter chips are plain links to prerendered `/writing/category/[category]` pages
 | Command palette (secondary) | vanilla TS module, imported on first Cmd/Ctrl+K or button click | on demand |
 | Search (secondary) | Pagefind JS + index, imported by the palette | on demand |
 
+The palette (ticket 16) is a small loader in `CommandPalette.astro` that imports `src/lib/palette-dialog.ts` and fetches `/palette.json` (Home, the primary navigation, the résumé once its PDF is hosted, published articles and published projects, built by `src/pages/palette.json.ts`) on first use. Results come from `ResultSource`s in `src/lib/palette.ts`: the built-in list answers synchronously, and an asynchronous source such as Pagefind (ticket 17) is added to the `sources` array in `palette-dialog.ts`. Its results appear after the built-in ones when they arrive, and results that come back for an outdated query are dropped.
+
 No UI framework (React, Svelte, etc.) is planned. If the command palette proves complex enough to justify one, that is an ADR-worthy decision requiring approval.
 
 ## 10. SEO and metadata (FR-13)
@@ -262,9 +284,13 @@ No UI framework (React, Svelte, etc.) is planned. If the command palette proves 
 
 Rendered by `BaseLayout` from page props: `<title>` (pattern `Page — Daniel Lee Holung`), meta description, canonical URL (from `site` in `astro.config.ts`), Open Graph and Twitter card tags.
 
+An ordinary page passes `title` and `description` and nothing else; `description` is required, so a page without one fails `astro check`. Entry layouts (article, case study) and category pages also pass an optional `seo` object with an image, article dates, a breadcrumb trail and further structured data. Canonical URLs end in a slash (`/work/`), because Cloudflare serves `work/index.html` at `/work/` and redirects `/work` there; the sitemap and RSS use the same form. The 404 page has no canonical URL. `Seo` also renders the RSS autodiscovery link and the non-production `noindex` (§10.4). Rules live in `lib/seo.ts`.
+
 ### 10.2 Social images
 
 A single default OG image (designed per the spec) at launch, with an optional per-entry `ogImage`. Generated per-article OG images are deferred; they would add a rendering dependency.
+
+The default is `public/social/default.png`, 1200 × 630: the light palette, the `dlh.` monogram in Geist Mono and the name in Geist Sans, nothing else. `scripts/render-social-image.ts` renders it with Playwright from the built fonts; rerun it after `npm run build` if the identity changes. An article's `ogImage`, or a case study's `cover`, replaces it with a 1200 × 630 JPEG crop made at build time (`lib/social-image.ts`).
 
 ### 10.3 Structured data
 
@@ -315,7 +341,7 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 
 ### 12.3 Domain
 
-The custom domain and canonical origin (`site` in `astro.config.ts`) are not yet decided. Sitemap, RSS, canonical URLs and OG tags all depend on it. Until then, `site` holds a clearly marked placeholder origin, and the production deployment ticket is blocked on this decision. The domain must be on a Cloudflare-managed zone (ADR-0001).
+The custom domain and canonical origin (`site` in `astro.config.ts`) are not yet decided. Sitemap, RSS, canonical URLs and OG tags all depend on it. Until then, `site` reads `origin` in `site.config.ts`, which holds the live `workers.dev` address as a clearly marked interim origin, and the production deployment ticket is blocked on this decision. The domain must be on a Cloudflare-managed zone (ADR-0001).
 
 ## 13. Testing and verification
 

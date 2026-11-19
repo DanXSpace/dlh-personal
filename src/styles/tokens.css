@@ -21,6 +21,9 @@
   --color-control-border: #767676;
   --color-link: #171717;
   --color-focus: #171717;
+  /* Behind an open modal such as the command palette: the page background,
+     mostly opaque, so the page recedes in either theme without a new color. */
+  --color-backdrop: color-mix(in srgb, var(--color-bg) 85%, transparent);
 
   /* Heritage: unthemed and reserved for the decorative heritage signature.
      Never for text, links, states or focus. */

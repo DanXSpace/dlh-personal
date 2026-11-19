@@ -30,6 +30,11 @@ const { category, categories, articles } = Astro.props;
 
 <WritingArchiveLayout
   title={`${categoryLabels[category]} — Writing`}
+  description={`Articles filed under ${categoryLabels[category]}, by Daniel Lee Holung.`}
+  breadcrumbs={[
+    { label: 'Writing', href: '/writing' },
+    { label: categoryLabels[category], href: `/writing/category/${category}` },
+  ]}
   articles={articles}
   categories={categories}
   current={category}

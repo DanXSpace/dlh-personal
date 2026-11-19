@@ -27,7 +27,7 @@ const actions = heroActions({
   Recent writing and In the present, each filled from its collection and left
   out when it has nothing to show.
 -->
-<BaseLayout>
+<BaseLayout description={site.description}>
   <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
     <Hero introduction={await getHomeIntroduction()} actions={actions} />
 

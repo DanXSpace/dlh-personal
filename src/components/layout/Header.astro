@@ -12,6 +12,8 @@ const homeIsCurrent = navState(path, '/') === 'page';
   navigation, then the theme control. Below 768px the links collapse into a
   native popover opened by the Menu button: no JavaScript, Escape and outside
   clicks close it, and the browser exposes the button's expanded state.
+  The last item opens the command palette (`CommandPalette.astro`); it needs
+  JavaScript, so it is hidden without it.
 -->
 <header class="site-header mx-auto flex w-full max-w-shell flex-wrap items-center gap-x-2 gap-y-2 px-gutter py-4 md:gap-x-8">
   <a
@@ -47,6 +49,18 @@ const homeIsCurrent = navState(path, '/') === 'page';
           );
         })
       }
+      <li data-requires-js>
+        <button
+          type="button"
+          class="palette-trigger"
+          data-palette-trigger
+          aria-haspopup="dialog"
+          aria-keyshortcuts="Meta+K Control+K"
+        >
+          Search
+          <kbd class="palette-shortcut" data-palette-shortcut aria-hidden="true" hidden></kbd>
+        </button>
+      </li>
     </ul>
   </nav>
   <ThemeControl />
@@ -110,6 +124,37 @@ const homeIsCurrent = navState(path, '/') === 'page';
     text-decoration-line: underline;
   }
 
+  /*
+   * The command palette's trigger (ticket 16). Below 768px it is the last row
+   * of the Menu panel, styled like the links; from 768px a bordered control
+   * like the theme selector, with the keyboard shortcut beside the label.
+   */
+  .palette-trigger {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 3);
+    width: 100%;
+    min-height: var(--target-min);
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: var(--color-muted);
+    font: inherit;
+    cursor: pointer;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .palette-trigger:hover {
+    color: var(--color-text);
+  }
+
+  .palette-shortcut {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+  }
+
   .menu-button:has(+ :popover-open) {
     background-color: var(--color-text);
     color: var(--color-bg);
@@ -124,6 +169,23 @@ const homeIsCurrent = navState(path, '/') === 'page';
       padding: 0;
       border: 0;
       background-color: transparent;
+    }
+
+    .palette-trigger {
+      width: auto;
+      min-width: var(--target-min);
+      padding-inline: calc(var(--space-unit) * 3);
+      border: var(--rule-width) solid var(--color-control-border);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: var(--text-label);
+      letter-spacing: var(--tracking-label);
+      text-transform: uppercase;
+    }
+
+    .palette-shortcut:not([hidden]) {
+      display: inline;
+      color: var(--color-muted);
     }
   }
 </style>
