@@ -61,3 +61,27 @@ export const directoryImage = {
   widths: [320, 480, 640, 960, 1280],
   sizes: '(min-width: 48rem) 18rem, calc(100vw - 3rem)',
 } as const;
+
+/**
+ * `sizes` for the About portrait, which spans the trailing five of the 12 grid
+ * columns from 768px (about 23.5rem at the full 65rem shell, under 40vw below
+ * it) and fills the viewport less its gutters when stacked.
+ */
+export const aboutPortraitSizes = '(min-width: 65rem) 23.5rem, (min-width: 48rem) 40vw, calc(100vw - 3rem)';
+
+/**
+ * `sizes` for the About landscape, which spans the trailing seven of the 12
+ * grid columns from 1024px (about 34rem at the full 65rem shell, under 55vw
+ * below it) and the whole content width when stacked.
+ */
+export const aboutLandscapeSizes = '(min-width: 65rem) 34rem, (min-width: 64rem) 55vw, 100vw';
+
+/**
+ * Responsive candidates for an About interest photo tile: a third of the shell
+ * from 1024px (about 18.5rem), half of it from 768px, and the viewport less
+ * its 1.5rem `--gutter` on each side when tiles stack.
+ */
+export const interestTileImage = {
+  widths: [320, 480, 640, 960],
+  sizes: '(min-width: 64rem) 18.5rem, (min-width: 48rem) 45vw, calc(100vw - 3rem)',
+} as const;

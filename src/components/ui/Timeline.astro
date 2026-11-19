@@ -1,0 +1,85 @@
+---
+/**
+ * A concise career timeline (design-spec §4 `/about`, PRD FR-07): entries in
+ * the order given, between thin rules. From 768px the period takes the leading
+ * three grid columns and the title and detail the rest; below that they stack.
+ */
+export interface TimelineEntry {
+  period: string;
+  title: string;
+  detail?: string | undefined;
+}
+
+interface Props {
+  entries: TimelineEntry[];
+}
+
+const { entries } = Astro.props;
+---
+
+<ol class="timeline">
+  {
+    entries.map(({ period, title, detail }) => (
+      <li class="timeline-entry">
+        <p class="timeline-period font-mono text-label tracking-label text-muted">{period}</p>
+        <div class="timeline-body">
+          <h3 class="text-body-large leading-heading font-medium">{title}</h3>
+          {detail && <p class="text-muted">{detail}</p>}
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  @reference '../../styles/global.css';
+
+  .timeline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .timeline-entry {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 2);
+    padding-block: calc(var(--space-unit) * 6);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+  }
+
+  .timeline-entry:last-child {
+    border-block-end: var(--rule-width) solid var(--color-rule);
+  }
+
+  .timeline-period,
+  .timeline-body h3,
+  .timeline-body p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .timeline-body {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 2);
+    min-width: 0;
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .timeline-entry {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      column-gap: calc(var(--space-unit) * 6);
+      align-items: baseline;
+    }
+
+    .timeline-period {
+      grid-column: 1 / span 3;
+    }
+
+    .timeline-body {
+      grid-column: 4 / -1;
+    }
+  }
+</style>

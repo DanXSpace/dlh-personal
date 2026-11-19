@@ -97,7 +97,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 | Route | File | Source |
 | --- | --- | --- |
 | `/` | `pages/index.astro` | featured `projects`, 3 newest `writing`, `now` summary |
-| `/about` | `pages/about.astro` | page content in an MDX partial so copy edits avoid template edits |
+| `/about` | `pages/about.astro` | the single `about` entry (§5.6), so copy edits avoid template edits |
 | `/work` | `pages/work/index.astro` | published `projects` |
 | `/work/[slug]` | `pages/work/[slug].astro` | `getStaticPaths` over published `projects` |
 | `/writing` | `pages/writing/index.astro` | published `writing`, grouped by year |
@@ -172,6 +172,22 @@ Name, tagline, description, canonical origin, nav items, and social/contact link
 - Schema violations fail the build with Astro's field-level error messages.
 - **Duplicate slugs:** the glob loader warns rather than fails on a duplicate id, and its optional `prerenderConflictBehavior: 'error'` check can miss a duplicate when two new files load concurrently. Instead each collection's loader takes its `generateId` from `lib/content-ids.ts`, which sees every file in turn and fails the build naming both files. Entries are `<slug>.md` or `<slug>/index.md`, and a slug that isn't lowercase and hyphenated also fails the build (ticket 06).
 - **Reading time** is computed in `lib/reading-time.ts` from the entry's raw `body` (word count ÷ ~230 wpm, code blocks stripped). No dependency or Markdown plugin needed.
+
+### 5.6 `about`
+
+Single entry (`about/index.md(x)`), read through `getPublished`. A collection rather than an imported MDX partial, so the fixture build (ADR-0004) can supply its own entry. Every field is optional, and `/about` omits each section whose field is absent (ticket 12).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| body | MDX | the opener's introduction, under the fixed "More than an engineer." heading |
+| `portrait` | `{ image, alt, label, caption? }` | numbered figure paired with the opener |
+| `timeline` | `{ period, title, detail? }[]` (≥ 1) | career timeline, in the order listed |
+| `heritage` | `{ text?: string[], figure? }` | at least one of the two (refinement); `figure` as for `portrait` |
+| `interests` | `{ name, detail?, photo?: { image, alt } }[]` (≥ 1) | photo tiles shown only where `photo` is set |
+| `contact` | string | the invitation sentence; the invitation shows only site-config links (§5.4), and only once one is set |
+| `draft` | boolean | default `false` |
+
+With no entry, production `/about` is the opener heading alone: no copy, imagery or sections are invented (ticket 12, needs owner review).
 
 ## 6. Markdown and MDX pipeline
 
