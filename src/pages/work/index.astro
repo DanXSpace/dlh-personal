@@ -5,6 +5,7 @@ import { getPublished } from '../../lib/content.ts';
 import { directoryImage } from '../../lib/figures.ts';
 import { directoryOrder, projectStatusLabels, projectTypeLabels } from '../../lib/projects.ts';
 import { entryHref } from '../../lib/routes.ts';
+import '../../styles/project-rows.css';
 
 const projects = directoryOrder(await getPublished('projects'));
 ---
@@ -29,19 +30,19 @@ const projects = directoryOrder(await getPublished('projects'));
       ) : (
         <ol class="work-list">
           {projects.map(({ id, data }) => (
-            <li class="work-row">
+            <li class="work-row project-row">
               {data.thumbnail && (
                 <Image
                   src={data.thumbnail}
                   alt={data.thumbnailAlt ?? ''}
                   widths={[...directoryImage.widths]}
                   sizes={directoryImage.sizes}
-                  class="work-thumbnail"
+                  class="project-thumbnail"
                 />
               )}
-              <div class="work-body">
+              <div class="project-body work-body">
                 <h2 class="text-section-heading leading-heading font-medium">
-                  <a href={entryHref('project', id)} class="work-link">
+                  <a href={entryHref('project', id)} class="entry-link">
                     {data.title}
                   </a>
                 </h2>
@@ -74,18 +75,14 @@ const projects = directoryOrder(await getPublished('projects'));
 </BaseLayout>
 
 <style>
-  @reference '../../styles/global.css';
-
   .work-list {
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
+  /* Row layout, thumbnail and title link: src/styles/project-rows.css. */
   .work-row {
-    display: flex;
-    flex-direction: column;
-    gap: calc(var(--space-unit) * 6);
     padding-block: calc(var(--space-unit) * 10);
     border-block-start: var(--rule-width) solid var(--color-rule);
   }
@@ -94,37 +91,14 @@ const projects = directoryOrder(await getPublished('projects'));
     border-block-end: var(--rule-width) solid var(--color-rule);
   }
 
-  .work-thumbnail {
-    width: 100%;
-    height: auto;
-    border-radius: var(--radius-sm);
-  }
-
   .work-body {
-    display: flex;
-    flex-direction: column;
     gap: calc(var(--space-unit) * 4);
-    min-width: 0;
   }
 
   /* A title or stack with one long unbroken word still wraps at 320px. */
   .work-body h2,
   .work-meta dd {
     overflow-wrap: anywhere;
-  }
-
-  /* Inline, as in the writing archive, so a wrapped title keeps even line boxes. */
-  .work-link {
-    color: var(--color-link);
-    text-decoration-line: underline;
-    text-decoration-color: transparent;
-    text-decoration-thickness: var(--rule-width);
-    text-underline-offset: var(--underline-offset);
-    transition: text-decoration-color var(--duration-fast) var(--ease-standard);
-  }
-
-  .work-link:hover {
-    text-decoration-color: currentColor;
   }
 
   .work-meta {
@@ -151,23 +125,5 @@ const projects = directoryOrder(await getPublished('projects'));
   /* The stack can be long, so it takes its own line below year, type and status. */
   .work-stack {
     flex-basis: 100%;
-  }
-
-  /* 768px and up: thumbnail in the leading four grid columns, text in the rest. */
-  @media (width >= theme(--breakpoint-md)) {
-    .work-row {
-      display: grid;
-      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
-      column-gap: calc(var(--space-unit) * 6);
-      align-items: start;
-    }
-
-    .work-thumbnail {
-      grid-column: 1 / span 4;
-    }
-
-    .work-body {
-      grid-column: 5 / -1;
-    }
   }
 </style>

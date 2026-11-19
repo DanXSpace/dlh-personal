@@ -1,0 +1,58 @@
+@reference './global.css';
+
+/*
+ * Project rows, shared by `/work` and the homepage's Selected work
+ * (design-spec §4). Each page sets its own row padding, rules and body gap.
+ * Below 768px the thumbnail stacks above the text; from 768px it takes the
+ * leading four grid columns and the text the rest, so a row without a
+ * thumbnail keeps its text aligned with the others.
+ */
+
+.project-row {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-unit) * 6);
+}
+
+.project-thumbnail {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+.project-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Inline, as in the writing archive, so a wrapped title keeps even line boxes. */
+.entry-link {
+  color: var(--color-link);
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: var(--rule-width);
+  text-underline-offset: var(--underline-offset);
+  transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+}
+
+.entry-link:hover {
+  text-decoration-color: currentColor;
+}
+
+@media (width >= theme(--breakpoint-md)) {
+  .project-row {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    column-gap: calc(var(--space-unit) * 6);
+    align-items: start;
+  }
+
+  .project-thumbnail {
+    grid-column: 1 / span 4;
+  }
+
+  .project-body {
+    grid-column: 5 / -1;
+  }
+}

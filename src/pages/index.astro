@@ -11,6 +11,7 @@ import { heroActions, recentWriting, sectionNumbers, selectedWork } from '../lib
 import { resumeLinks, siteResumeAccess } from '../lib/resume.ts';
 import { entryHref } from '../lib/routes.ts';
 import { site } from '../site.config.ts';
+import '../styles/project-rows.css';
 
 const projects = await getPublished('projects');
 const featured = selectedWork(projects);
@@ -43,7 +44,7 @@ const numbers = sectionNumbers({
         <HomeSection number={numbers.selectedWork} title="Selected work" id="selected-work" link={{ label: 'All work', href: '/work' }}>
           <ul class="home-list">
             {featured.map(({ id, data }) => (
-              <li class="home-row project-row">
+              <li class="home-row project-row selected-work-row">
                 {data.thumbnail && (
                   <Image
                     src={data.thumbnail}
@@ -53,9 +54,9 @@ const numbers = sectionNumbers({
                     class="project-thumbnail"
                   />
                 )}
-                <div class="project-body">
+                <div class="project-body selected-work-body">
                   <h3 class="text-section-heading leading-heading font-medium">
-                    <a href={entryHref('project', id)} class="home-link">
+                    <a href={entryHref('project', id)} class="entry-link">
                       {data.title}
                     </a>
                   </h3>
@@ -80,7 +81,7 @@ const numbers = sectionNumbers({
             {articles.map(({ id, data }) => (
               <li class="home-row article-row">
                 <h3 class="text-body-large font-medium">
-                  <a href={entryHref('article', id)} class="home-link">
+                  <a href={entryHref('article', id)} class="entry-link">
                     {data.title}
                   </a>
                 </h3>
@@ -111,8 +112,6 @@ const numbers = sectionNumbers({
 </BaseLayout>
 
 <style>
-  @reference '../styles/global.css';
-
   .home-list {
     margin: 0;
     padding: 0;
@@ -127,24 +126,13 @@ const numbers = sectionNumbers({
     border-block-end: var(--rule-width) solid var(--color-rule);
   }
 
-  .project-row {
-    display: flex;
-    flex-direction: column;
-    gap: calc(var(--space-unit) * 6);
+  /* Row layout, thumbnail and title links (as on /work): src/styles/project-rows.css. */
+  .selected-work-row {
     padding-block: calc(var(--space-unit) * 8);
   }
 
-  .project-thumbnail {
-    width: 100%;
-    height: auto;
-    border-radius: var(--radius-sm);
-  }
-
-  .project-body {
-    display: flex;
-    flex-direction: column;
+  .selected-work-body {
     gap: calc(var(--space-unit) * 3);
-    min-width: 0;
   }
 
   .article-row {
@@ -157,20 +145,6 @@ const numbers = sectionNumbers({
   /* A title with one long unbroken word still wraps at 320px. */
   .home-row h3 {
     overflow-wrap: anywhere;
-  }
-
-  /* Inline, as in the writing archive and /work, so a wrapped title keeps even line boxes. */
-  .home-link {
-    color: var(--color-link);
-    text-decoration-line: underline;
-    text-decoration-color: transparent;
-    text-decoration-thickness: var(--rule-width);
-    text-underline-offset: var(--underline-offset);
-    transition: text-decoration-color var(--duration-fast) var(--ease-standard);
-  }
-
-  .home-link:hover {
-    text-decoration-color: currentColor;
   }
 
   /* A separator wraps with the item after it, so no line starts with a bare "/". */
@@ -188,23 +162,5 @@ const numbers = sectionNumbers({
 
   .now-summary {
     max-width: var(--measure);
-  }
-
-  /* 768px and up: as on /work, the thumbnail takes the leading four grid columns and the text the rest. */
-  @media (width >= theme(--breakpoint-md)) {
-    .project-row {
-      display: grid;
-      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
-      column-gap: calc(var(--space-unit) * 6);
-      align-items: start;
-    }
-
-    .project-thumbnail {
-      grid-column: 1 / span 4;
-    }
-
-    .project-body {
-      grid-column: 5 / -1;
-    }
   }
 </style>
