@@ -1,0 +1,34 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import WritingArchive from '../../../components/writing/WritingArchive.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { categoriesWithArticles } from '../../../lib/archive.ts';
+import { categoryLabels, type Category } from '../../../lib/categories.ts';
+import { getPublished } from '../../../lib/content.ts';
+
+// One page per category that has published articles (ADR-0002); an empty category gets no page.
+export async function getStaticPaths() {
+  const articles = await getPublished('writing');
+  const categories = categoriesWithArticles(articles);
+  return categories.map((category) => ({
+    params: { category },
+    props: {
+      category,
+      categories,
+      articles: articles.filter((article) => article.data.category === category),
+    },
+  }));
+}
+
+interface Props {
+  category: Category;
+  categories: Category[];
+  articles: CollectionEntry<'writing'>[];
+}
+
+const { category, categories, articles } = Astro.props;
+---
+
+<BaseLayout title={`${categoryLabels[category]} — Writing`}>
+  <WritingArchive articles={articles} categories={categories} current={category} />
+</BaseLayout>
