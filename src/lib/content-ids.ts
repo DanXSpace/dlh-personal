@@ -4,7 +4,7 @@ import { join } from 'node:path/posix';
  * Entry ids (slugs) for the content collections, and the duplicate check FR-12
  * asks for (architecture §5.5).
  *
- * An entry is `<slug>.md` or `<slug>/index.md`, and the slug becomes its URL.
+ * An entry is `<slug>.md(x)` or `<slug>/index.md(x)`, and the slug becomes its URL.
  * Astro's glob loader only warns on a duplicate id, and its own optional check
  * can miss one when two new files load concurrently. So each collection's
  * loader takes its `generateId` from here, which sees every file in turn and

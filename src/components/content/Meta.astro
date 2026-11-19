@@ -1,0 +1,54 @@
+---
+/**
+ * A block of labelled facts, such as a project's type, year and stack
+ * (architecture §6). Terms keep the order they're written in; a list value is
+ * joined with commas, and an empty value is left out (design-spec §4).
+ *
+ *   <Meta items={{ Type: 'Web app', Year: '2026', Stack: ['Astro', 'TypeScript'] }} />
+ */
+interface Props {
+  items: Record<string, string | string[]>;
+}
+
+const { items } = Astro.props;
+const entries = Object.entries(items)
+  .map(([term, value]) => [term, (Array.isArray(value) ? value : [value]).map((v) => v.trim()).filter(Boolean)] as const)
+  .filter(([, values]) => values.length > 0)
+  .map(([term, values]) => ({ term, value: values.join(', ') }));
+---
+
+{
+  entries.length > 0 && (
+    <dl class="meta">
+      {entries.map(({ term, value }) => (
+        <div class="meta-item">
+          <dt class="font-mono text-caption uppercase tracking-label text-muted">{term}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+<style>
+  @reference '../../styles/global.css';
+
+  .meta {
+    display: grid;
+    gap: calc(var(--space-unit) * 4) calc(var(--space-unit) * 6);
+    padding-block: calc(var(--space-unit) * 4);
+    border-block: var(--rule-width) solid var(--color-rule);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+  }
+
+  .meta dd {
+    margin: 0;
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .meta {
+      grid-template-columns: repeat(auto-fill, minmax(calc(var(--space-unit) * 36), 1fr));
+    }
+  }
+</style>

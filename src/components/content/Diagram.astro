@@ -1,0 +1,133 @@
+---
+/**
+ * A static diagram with a required text equivalent (design-spec §6;
+ * architecture §6). Nothing renders on the client: the art is either inline
+ * SVG passed as children, or an image optimized at build time.
+ *
+ *   <Diagram number={2} label="Build" alt="Short name." description="What the diagram shows, in full.">
+ *     <svg viewBox="…">…</svg>
+ *   </Diagram>
+ *
+ *   <Diagram src={flow} number={3} label="Flow" alt="Short name." description="…" />
+ *
+ * `alt` names the diagram in a few words; `description` carries everything it
+ * conveys, as the art's accessible description and in a "Text description"
+ * disclosure under the caption. Draw inline SVG in `currentColor` so it follows
+ * the theme, and write its attributes as SVG spells them (`stroke-width`, not
+ * `strokeWidth`): MDX passes attribute names through unchanged. An image
+ * diagram keeps its own colors, so give it its own background.
+ */
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import { figureImage, figureLabel } from '../../lib/figures.ts';
+
+interface Props {
+  number: number;
+  label: string;
+  /** A short name for the diagram. */
+  alt: string;
+  /** The text equivalent of everything the diagram conveys. */
+  description: string;
+  /** An image to show instead of inline SVG children. */
+  src?: ImageMetadata;
+}
+
+const { number, label, alt, description, src } = Astro.props;
+const caption = figureLabel(number, label);
+const hasArt = Astro.slots.has('default');
+
+if (typeof alt !== 'string' || alt.trim() === '') {
+  throw new Error(`Diagram ${number} needs \`alt\`, a short name for the diagram.`);
+}
+if (typeof description !== 'string' || description.trim() === '') {
+  throw new Error(`Diagram ${number} needs \`description\`, a text equivalent of everything it shows.`);
+}
+if ((src === undefined) === !hasArt) {
+  throw new Error(`Diagram ${number} needs either inline SVG children or an image \`src\`, not both.`);
+}
+
+// Figure numbers are unique within an entry, so this id is too.
+const descriptionId = `figure-${number}-description`;
+---
+
+<figure class="diagram">
+  {
+    src ? (
+      <Image
+        src={src}
+        alt={alt}
+        aria-describedby={descriptionId}
+        class="diagram-image"
+        {...(src.format === 'svg' ? {} : { widths: [...figureImage.widths], sizes: figureImage.sizes })}
+      />
+    ) : (
+      <div class="diagram-art" role="img" aria-label={alt} aria-describedby={descriptionId}>
+        <slot />
+      </div>
+    )
+  }
+  <figcaption class="diagram-caption font-mono text-caption tracking-label text-muted">
+    <div class="diagram-label">{caption}</div>
+    <details class="diagram-details">
+      <summary>Text description</summary>
+      <p id={descriptionId}>{description}</p>
+    </details>
+  </figcaption>
+</figure>
+
+<style>
+  .diagram-art {
+    color: var(--color-text);
+  }
+
+  .diagram-art :global(svg),
+  .diagram-image {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .diagram-image {
+    border-radius: var(--radius-sm);
+  }
+
+  .diagram-caption {
+    margin-block-start: calc(var(--space-unit) * 3);
+    line-height: var(--leading-body);
+  }
+
+  .diagram-details summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    cursor: pointer;
+    text-decoration-line: underline;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .diagram-details summary:hover {
+    color: var(--color-text);
+  }
+
+  /* `inline-flex` drops the native marker, so state is shown here; the alt text keeps it out of the accessibility tree, which already exposes expanded state. */
+  .diagram-details summary::after {
+    content: '+' / '';
+    margin-inline-start: calc(var(--space-unit) * 2);
+    text-decoration-line: none;
+  }
+
+  .diagram-details[open] summary::after {
+    content: '−' / '';
+  }
+
+  .diagram-details p {
+    margin: 0;
+    max-width: var(--measure);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    letter-spacing: normal;
+    color: var(--color-text);
+  }
+</style>

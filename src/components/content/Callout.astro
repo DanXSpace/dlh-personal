@@ -1,0 +1,44 @@
+---
+/**
+ * A short aside set apart from the prose (architecture §6): a rule and a mono
+ * label, never color, mark it out. Not a landmark, so it has no accessible name.
+ *
+ *   <Callout label="Trade-off">Body copy in Markdown.</Callout>
+ */
+interface Props {
+  /** Short mono label above the body. */
+  label?: string;
+}
+
+const { label = 'Note' } = Astro.props;
+---
+
+<aside class="callout">
+  <p class="callout-label font-mono text-label uppercase tracking-label text-muted">{label}</p>
+  <div class="callout-body"><slot /></div>
+</aside>
+
+<style>
+  .callout {
+    padding-block: calc(var(--space-unit) * 1);
+    padding-inline-start: calc(var(--space-unit) * 6);
+    border-inline-start: var(--rule-width) solid var(--color-control-border);
+  }
+
+  .callout-label {
+    margin: 0;
+    line-height: var(--leading-body);
+  }
+
+  .callout-body {
+    margin-block-start: calc(var(--space-unit) * 2);
+  }
+
+  .callout-body > :global(*) {
+    margin-block: 0;
+  }
+
+  .callout-body > :global(* + *) {
+    margin-block-start: calc(var(--space-unit) * 4);
+  }
+</style>

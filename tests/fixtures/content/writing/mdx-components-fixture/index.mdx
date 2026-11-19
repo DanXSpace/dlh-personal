@@ -1,0 +1,95 @@
+---
+title: MDX components fixture
+description: Test fixture that exercises every MDX content component.
+deck: A fixture for browser and accessibility tests. It never ships, and nothing in it describes real work.
+published: 2026-05-20
+category: engineering
+---
+
+import ridgeWide from './ridge-wide.jpg';
+import ridgeTall from './ridge-tall.jpg';
+import ridgeSquare from './ridge-square.jpg';
+import flow from './flow.png';
+
+This fixture article is written in MDX, so it can use the content components without importing them. It is built only when `CONTENT_SOURCE=fixtures` is set, into a directory that is never deployed.
+
+## Markdown still works
+
+Ordinary Markdown renders exactly as it does in a `.md` article, with [underlined links](/) and headings that carry anchors.
+
+```ts
+// Code blocks are highlighted with the same CSP-safe token classes.
+export const answer = 42;
+```
+
+## Callouts
+
+<Callout>
+  A callout sets a short aside apart from the prose. Its label defaults to **Note**.
+</Callout>
+
+<Callout label="Trade-off">
+  A callout can carry its own label.
+</Callout>
+
+## Figures
+
+<Figure src={ridgeWide} alt="A gray placeholder ridgeline under a pale sky." number={1} label="Roots" />
+
+<Figure src={ridgeTall} alt="A taller gray placeholder ridgeline." number={2} label="Ridgeline">
+  A figure can add a short sentence after its label.
+</Figure>
+
+## Galleries
+
+<Gallery
+  figures={[
+    { src: ridgeSquare, alt: 'A darker gray placeholder ridgeline.', number: 3, label: 'Morning' },
+    { src: ridgeWide, alt: 'A gray placeholder ridgeline, repeated in the gallery.', number: 4, label: 'Noon', caption: 'A gallery figure can carry a caption sentence too.' },
+    { src: ridgeTall, alt: 'A taller gray placeholder ridgeline, repeated in the gallery.', number: 5, label: 'Evening' },
+  ]}
+/>
+
+<Gallery
+  columns={3}
+  figures={[
+    { src: ridgeSquare, alt: 'A darker placeholder in a three-up gallery.', number: 6, label: 'One' },
+    { src: ridgeWide, alt: 'A wide placeholder in a three-up gallery.', number: 7, label: 'Two' },
+    { src: ridgeTall, alt: 'A tall placeholder in a three-up gallery.', number: 8, label: 'Three' },
+  ]}
+/>
+
+## Diagrams
+
+<Diagram
+  number={9}
+  label="Build"
+  alt="Diagram of the build: content flows through Astro to static files."
+  description="Three boxes in a row, joined by arrows. Markdown and MDX content goes into Astro, which builds static HTML, CSS and images that are served without a backend."
+>
+  <svg viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" stroke="currentColor" stroke-width="1">
+      <rect x="0.5" y="30.5" width="160" height="60" />
+      <rect x="240.5" y="30.5" width="160" height="60" />
+      <rect x="479.5" y="30.5" width="160" height="60" />
+      <path d="M161 60 H240 M401 60 H479" />
+    </g>
+    <g fill="currentColor" font-size="14" text-anchor="middle">
+      <text x="80" y="65">Content</text>
+      <text x="320" y="65">Astro</text>
+      <text x="560" y="65">Static files</text>
+    </g>
+  </svg>
+</Diagram>
+
+<Diagram
+  src={flow}
+  number={10}
+  label="Flow"
+  alt="Diagram of two boxes joined by a line."
+  description="Two boxes side by side, joined by a single horizontal line. The left box hands its output to the right box."
+/>
+
+## Metadata
+
+<Meta items={{ Type: 'Fixture', Year: '2026', Stack: ['Astro', 'MDX', 'TypeScript'], Status: '', Links: [] }} />

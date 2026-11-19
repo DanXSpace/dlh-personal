@@ -1,5 +1,6 @@
 ---
 import { render, type CollectionEntry } from 'astro:content';
+import { contentComponents } from '../../components/content/index.ts';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import { getPublished } from '../../lib/content.ts';
 
@@ -17,5 +18,5 @@ const { Content, headings } = await render(article);
 ---
 
 <ArticleLayout article={article} headings={headings}>
-  <Content />
+  <Content components={contentComponents} />
 </ArticleLayout>
