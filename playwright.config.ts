@@ -1,9 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // Not 4321, so a running `astro dev` server is never mistaken for the build.
-const port = 4322;
+// `PW_PORT` overrides it so parallel checkouts can run browser tests at once.
+const port = Number(process.env['PW_PORT'] ?? 4322);
 // The fixture build (ADR-0004), served from `dist-fixtures/` on its own port.
-const fixturesPort = 4323;
+const fixturesPort = Number(process.env['PW_FIXTURES_PORT'] ?? port + 1);
 
 // `--ignore-lock` runs a one-off foreground server that skips Astro's lock
 // file. Without it, Astro auto-backgrounds preview when run by a coding agent,
