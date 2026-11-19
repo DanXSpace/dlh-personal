@@ -1,4 +1,9 @@
 /**
+ * Figure captions and responsive image sizes: for content figures, the case
+ * study's wide image and `/work` row thumbnails.
+ */
+
+/**
  * Figure captions in the design spec's `FIG. 01 / ROOTS` form (design-spec §1,
  * architecture §6), shared by the `Figure` and `Diagram` content components.
  * Bad input throws, which fails the build with the message below.
@@ -44,4 +49,15 @@ export function galleryImageSizes(columns: 2 | 3): string {
 export const caseStudyImage = {
   widths: [480, 960, 1360, 1840],
   sizes: '(min-width: 65rem) 58.5rem, 100vw',
+} as const;
+
+/**
+ * Responsive candidates for a `/work` row thumbnail. From 768px it spans four
+ * of the 12 grid columns, about 13–18rem wide (18rem at the full 65rem shell);
+ * below that rows stack and the thumbnail fills the viewport less its 1.5rem
+ * `--gutter` on each side.
+ */
+export const directoryImage = {
+  widths: [320, 480, 640, 960, 1280],
+  sizes: '(min-width: 48rem) 18rem, calc(100vw - 3rem)',
 } as const;

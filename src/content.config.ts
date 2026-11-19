@@ -33,11 +33,8 @@ const projects = defineCollection({
       .object({
         title: z.string().min(1),
         summary: z.string().min(1).max(160),
-        thumbnail: image(),
-        thumbnailAlt: z
-          .string()
-          .trim()
-          .min(1, 'Describe the thumbnail in `thumbnailAlt`, so the image is never missing alt text.'),
+        thumbnail: image().optional(),
+        thumbnailAlt: z.string().trim().min(1).optional(),
         cover: image().optional(),
         coverAlt: z.string().trim().min(1).optional(),
         stack: z.array(z.string().trim().min(1)).min(1),
@@ -49,6 +46,10 @@ const projects = defineCollection({
         repo: z.url().optional(),
         live: z.url().optional(),
         draft: z.boolean().default(false),
+      })
+      .refine((data) => data.thumbnail === undefined || data.thumbnailAlt !== undefined, {
+        message: 'Describe the thumbnail in `thumbnailAlt`, so the image is never missing alt text.',
+        path: ['thumbnailAlt'],
       })
       .refine((data) => data.cover === undefined || data.coverAlt !== undefined, {
         message: 'Describe the cover in `coverAlt`, so the image is never missing alt text.',

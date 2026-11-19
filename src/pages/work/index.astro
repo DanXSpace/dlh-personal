@@ -1,0 +1,171 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPublished } from '../../lib/content.ts';
+import { directoryImage } from '../../lib/figures.ts';
+import { directoryOrder, projectStatusLabels, projectTypeLabels } from '../../lib/projects.ts';
+
+const projects = directoryOrder(await getPublished('projects'));
+---
+
+<!--
+  Work directory (design-spec §4 `/work`, PRD FR-03): a vertical catalogue of
+  published projects between thin rules. From 768px the thumbnail takes the
+  leading four grid columns and the text the rest, so a row without a thumbnail
+  keeps its text aligned with the others. The markup never depends on how many
+  projects there are, so one project reads like any other catalogue (the
+  single-project tests rely on this). Type filters are left for later
+  (design-spec: "when useful").
+-->
+<BaseLayout title="Work">
+  <div class="mx-auto flex max-w-shell flex-col gap-16 px-gutter py-section">
+    <h1 class="text-page-heading leading-heading font-medium">Things I’ve built</h1>
+
+    {
+      projects.length === 0 ? (
+        <p class="text-body-large text-muted">No projects published yet.</p>
+      ) : (
+        <ol class="work-list">
+          {projects.map(({ id, data }) => (
+            <li class="work-row">
+              {data.thumbnail && (
+                <Image
+                  src={data.thumbnail}
+                  alt={data.thumbnailAlt ?? ''}
+                  widths={[...directoryImage.widths]}
+                  sizes={directoryImage.sizes}
+                  class="work-thumbnail"
+                />
+              )}
+              <div class="work-body">
+                <h2 class="text-section-heading leading-heading font-medium">
+                  <a href={`/work/${id}`} class="work-link">
+                    {data.title}
+                  </a>
+                </h2>
+                <p class="text-muted">{data.summary}</p>
+                <dl class="work-meta">
+                  <div>
+                    <dt>Year</dt>
+                    <dd>{data.year}</dd>
+                  </div>
+                  <div>
+                    <dt>Type</dt>
+                    <dd>{projectTypeLabels[data.type]}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{projectStatusLabels[data.status]}</dd>
+                  </div>
+                  <div class="work-stack">
+                    <dt>Stack</dt>
+                    <dd>{data.stack.join(', ')}</dd>
+                  </div>
+                </dl>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  @reference '../../styles/global.css';
+
+  .work-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .work-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 6);
+    padding-block: calc(var(--space-unit) * 10);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+  }
+
+  .work-row:last-child {
+    border-block-end: var(--rule-width) solid var(--color-rule);
+  }
+
+  .work-thumbnail {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+  }
+
+  .work-body {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 4);
+    min-width: 0;
+  }
+
+  /* A title or stack with one long unbroken word still wraps at 320px. */
+  .work-body h2,
+  .work-meta dd {
+    overflow-wrap: anywhere;
+  }
+
+  /* Inline, as in the writing archive, so a wrapped title keeps even line boxes. */
+  .work-link {
+    color: var(--color-link);
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .work-link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .work-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--space-unit) * 3) calc(var(--space-unit) * 8);
+    margin: 0;
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+  }
+
+  .work-meta dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+
+  .work-meta dd {
+    margin: 0;
+  }
+
+  /* The stack can be long, so it takes its own line below year, type and status. */
+  .work-stack {
+    flex-basis: 100%;
+  }
+
+  /* 768px and up: thumbnail in the leading four grid columns, text in the rest. */
+  @media (width >= theme(--breakpoint-md)) {
+    .work-row {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      column-gap: calc(var(--space-unit) * 6);
+      align-items: start;
+    }
+
+    .work-thumbnail {
+      grid-column: 1 / span 4;
+    }
+
+    .work-body {
+      grid-column: 5 / -1;
+    }
+  }
+</style>

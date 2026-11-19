@@ -37,3 +37,21 @@ export function relatedWriting<T extends Referencing>(projectId: string, article
     .filter((article) => article.data.project?.id === projectId)
     .sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
 }
+
+interface Orderable {
+  data: { title: string; year: number; order?: number | undefined };
+}
+
+/**
+ * The order projects appear in on `/work` and the homepage (architecture §5.1):
+ * an explicit `order` first, lowest number first, then the rest; within those,
+ * newest year first, then title A–Z so the result never depends on file order.
+ */
+export function directoryOrder<T extends Orderable>(projects: readonly T[]): T[] {
+  return [...projects].sort(
+    (a, b) =>
+      (a.data.order ?? Infinity) - (b.data.order ?? Infinity) ||
+      b.data.year - a.data.year ||
+      a.data.title.localeCompare(b.data.title, 'en'),
+  );
+}
