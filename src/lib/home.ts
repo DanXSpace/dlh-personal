@@ -12,7 +12,7 @@ interface Featurable {
   data: { title: string; year: number; order?: number | undefined; featured: boolean };
 }
 
-/** `01 / SELECTED WORK`: up to three featured projects, in `/work`'s order. */
+/** Selected work: up to three featured projects, in `/work`'s order. */
 export function selectedWork<T extends Featurable>(projects: readonly T[]): T[] {
   return directoryOrder(projects.filter((project) => project.data.featured)).slice(0, SELECTED_WORK_LIMIT);
 }
@@ -21,11 +21,26 @@ interface Dated {
   data: { published: Date };
 }
 
-/** `02 / RECENT WRITING`: the three newest articles, newest first. */
+/** Recent writing: the three newest articles, newest first. */
 export function recentWriting<T extends Dated>(articles: readonly T[]): T[] {
   return [...articles]
     .sort((a, b) => b.data.published.getTime() - a.data.published.getTime())
     .slice(0, RECENT_WRITING_LIMIT);
+}
+
+/**
+ * The numbers in the sections' labels (`01 / SELECTED WORK`). `shown` lists
+ * every section in page order, each with whether it has anything to show.
+ * Shown sections are numbered from 1 in that order and the rest get none, so a
+ * section left out never leaves a gap, as with About's figures.
+ */
+export function sectionNumbers<K extends string>(shown: Record<K, boolean>): Partial<Record<K, number>> {
+  let count = 0;
+  const numbers: Partial<Record<K, number>> = {};
+  for (const [section, isShown] of Object.entries(shown) as [K, boolean][]) {
+    if (isShown) numbers[section] = ++count;
+  }
+  return numbers;
 }
 
 export interface HeroActions {

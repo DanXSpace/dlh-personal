@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { heroActions, recentWriting, selectedWork } from '../../src/lib/home.ts';
+import { heroActions, recentWriting, sectionNumbers, selectedWork } from '../../src/lib/home.ts';
 
 function project(id: string, featured: boolean, year: number, order?: number) {
   return { id, data: { title: id, featured, year, order } };
@@ -63,4 +63,24 @@ test('the hero offers no action that would lead nowhere', () => {
     primary: undefined,
     secondary: [],
   });
+});
+
+test('with every section shown, the sections are numbered 1, 2 and 3 in page order', () => {
+  assert.deepEqual(sectionNumbers({ selectedWork: true, recentWriting: true, inThePresent: true }), {
+    selectedWork: 1,
+    recentWriting: 2,
+    inThePresent: 3,
+  });
+});
+
+test('a section left out gets no number and leaves no gap in the numbering', () => {
+  assert.deepEqual(sectionNumbers({ selectedWork: false, recentWriting: true, inThePresent: true }), {
+    recentWriting: 1,
+    inThePresent: 2,
+  });
+  assert.deepEqual(sectionNumbers({ selectedWork: true, recentWriting: false, inThePresent: true }), {
+    selectedWork: 1,
+    inThePresent: 2,
+  });
+  assert.deepEqual(sectionNumbers({ selectedWork: false, recentWriting: false, inThePresent: false }), {});
 });
