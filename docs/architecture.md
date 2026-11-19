@@ -267,6 +267,8 @@ Filter chips are plain links to prerendered `/writing/category/[category]` pages
 
 The palette (ticket 16) is a small loader in `CommandPalette.astro` that imports `src/lib/palette-dialog.ts` and fetches `/palette.json` (Home, the primary navigation, the résumé once its PDF is hosted, published articles and published projects, built by `src/pages/palette.json.ts`) on first use. Results come from `ResultSource`s in `src/lib/palette.ts`: the built-in list answers synchronously, and an asynchronous source such as Pagefind (ticket 17) is added to the `sources` array in `palette-dialog.ts`. Its results appear after the built-in ones when they arrive, and results that come back for an outdated query are dropped.
 
+Full-text search (ticket 17) is that asynchronous source: `pagefindSource` in `src/lib/search.ts`. `src/lib/search-index.ts`, an Astro integration, writes the Pagefind index into each build's output (`dist/pagefind/`, or `dist-fixtures/pagefind/` for the fixture build, so fixture content never reaches the production index) once `astro build` finishes. It indexes only pages that mark content with `data-pagefind-body`: the title, deck or summary and body of articles and case studies, without heading links. The palette imports `/pagefind/pagefind.js` on the first non-blank query, and Pagefind runs its WebAssembly in its own worker, which the CSP allows without `'wasm-unsafe-eval'`. Results show the page title and a short excerpt, after the title matches, and a page both sources find is listed once.
+
 No UI framework (React, Svelte, etc.) is planned. If the command palette proves complex enough to justify one, that is an ADR-worthy decision requiring approval.
 
 ## 10. SEO and metadata (FR-13)
@@ -326,7 +328,7 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 
 ### 12.2 Pipeline
 
-1. **GitHub Actions (on every push and PR):** `npm ci` → `astro check` → unit tests → `astro build` → Pagefind index (once search lands) → Playwright e2e + axe against `astro preview` → `npm audit --audit-level=high`.
+1. **GitHub Actions (on every push and PR):** `npm ci` → `astro check` → unit tests → `astro build` (which writes the Pagefind index, §9) → Playwright e2e + axe against `astro preview` → `npm audit --audit-level=high`.
 2. **Cloudflare Workers Builds**, connected to the GitHub repo, builds and deploys `main` to production and non-`main` branches to preview URLs, with `PUBLIC_SITE_ENV` set as a build variable. Previews stay non-indexable through the branch check in §10.4 (ADR-0005).
 3. Branch protection on `main` requires step 1 to pass.
 

@@ -8,6 +8,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 import type { AstroIntegration } from 'astro';
 import { resolveContentSource } from './src/lib/content-source.ts';
 import { scriptHash } from './src/lib/csp.ts';
+import { searchIndex } from './src/lib/search-index.ts';
 import { THEME_INIT_SCRIPT } from './src/lib/theme.ts';
 import { hastPlugins, shikiConfig } from './src/markdown/pipeline.ts';
 import { site } from './src/site.config.ts';
@@ -65,7 +66,9 @@ export default defineConfig({
   // `.mdx` entries inherit the Markdown pipeline above, so both render alike.
   // The sitemap lists every built route; drafts are never built in production
   // (architecture §5.5), and the 404 page is left out by the integration.
-  integrations: [mdx(), sitemap(), publicOverlay],
+  // `searchIndex` writes the Pagefind index for the palette's full-text search
+  // into this build's output (architecture §9).
+  integrations: [mdx(), sitemap(), publicOverlay, searchIndex()],
   security: {
     // Astro emits the policy as a <meta> tag on every page and adds `script-src`
     // and `style-src` with hashes of the inline scripts and styles it renders, so

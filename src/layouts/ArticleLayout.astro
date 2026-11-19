@@ -39,6 +39,8 @@ const seo = {
   Article page (design-spec §4 `/writing/[slug]`). The header and prose share
   the 680px reading column at the leading edge of the shell; at 1024px and up
   the table of contents sits in the space to its right, an asymmetric split.
+  `data-pagefind-body` marks what full-text search indexes: the title, the
+  deck and the body (src/lib/search-index.ts).
 -->
 <BaseLayout title={title} description={description} seo={seo}>
   <article class="article mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
@@ -48,8 +50,8 @@ const seo = {
         <span aria-hidden="true">/</span>
         <time datetime={isoDate(published)}>{formatDate(published)}</time>
       </p>
-      <h1 class="text-page-heading leading-heading font-medium">{title}</h1>
-      {deck && <p class="text-body-large text-muted">{deck}</p>}
+      <h1 class="text-page-heading leading-heading font-medium" data-pagefind-body>{title}</h1>
+      {deck && <p class="text-body-large text-muted" data-pagefind-body>{deck}</p>}
       <p class="flex flex-wrap gap-x-3 gap-y-1 font-mono text-label tracking-label text-muted">
         <span>By {site.name}</span>
         <span aria-hidden="true">·</span>
@@ -75,7 +77,7 @@ const seo = {
       )
     }
 
-    <div class="article-body prose">
+    <div class="article-body prose" data-pagefind-body>
       <slot />
     </div>
   </article>

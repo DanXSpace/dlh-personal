@@ -15,6 +15,11 @@ export interface PaletteEntry {
   title: string;
   href: string;
   kind: PaletteEntryKind;
+  /**
+   * Full-text search results only (`search.ts`): a passage around the match,
+   * HTML-escaped by Pagefind, with matched words in `<mark>`.
+   */
+  excerpt?: string;
 }
 
 interface Article {
@@ -87,13 +92,14 @@ export function staticSource(entries: readonly PaletteEntry[]): ResultSource {
 /**
  * Runs each query against every source and calls `render` with the combined
  * results, in source order: at once with the synchronous sources' results,
- * then again each time a slower source answers. A newer query aborts the
- * previous one, whose late answers are dropped. A source that fails adds
- * nothing; the other results stay.
+ * then again each time a slower source answers. `searching` is true while a
+ * slower source has yet to answer. A page that more than one source finds is
+ * listed once, by the first. A newer query aborts the previous one, whose late
+ * answers are dropped. A source that fails adds nothing; the other results stay.
  */
 export function createQueryRunner(
   sources: readonly ResultSource[],
-  render: (results: PaletteEntry[]) => void,
+  render: (results: PaletteEntry[], searching: boolean) => void,
 ): (query: string) => void {
   let current: AbortController | undefined;
 
@@ -102,7 +108,15 @@ export function createQueryRunner(
     const controller = new AbortController();
     current = controller;
     const answers: (readonly PaletteEntry[])[] = sources.map(() => []);
-    const show = () => render(answers.flat());
+    let waiting = 0;
+    const show = () => {
+      // A page found by more than one source is listed once, where it first appears.
+      const seen = new Set<string>();
+      render(
+        answers.flat().filter(({ href }) => !seen.has(href) && seen.add(href)),
+        waiting > 0,
+      );
+    };
 
     sources.forEach((source, index) => {
       const answer = source.search(query, controller.signal);
@@ -110,16 +124,21 @@ export function createQueryRunner(
         answers[index] = answer;
         return;
       }
-      answer.then(
-        (entries) => {
+      waiting += 1;
+      answer
+        .then(
+          (entries) => {
+            answers[index] = entries;
+          },
+          () => {
+            // A failed source contributes nothing; the others keep their results.
+          },
+        )
+        .then(() => {
           if (controller.signal.aborted) return;
-          answers[index] = entries;
+          waiting -= 1;
           show();
-        },
-        () => {
-          // A failed source contributes nothing; the others keep their results.
-        },
-      );
+        });
     });
     show();
   };

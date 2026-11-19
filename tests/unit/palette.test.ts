@@ -145,5 +145,47 @@ test('a source that fails leaves the other results in place', async () => {
   run('');
   failing.pending[0]!.reject(new Error('index unavailable'));
   await settle();
-  assert.deepEqual(shown, [['Home']]);
+  // Shown again once the failure is known, so the palette stops saying it is searching.
+  assert.deepEqual(shown, [['Home'], ['Home']]);
+});
+
+test('each render says whether a slower source is still searching', async () => {
+  const shown: [string[], boolean][] = [];
+  const answers = deferredSource();
+  const failures = deferredSource();
+  const run = createQueryRunner([staticSource([page('Home')]), answers.source, failures.source], (results, searching) =>
+    shown.push([titles(results), searching]),
+  );
+
+  run('');
+  assert.deepEqual(shown, [[['Home'], true]]);
+  answers.pending[0]!.resolve([found('Elsewhere')]);
+  await settle();
+  failures.pending[0]!.reject(new Error('index unavailable'));
+  await settle();
+  assert.deepEqual(shown, [
+    [['Home'], true],
+    [['Home', 'Elsewhere'], true],
+    [['Home', 'Elsewhere'], false],
+  ]);
+});
+
+test('with only synchronous sources, nothing is left searching', () => {
+  const shown: boolean[] = [];
+  const run = createQueryRunner([staticSource([page('Home')])], (_, searching) => shown.push(searching));
+  run('');
+  assert.deepEqual(shown, [false]);
+});
+
+test('a page an earlier source already lists isn’t listed twice', async () => {
+  const shown: string[][] = [];
+  const slow = deferredSource();
+  const run = createQueryRunner([staticSource([page('Writing')]), slow.source], (results) =>
+    shown.push(titles(results)),
+  );
+
+  run('writing');
+  slow.pending[0]!.resolve([{ title: 'Writing, found again', href: '/writing', kind: 'page' }, found('Elsewhere')]);
+  await settle();
+  assert.deepEqual(shown, [['Writing'], ['Writing', 'Elsewhere']]);
 });
