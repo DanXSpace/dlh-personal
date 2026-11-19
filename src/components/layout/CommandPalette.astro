@@ -187,6 +187,34 @@
     text-transform: uppercase;
   }
 
+  /* Full-text results add a passage from the page on its own line, up to two lines long. */
+  .palette-results :global(.palette-option:has(.palette-option-excerpt)) {
+    flex-wrap: wrap;
+    row-gap: var(--space-unit);
+  }
+
+  /* A long title wraps beside its kind label rather than pushing the label onto the next line. */
+  .palette-results :global(.palette-option:has(.palette-option-excerpt) .palette-option-title) {
+    flex: 1 1 0;
+  }
+
+  .palette-results :global(.palette-option-excerpt) {
+    display: -webkit-box;
+    flex-basis: 100%;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    color: var(--color-muted);
+  }
+
+  /* Matched words: full text color and weight, no fill, so the palette stays monochrome. */
+  .palette-results :global(.palette-option-excerpt mark) {
+    background-color: transparent;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
   .palette-status {
     padding: calc(var(--space-unit) * 3) calc(var(--space-unit) * 4);
     border-block-start: var(--rule-width) solid var(--color-rule);

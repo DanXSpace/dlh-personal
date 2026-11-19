@@ -8,6 +8,7 @@
  * active option through `aria-activedescendant`.
  */
 import { createQueryRunner, staticSource, type PaletteEntry, type PaletteEntryKind, type ResultSource } from './palette.ts';
+import { pagefindSource, type Pagefind } from './search.ts';
 
 const kindLabels: Record<PaletteEntryKind, string> = {
   page: 'Page',
@@ -35,6 +36,39 @@ async function loadEntries(): Promise<PaletteEntry[] | undefined> {
   }
 }
 
+/**
+ * Pagefind's browser bundle, written into the build output by `search-index.ts`.
+ * Held in a variable so Vite leaves the import to the browser. Missing on the
+ * dev server, where full-text search simply adds nothing.
+ */
+const pagefindUrl = '/pagefind/pagefind.js';
+
+/** Stands in for Pagefind when the index holds no pages. */
+const emptyIndex: Pagefind = { search: async () => ({ results: [] }) };
+
+async function loadPagefind(): Promise<Pagefind> {
+  // Pagefind throws an uncaught error on an index with no pages, which is
+  // what a build with nothing published writes, so its entry file is read
+  // first. Pagefind reads it again from the HTTP cache.
+  const entry = await fetch('/pagefind/pagefind-entry.json');
+  if (!entry.ok) throw new Error(`Search index unavailable (${entry.status})`);
+  const { languages } = (await entry.json()) as { languages: Record<string, unknown> };
+  if (Object.keys(languages).length === 0) return emptyIndex;
+  return (await import(/* @vite-ignore */ pagefindUrl)) as Pagefind;
+}
+
+/** Pagefind's excerpt as text, with its `<mark>` highlights kept and any other markup dropped. */
+function excerptNodes(html: string): Node[] {
+  const parsed = new DOMParser().parseFromString(html, 'text/html').body;
+  return [...parsed.childNodes].map((node) => {
+    const text = node.textContent ?? '';
+    if (node.nodeName !== 'MARK') return document.createTextNode(text);
+    const mark = document.createElement('mark');
+    mark.textContent = text;
+    return mark;
+  });
+}
+
 /** Selector for elements that can take focus inside the dialog. */
 const focusable = 'input, button, [tabindex]:not([tabindex="-1"])';
 
@@ -45,8 +79,9 @@ export async function createPalette(dialog: HTMLDialogElement): Promise<Palette>
   const closeButton = dialog.querySelector<HTMLButtonElement>('[data-palette-close]')!;
 
   const entries = await loadEntries();
-  // More sources plug in here, such as full-text search (ticket 17).
-  const sources: ResultSource[] = [staticSource(entries ?? [])];
+  // Titles of pages and content first, then full-text matches in article and
+  // case-study bodies as they arrive (ticket 17).
+  const sources: ResultSource[] = [staticSource(entries ?? []), pagefindSource(loadPagefind)];
 
   let results: PaletteEntry[] = [];
   let active = -1;
@@ -68,7 +103,13 @@ export async function createPalette(dialog: HTMLDialogElement): Promise<Palette>
     }
   }
 
-  function render(next: PaletteEntry[]) {
+  // Set for each new query. Later renders for the same query only add slower
+  // results after the ones shown, so they keep the active option where it is.
+  let newQuery = true;
+
+  function render(next: PaletteEntry[], searching: boolean) {
+    const keepActive = !newQuery && active >= 0 && active < next.length;
+    newQuery = false;
     results = next;
     listbox.replaceChildren(
       ...next.map((entry, index) => {
@@ -85,6 +126,12 @@ export async function createPalette(dialog: HTMLDialogElement): Promise<Palette>
         kind.className = 'palette-option-kind';
         kind.textContent = kindLabels[entry.kind];
         option.append(title, kind);
+        if (entry.excerpt) {
+          const excerpt = document.createElement('span');
+          excerpt.className = 'palette-option-excerpt';
+          excerpt.append(...excerptNodes(entry.excerpt));
+          option.append(excerpt);
+        }
         option.addEventListener('pointermove', () => {
           if (active !== index) setActive(index);
         });
@@ -92,11 +139,22 @@ export async function createPalette(dialog: HTMLDialogElement): Promise<Palette>
       }),
     );
     input.setAttribute('aria-expanded', String(next.length > 0));
-    status.textContent = entries === undefined ? 'Results couldn’t load. Use the site navigation instead.' : countMessage(next.length);
-    setActive(next.length > 0 ? 0 : -1);
+    listbox.setAttribute('aria-busy', String(searching));
+    status.textContent = statusMessage(next.length, searching);
+    setActive(next.length > 0 ? (keepActive ? active : 0) : -1);
   }
 
-  const runQuery = createQueryRunner(sources, render);
+  function statusMessage(count: number, searching: boolean): string {
+    if (count > 0) return countMessage(count);
+    if (searching) return 'Searching…';
+    return entries === undefined ? 'Results couldn’t load. Use the site navigation instead.' : countMessage(0);
+  }
+
+  const run = createQueryRunner(sources, render);
+  function runQuery(query: string) {
+    newQuery = true;
+    run(query);
+  }
 
   input.addEventListener('input', () => runQuery(input.value));
 
