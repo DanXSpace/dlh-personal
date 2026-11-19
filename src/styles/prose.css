@@ -21,6 +21,16 @@
   margin-block-start: calc(var(--space-unit) * 6);
 }
 
+/*
+ * Figures, galleries and diagrams (src/components/content/) get more room than
+ * paragraphs, so a caption is never read as belonging to the block below it.
+ * A heading keeps its own, tighter spacing above them.
+ */
+.prose > :not(.heading-anchored) + :is(.figure, .gallery, .diagram),
+.prose > :is(.figure, .gallery, .diagram) + * {
+  margin-block-start: calc(var(--space-unit) * 12);
+}
+
 /* Headings, each wrapped with its anchor link by `heading-anchors.ts`. */
 .prose .heading-anchored {
   display: flex;

@@ -1,0 +1,50 @@
+---
+/**
+ * A set of `Figure`s (design-spec §5; architecture §6). They stack on a phone
+ * and sit on the 12-column grid from 768px, two or three to a row.
+ *
+ *   <Gallery columns={3}>
+ *     <Figure … />
+ *     <Figure … />
+ *     <Figure … />
+ *   </Gallery>
+ */
+interface Props {
+  /** Figures per row from 768px. */
+  columns?: 2 | 3;
+}
+
+const { columns = 2 } = Astro.props;
+if (columns !== 2 && columns !== 3) {
+  throw new Error(`Gallery columns must be 2 or 3, not ${columns}.`);
+}
+---
+
+<div class="gallery" data-columns={columns}>
+  <slot />
+</div>
+
+<style>
+  @reference '../../styles/global.css';
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    gap: calc(var(--space-unit) * 8) calc(var(--space-unit) * 6);
+    align-items: start;
+  }
+
+  .gallery > :global(*) {
+    grid-column: 1 / -1;
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .gallery[data-columns='2'] > :global(*) {
+      grid-column: span 6;
+    }
+
+    .gallery[data-columns='3'] > :global(*) {
+      grid-column: span 4;
+    }
+  }
+</style>

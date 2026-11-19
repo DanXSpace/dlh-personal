@@ -13,15 +13,14 @@ import { resolveContentSource } from './lib/content-source.ts';
 const { contentRoot } = resolveContentSource(process.env);
 
 /**
- * Entries are `<slug>.md` or `<slug>/index.md`, with invalid or duplicate slugs
- * failing the build. Markdown only for now: `.mdx` joins the pattern with
- * `@astrojs/mdx` in ticket 07.
+ * Entries are `<slug>.md(x)` or `<slug>/index.md(x)`, with invalid or duplicate
+ * slugs failing the build.
  */
 function entryLoader(collection: string) {
   const base = `${contentRoot}/${collection}`;
   return glob({
     base,
-    pattern: ['*.md', '*/index.md'],
+    pattern: ['*.{md,mdx}', '*/index.{md,mdx}'],
     generateId: entryIds({ collection, base, exists: existsSync }),
   });
 }

@@ -1,3 +1,4 @@
+import mdx from '@astrojs/mdx';
 import { satteri } from '@astrojs/markdown-satteri';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, fontProviders } from 'astro/config';
@@ -41,6 +42,8 @@ export default defineConfig({
     processor: satteri({ hastPlugins }),
     shikiConfig,
   },
+  // `.mdx` entries inherit the Markdown pipeline above, so both render alike.
+  integrations: [mdx()],
   security: {
     // Astro emits the policy as a <meta> tag on every page and adds `script-src`
     // and `style-src` with hashes of the inline scripts and styles it renders, so

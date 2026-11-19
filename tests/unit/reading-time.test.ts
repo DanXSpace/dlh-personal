@@ -29,3 +29,14 @@ test('markdown punctuation on its own is not counted as words', () => {
   const body = `## Heading\n\n- ${words(229)}\n\n---\n\n> |  |  |`;
   assert.equal(readingMinutes(body), 1);
 });
+
+test('MDX import and export lines are not counted as reading', () => {
+  const esm = Array.from({ length: 40 }, (_, i) => `import image${i} from './images/a-long-file-name-${i}.jpg';`);
+  const body = [...esm, "export const note = 'not prose';", '', words(230)].join('\n');
+  assert.equal(readingMinutes(body), 1);
+});
+
+test('a prose line that starts with the word "import" still counts', () => {
+  const body = [words(229), '', 'Import duties shaped the economy.'].join('\n');
+  assert.equal(readingMinutes(body), 2);
+});

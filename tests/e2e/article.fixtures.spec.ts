@@ -5,6 +5,7 @@ const full = '/writing/article-template-fixture';
 const short = '/writing/a-much-longer-title-fixture-for-checking-how-article-headings-wrap';
 const optIn = '/writing/contents-opt-in-fixture';
 const draft = '/writing/draft-fixture';
+const mdx = '/writing/mdx-components-fixture';
 
 test.describe('article header', () => {
   test('shows category, publication date, title, deck, author, reading time and updated date', async ({ page }) => {
@@ -139,7 +140,7 @@ test.describe('code', () => {
 test.describe('at 320px', () => {
   test.use({ viewport: { width: 320, height: 800 } });
 
-  for (const path of [full, short, optIn]) {
+  for (const path of [full, short, optIn, mdx]) {
     test(`${path} never scrolls horizontally`, async ({ page }) => {
       await page.goto(path);
       const overflow = await page.evaluate(
