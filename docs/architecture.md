@@ -279,7 +279,7 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 ```jsonc
 // wrangler.jsonc (sketch)
 {
-  "name": "personal-site",
+  "name": "dlh-personal",
   "compatibility_date": "<set at implementation>",
   "assets": {
     "directory": "./dist",

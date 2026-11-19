@@ -62,6 +62,8 @@ The site deploys to [Cloudflare Workers static assets](docs/adr/0001-cloudflare-
 
 - **`wrangler.jsonc`** points the Worker's assets at `./dist` and sets
   `not_found_handling: "404-page"`, so unknown URLs serve `404.html` with a 404 status.
+  Its `name` must match the Worker's name in Cloudflare (`dlh-personal`), and its empty
+  `previews` block is required by `wrangler preview`, the deploy command for non-`main` branches.
 - **`public/_headers`** sets security headers on every response (HSTS, `X-Content-Type-Options`,
   `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options: DENY`) and caches the
   content-hashed files under `/_astro/` for a year as `immutable`.
