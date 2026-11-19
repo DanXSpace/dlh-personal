@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 // Fixture projects in tests/fixtures/content/projects (ADR-0004).
 const full = '/work/case-study-fixture';
 const minimal = '/work/minimal-case-study-fixture';
+const noCover = '/work/no-cover-case-study-fixture';
 
 test.describe('case study header', () => {
   test('shows Back to Work, the case-study label, title, summary and project metadata', async ({ page }) => {
@@ -33,12 +34,12 @@ test.describe('case study header', () => {
 });
 
 test.describe('wide image', () => {
-  test('shows the thumbnail with its alt text at the content shell width, wider than the reading column', async ({
+  test('shows the cover with its alt text at the content shell width, wider than the reading column', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(full);
-    const image = page.getByRole('img', { name: 'A gray placeholder ridgeline under a pale sky.' });
+    const image = page.getByRole('img', { name: 'A wide gray placeholder ridgeline, cropped for the case study.' });
     await expect(image).toBeVisible();
     const { width } = (await image.boundingBox())!;
     expect(width).toBeGreaterThan(680);
@@ -46,6 +47,17 @@ test.describe('wide image', () => {
     // Width and height are reserved, so the page doesn't shift as it loads.
     await expect(image).toHaveAttribute('width', /\d+/);
     await expect(image).toHaveAttribute('height', /\d+/);
+  });
+
+  test('the directory thumbnail is not shown on the case study', async ({ page }) => {
+    await page.goto(full);
+    await expect(page.getByRole('img', { name: 'A gray placeholder ridgeline under a pale sky.' })).toHaveCount(0);
+  });
+
+  test('a case study without a cover has no wide image', async ({ page }) => {
+    await page.goto(minimal);
+    await expect(page.locator('.case-study-image')).toHaveCount(0);
+    await expect(page.getByRole('img', { name: 'A darker gray placeholder ridgeline.' })).toHaveCount(0);
   });
 });
 
@@ -113,6 +125,18 @@ test.describe('contents', () => {
     expect(contents!.x).toBeGreaterThanOrEqual(prose!.x + prose!.width);
   });
 
+  test('without a cover, the contents and body still start side by side below the header', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.goto(noCover);
+    const header = await page.getByRole('article').locator('header').boundingBox();
+    const contents = await page.getByRole('navigation', { name: 'Contents' }).boundingBox();
+    const prose = await page.locator('.prose').boundingBox();
+    expect(contents!.x).toBeGreaterThanOrEqual(prose!.x + prose!.width);
+    expect(Math.abs(contents!.y - prose!.y)).toBeLessThanOrEqual(1);
+    // One 48px row gap below the header, not an empty row where the cover would be.
+    expect(prose!.y - (header!.y + header!.height)).toBeLessThanOrEqual(49);
+  });
+
   test('below 1024px the contents come before the body', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 900 });
     await page.goto(full);
@@ -153,7 +177,7 @@ for (const width of [320, 390, 768, 1024, 1440]) {
   test.describe(`at ${width}px`, () => {
     test.use({ viewport: { width, height: 800 } });
 
-    for (const path of [full, minimal]) {
+    for (const path of [full, minimal, noCover]) {
       test(`${path} never scrolls horizontally`, async ({ page }) => {
         await page.goto(path);
         const overflow = await page.evaluate(

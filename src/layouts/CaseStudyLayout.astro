@@ -20,7 +20,7 @@ interface Props {
 }
 
 const { project, headings, related } = Astro.props;
-const { title, summary, thumbnail, thumbnailAlt, type, year, status, stack, repo, live } = project.data;
+const { title, summary, cover, coverAlt, type, year, status, stack, repo, live } = project.data;
 // Each link renders only when the project provides it (design-spec §4).
 const links = [
   { label: 'Repository', href: repo },
@@ -37,7 +37,7 @@ const contents = tableOfContents(headings, undefined);
   contents sit in the space to the right of the body, as on an article.
 -->
 <BaseLayout title={title}>
-  <article class="case-study mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0, 'has-related': related.length > 0 }}>
+  <article class="case-study mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
     <header class="case-study-header flex max-w-measure flex-col items-start gap-6">
       <TextLink href="/work">Back to Work</TextLink>
       <p class="font-mono text-label uppercase tracking-label text-muted">Case study</p>
@@ -66,14 +66,18 @@ const contents = tableOfContents(headings, undefined);
       }
     </header>
 
-    <Image
-      src={thumbnail}
-      alt={thumbnailAlt}
-      widths={[...caseStudyImage.widths]}
-      sizes={caseStudyImage.sizes}
-      loading="eager"
-      class="case-study-image"
-    />
+    {
+      cover && (
+        <Image
+          src={cover}
+          alt={coverAlt ?? ''}
+          widths={[...caseStudyImage.widths]}
+          sizes={caseStudyImage.sizes}
+          loading="eager"
+          class="case-study-image"
+        />
+      )
+    }
 
     {
       contents.length > 0 && (
@@ -83,34 +87,36 @@ const contents = tableOfContents(headings, undefined);
       )
     }
 
-    <div class="case-study-body prose">
-      <slot />
-    </div>
+    <div class="case-study-main flex flex-col gap-12">
+      <div class="case-study-body prose">
+        <slot />
+      </div>
 
-    {
-      related.length > 0 && (
-        <section class="related max-w-measure" aria-labelledby="related-writing">
-          <h2 id="related-writing" class="font-mono text-label uppercase tracking-label text-muted">
-            Related writing
-          </h2>
-          <ul class="related-list">
-            {related.map((article) => (
-              <li class="related-row">
-                <a href={`/writing/${article.id}`} class="related-link text-body-large font-medium">
-                  {article.data.title}
-                </a>
-                <time
-                  datetime={isoDate(article.data.published)}
-                  class="font-mono text-label tracking-label text-muted"
-                >
-                  {formatDate(article.data.published)}
-                </time>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
+      {
+        related.length > 0 && (
+          <section class="related max-w-measure" aria-labelledby="related-writing">
+            <h2 id="related-writing" class="font-mono text-label uppercase tracking-label text-muted">
+              Related writing
+            </h2>
+            <ul class="related-list">
+              {related.map((article) => (
+                <li class="related-row">
+                  <a href={`/writing/${article.id}`} class="related-link text-body-large font-medium">
+                    {article.data.title}
+                  </a>
+                  <time
+                    datetime={isoDate(article.data.published)}
+                    class="font-mono text-label tracking-label text-muted"
+                  >
+                    {formatDate(article.data.published)}
+                  </time>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
   </article>
 </BaseLayout>
 
@@ -173,11 +179,14 @@ const contents = tableOfContents(headings, undefined);
 
   /*
    * 1024px and up: reading column on the left, contents beside it, staying in
-   * view while the body scrolls. The header and wide image span both columns.
+   * view while the body and related writing scroll. The header and cover span
+   * both columns. Dense placement puts the main column back beside the
+   * contents that precede it in source order, whichever blocks are present.
    */
   @media (width >= theme(--breakpoint-lg)) {
     .case-study.has-contents {
       grid-template-columns: minmax(0, var(--measure)) minmax(0, 1fr);
+      grid-auto-flow: row dense;
       column-gap: calc(var(--space-unit) * 12);
     }
 
@@ -188,25 +197,13 @@ const contents = tableOfContents(headings, undefined);
 
     .has-contents .case-study-contents {
       grid-column: 2;
-      grid-row: 3;
       align-self: start;
       position: sticky;
       top: calc(var(--space-unit) * 8);
     }
 
-    .has-contents .case-study-body {
+    .has-contents .case-study-main {
       grid-column: 1;
-      grid-row: 3;
-    }
-
-    /* With related writing, the contents stay in view beside it too. */
-    .has-contents.has-related .case-study-contents {
-      grid-row: 3 / span 2;
-    }
-
-    .has-contents .related {
-      grid-column: 1;
-      grid-row: 4;
     }
   }
 </style>

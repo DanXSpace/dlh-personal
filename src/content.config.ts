@@ -29,21 +29,31 @@ function entryLoader(collection: string) {
 const projects = defineCollection({
   loader: entryLoader('projects'),
   schema: ({ image }) =>
-    z.object({
-      title: z.string().min(1),
-      summary: z.string().min(1).max(160),
-      thumbnail: image(),
-      thumbnailAlt: z.string().trim().min(1, 'Describe the thumbnail in `thumbnailAlt`, so the image is never missing alt text.'),
-      stack: z.array(z.string().trim().min(1)).min(1),
-      status: z.enum(projectStatuses),
-      type: z.enum(projectTypes),
-      year: z.number().int(),
-      featured: z.boolean().default(false),
-      order: z.number().optional(),
-      repo: z.url().optional(),
-      live: z.url().optional(),
-      draft: z.boolean().default(false),
-    }),
+    z
+      .object({
+        title: z.string().min(1),
+        summary: z.string().min(1).max(160),
+        thumbnail: image(),
+        thumbnailAlt: z
+          .string()
+          .trim()
+          .min(1, 'Describe the thumbnail in `thumbnailAlt`, so the image is never missing alt text.'),
+        cover: image().optional(),
+        coverAlt: z.string().trim().min(1).optional(),
+        stack: z.array(z.string().trim().min(1)).min(1),
+        status: z.enum(projectStatuses),
+        type: z.enum(projectTypes),
+        year: z.number().int(),
+        featured: z.boolean().default(false),
+        order: z.number().optional(),
+        repo: z.url().optional(),
+        live: z.url().optional(),
+        draft: z.boolean().default(false),
+      })
+      .refine((data) => data.cover === undefined || data.coverAlt !== undefined, {
+        message: 'Describe the cover in `coverAlt`, so the image is never missing alt text.',
+        path: ['coverAlt'],
+      }),
 });
 
 const writing = defineCollection({

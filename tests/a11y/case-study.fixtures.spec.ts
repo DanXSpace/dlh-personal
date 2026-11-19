@@ -4,10 +4,11 @@ import { expect, test } from '@playwright/test';
 // Rule tags covering WCAG 2.0–2.2 levels A and AA.
 const wcagAA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
-// Fixture projects (ADR-0004): every part of the template, and only the required fields.
+// Fixture projects (ADR-0004): every part of the template, only the required fields, and contents without a cover.
 const caseStudies = [
   { name: 'the full case study fixture', path: '/work/case-study-fixture' },
   { name: 'the minimal case study fixture', path: '/work/minimal-case-study-fixture' },
+  { name: 'the no-cover case study fixture', path: '/work/no-cover-case-study-fixture' },
 ];
 
 for (const { name, path } of caseStudies) {
