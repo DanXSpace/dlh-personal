@@ -34,3 +34,14 @@ export const figureImage = {
 export function galleryImageSizes(columns: 2 | 3): string {
   return `(min-width: 48rem) calc((42.5rem - ${columns - 1} * 1.5rem) / ${columns}), 100vw`;
 }
+
+/**
+ * Responsive candidates for a case study's wide image, which spans the content
+ * shell (design-spec §5). 58.5rem is just above the widest the shell's content
+ * box gets: `--shell-max` (65rem) less its fluid `--gutter` on each side, about
+ * 58.2rem at a 65rem viewport. Below that the image is close to full width.
+ */
+export const caseStudyImage = {
+  widths: [480, 960, 1360, 1840],
+  sizes: '(min-width: 65rem) 58.5rem, 100vw',
+} as const;

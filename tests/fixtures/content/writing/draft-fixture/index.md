@@ -4,6 +4,7 @@ description: Test fixture marked as a draft, which must be absent from every pro
 published: 2026-05-01
 category: life
 draft: true
+project: case-study-fixture
 ---
 
 If this page is reachable in a production build, the draft rule is broken.

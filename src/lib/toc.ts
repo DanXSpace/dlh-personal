@@ -1,7 +1,8 @@
 /**
- * Table of contents for an article (design-spec §4, architecture §6): shown
- * when the article has three or more `h2`s, unless frontmatter `toc` says
- * otherwise. Lists `h2`s with their `h3`s nested; deeper headings are left out.
+ * Table of contents for an article or case study (design-spec §4, architecture
+ * §6): shown when the entry has three or more `h2`s, unless an article's
+ * frontmatter `toc` says otherwise. Lists `h2`s with their `h3`s nested;
+ * deeper headings are left out.
  */
 
 import type { MarkdownHeading } from 'astro';

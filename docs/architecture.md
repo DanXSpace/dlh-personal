@@ -122,8 +122,10 @@ All schemas live in `src/content.config.ts`, use the `glob()` loader, and use `z
 | --- | --- | --- | --- |
 | `title` | string | ✓ | |
 | `summary` | string (≤ 160) | ✓ | directory blurb + meta description |
-| `thumbnail` | image | ✓ | |
+| `thumbnail` | image | ✓ | directory and homepage rows only |
 | `thumbnailAlt` | string | ✓ | enforced so alt text is never forgotten |
+| `cover` | image | | the case study's wide image, shown only when present (approved 2026-11-19) |
+| `coverAlt` | string | with `cover` | required when `cover` is set (refinement) |
 | `stack` | string[] (≥ 1) | ✓ | |
 | `status` | enum `active \| maintained \| complete \| archived` | ✓ | approved 2026-11-18 |
 | `type` | enum `application \| experiment \| other` | ✓ | FR-03 |
@@ -133,6 +135,8 @@ All schemas live in `src/content.config.ts`, use the `glob()` loader, and use `z
 | `repo` | url | | rendered only when present |
 | `live` | url | | rendered only when present |
 | `draft` | boolean | | default `false` |
+
+The thumbnail and cover are separate so each gets its own crop, and so a case study with no verified screenshot can ship with no wide image rather than a placeholder (design-spec §4 "where available", PRD FR-04).
 
 The case-study body (FR-04 sections) is MDX prose using the content components, not frontmatter, so sections can be omitted honestly when they do not apply.
 
@@ -176,7 +180,7 @@ Astro 7 replaced remark/rehype with the Rust-based **Sätteri** processor by def
 | Need | Approach |
 | --- | --- |
 | Heading IDs | Built in (`github-slugger`). |
-| Table of contents | `headings` returned by `render()`; rendered by `ArticleLayout` from `h2`/`h3`. |
+| Table of contents | `headings` returned by `render()`; `lib/toc.ts` picks the `h2`/`h3`s and `components/ui/TableOfContents.astro` renders them for `ArticleLayout` and `CaseStudyLayout`. |
 | Heading anchor links | In-repo Sätteri `hastPlugins` entry in `src/markdown/` (ordered after `satteriHeadingIdsPlugin()`). |
 | Syntax highlighting | Astro's built-in Shiki, which works under Sätteri (verified in ticket 06). Shiki colours tokens with inline `style` attributes, which the CSP (§11) blocks, so it uses Astro's `css-variables` theme plus an in-repo transformer (`src/markdown/shiki-token-classes.ts`) that turns each token into a class (`token-keyword`, `token-comment`, …) and drops every style attribute. `prose.css` styles those classes from the design tokens in the approved monochrome palette (owner decision, 2026-11-19), so code follows the theme with no extra colours. No fallback was needed. |
 | GFM tables, footnotes | Sätteri `features` (GFM on by default). |
@@ -335,6 +339,8 @@ Resolved 2026-11-18:
 | Category filter | Prerendered `/writing/category/[category]` routes | ADR-0002 |
 | TypeScript version | Pinned to 6.0.x | ADR-0003 |
 | Project `status` values | active, maintained, complete, archived | §5.1 |
+| Case-study wide image | Optional `cover` + `coverAlt`, separate from the required `thumbnail` (2026-11-19) | §5.1 |
+| Case-study contents | Same rule as articles: shown with three or more `h2`s, no per-project override (2026-11-19) | §6 |
 | Real-user performance data | Lab-only at launch; revisit after launch | §13 |
 | Palette | Design-spec §2 values approved as final | design-spec §2 |
 | Heritage gold keyline | Subtle dark keyline on gold in light mode | design-spec §1 |

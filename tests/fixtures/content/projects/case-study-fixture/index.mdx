@@ -1,0 +1,47 @@
+---
+title: Case study fixture
+summary: Test fixture that exercises every part of the case study template. It never ships, and nothing in it describes real work.
+thumbnail: ./thumbnail.jpg
+thumbnailAlt: A gray placeholder ridgeline under a pale sky.
+cover: ./cover.jpg
+coverAlt: A wide gray placeholder ridgeline, cropped for the case study.
+stack: [Astro, TypeScript, MDX]
+status: maintained
+type: application
+year: 2026
+repo: https://example.com/fixture/repository
+live: https://example.com/fixture
+---
+
+import flow from './flow.png';
+
+This fixture case study exists so the case study template can be tested against realistic MDX. It is built only when `CONTENT_SOURCE=fixtures` is set, into a directory that is never deployed. Its paragraphs are long enough to wrap across several lines in the reading column.
+
+## Problem
+
+A fixture problem statement, with [an underlined link](/) in its prose.
+
+## Architecture
+
+<Diagram
+  src={flow}
+  number={1}
+  label="Flow"
+  alt="Diagram of two placeholder boxes joined by a line."
+  description="Two boxes side by side, joined by a single horizontal line. The left box hands its output to the right box."
+/>
+
+### Decisions and trade-offs
+
+<Callout label="Trade-off">
+  A callout inside a case study sets an aside apart from the prose.
+</Callout>
+
+```ts
+// Code in a case study is highlighted like code in an article.
+export const fixture = true;
+```
+
+## Lessons
+
+A closing fixture section.

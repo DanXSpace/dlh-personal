@@ -1,6 +1,7 @@
 ---
 import type { MarkdownHeading } from 'astro';
 import type { CollectionEntry } from 'astro:content';
+import TableOfContents from '../components/ui/TableOfContents.astro';
 import { categoryLabels } from '../lib/categories.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import { readingMinutes } from '../lib/reading-time.ts';
@@ -54,27 +55,9 @@ const contents = tableOfContents(headings, toc);
 
     {
       contents.length > 0 && (
-        <nav class="article-contents" aria-labelledby="contents-label">
-          <p id="contents-label" class="font-mono text-label uppercase tracking-label text-muted">
-            Contents
-          </p>
-          <ol class="contents-list">
-            {contents.map((item) => (
-              <li>
-                <a href={`#${item.slug}`}>{item.text}</a>
-                {item.children.length > 0 && (
-                  <ol>
-                    {item.children.map((child) => (
-                      <li>
-                        <a href={`#${child.slug}`}>{child.text}</a>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
+        <div class="article-contents">
+          <TableOfContents items={contents} />
+        </div>
       )
     }
 
@@ -91,46 +74,6 @@ const contents = tableOfContents(headings, toc);
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     row-gap: calc(var(--space-unit) * 12);
-  }
-
-  .article-contents {
-    padding-block-start: calc(var(--space-unit) * 6);
-    border-block-start: var(--rule-width) solid var(--color-rule);
-    max-width: var(--measure);
-  }
-
-  .contents-list,
-  .contents-list ol {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .contents-list {
-    margin-block-start: calc(var(--space-unit) * 2);
-  }
-
-  .contents-list ol {
-    padding-inline-start: calc(var(--space-unit) * 4);
-  }
-
-  .contents-list a {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--target-min);
-    color: var(--color-muted);
-    text-decoration-line: underline;
-    text-decoration-color: transparent;
-    text-decoration-thickness: var(--rule-width);
-    text-underline-offset: var(--underline-offset);
-    transition:
-      color var(--duration-fast) var(--ease-standard),
-      text-decoration-color var(--duration-fast) var(--ease-standard);
-  }
-
-  .contents-list a:hover {
-    color: var(--color-text);
-    text-decoration-color: currentColor;
   }
 
   /*

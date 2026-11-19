@@ -1,0 +1,27 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import { contentComponents } from '../../components/content/index.ts';
+import CaseStudyLayout from '../../layouts/CaseStudyLayout.astro';
+import { getPublished } from '../../lib/content.ts';
+import { relatedWriting } from '../../lib/projects.ts';
+
+export async function getStaticPaths() {
+  const [projects, articles] = await Promise.all([getPublished('projects'), getPublished('writing')]);
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project, related: relatedWriting(project.id, articles) },
+  }));
+}
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  related: CollectionEntry<'writing'>[];
+}
+
+const { project, related } = Astro.props;
+const { Content, headings } = await render(project);
+---
+
+<CaseStudyLayout project={project} headings={headings} related={related}>
+  <Content components={contentComponents} />
+</CaseStudyLayout>

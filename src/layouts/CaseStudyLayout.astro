@@ -1,0 +1,209 @@
+---
+import type { MarkdownHeading } from 'astro';
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Meta from '../components/content/Meta.astro';
+import TableOfContents from '../components/ui/TableOfContents.astro';
+import TextLink from '../components/ui/TextLink.astro';
+import { formatDate, isoDate } from '../lib/dates.ts';
+import { caseStudyImage } from '../lib/figures.ts';
+import { projectStatusLabels, projectTypeLabels } from '../lib/projects.ts';
+import { tableOfContents } from '../lib/toc.ts';
+import '../styles/prose.css';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  headings: MarkdownHeading[];
+  /** Published articles that reference this project, newest first. */
+  related: CollectionEntry<'writing'>[];
+}
+
+const { project, headings, related } = Astro.props;
+const { title, summary, cover, coverAlt, type, year, status, stack, repo, live } = project.data;
+// Each link renders only when the project provides it (design-spec §4).
+const links = [
+  { label: 'Repository', href: repo },
+  { label: 'Live product', href: live },
+].filter((link): link is { label: string; href: string } => link.href !== undefined);
+// Same rule as articles: contents once there are three or more sections.
+const contents = tableOfContents(headings, undefined);
+---
+
+<!--
+  Case study (design-spec §4 `/work/[slug]`). The header, body and related
+  writing share the 680px reading column at the leading edge of the shell; the
+  wide image spans the content shell (design-spec §5). At 1024px and up the
+  contents sit in the space to the right of the body, as on an article.
+-->
+<BaseLayout title={title}>
+  <article class="case-study mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
+    <header class="case-study-header flex max-w-measure flex-col items-start gap-6">
+      <TextLink href="/work">Back to Work</TextLink>
+      <p class="font-mono text-label uppercase tracking-label text-muted">Case study</p>
+      <h1 class="text-page-heading leading-heading font-medium">{title}</h1>
+      <p class="text-body-large text-muted">{summary}</p>
+      <div class="w-full">
+        <Meta
+          items={{
+            Type: projectTypeLabels[type],
+            Year: String(year),
+            Status: projectStatusLabels[status],
+            Stack: stack,
+          }}
+        />
+      </div>
+      {
+        links.length > 0 && (
+          <ul class="project-links">
+            {links.map(({ label, href }) => (
+              <li>
+                <TextLink href={href}>{label}</TextLink>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    {
+      cover && (
+        <Image
+          src={cover}
+          alt={coverAlt ?? ''}
+          widths={[...caseStudyImage.widths]}
+          sizes={caseStudyImage.sizes}
+          loading="eager"
+          class="case-study-image"
+        />
+      )
+    }
+
+    {
+      contents.length > 0 && (
+        <div class="case-study-contents">
+          <TableOfContents items={contents} />
+        </div>
+      )
+    }
+
+    <div class="case-study-main flex flex-col gap-12">
+      <div class="case-study-body prose">
+        <slot />
+      </div>
+
+      {
+        related.length > 0 && (
+          <section class="related max-w-measure" aria-labelledby="related-writing">
+            <h2 id="related-writing" class="font-mono text-label uppercase tracking-label text-muted">
+              Related writing
+            </h2>
+            <ul class="related-list">
+              {related.map((article) => (
+                <li class="related-row">
+                  <a href={`/writing/${article.id}`} class="related-link text-body-large font-medium">
+                    {article.data.title}
+                  </a>
+                  <time
+                    datetime={isoDate(article.data.published)}
+                    class="font-mono text-label tracking-label text-muted"
+                  >
+                    {formatDate(article.data.published)}
+                  </time>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  @reference '../styles/global.css';
+
+  .case-study {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: calc(var(--space-unit) * 12);
+  }
+
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: calc(var(--space-unit) * 6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .case-study-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+  }
+
+  .related-list {
+    margin: calc(var(--space-unit) * 4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .related-row {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 2);
+    padding-block: calc(var(--space-unit) * 6);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+  }
+
+  .related-row:last-child {
+    border-block-end: var(--rule-width) solid var(--color-rule);
+  }
+
+  /* Like the archive rows: inline, so a wrapped title keeps an even line box. */
+  .related-link {
+    color: var(--color-link);
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition: text-decoration-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .related-link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  /*
+   * 1024px and up: reading column on the left, contents beside it, staying in
+   * view while the body and related writing scroll. The header and cover span
+   * both columns. Dense placement puts the main column back beside the
+   * contents that precede it in source order, whichever blocks are present.
+   */
+  @media (width >= theme(--breakpoint-lg)) {
+    .case-study.has-contents {
+      grid-template-columns: minmax(0, var(--measure)) minmax(0, 1fr);
+      grid-auto-flow: row dense;
+      column-gap: calc(var(--space-unit) * 12);
+    }
+
+    .has-contents .case-study-header,
+    .has-contents .case-study-image {
+      grid-column: 1 / -1;
+    }
+
+    .has-contents .case-study-contents {
+      grid-column: 2;
+      align-self: start;
+      position: sticky;
+      top: calc(var(--space-unit) * 8);
+    }
+
+    .has-contents .case-study-main {
+      grid-column: 1;
+    }
+  }
+</style>

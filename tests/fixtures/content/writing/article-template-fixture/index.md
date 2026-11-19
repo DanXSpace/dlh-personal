@@ -5,6 +5,7 @@ deck: A fixture for browser and accessibility tests. It never ships, and nothing
 published: 2026-03-14
 updated: 2026-04-02
 category: engineering
+project: case-study-fixture
 ---
 
 This fixture article exists so the article template can be tested against realistic Markdown. It is built only when `CONTENT_SOURCE=fixtures` is set, into a directory that is never deployed. Its paragraphs are long enough to wrap across several lines in the reading column, which makes the measure, the line height and the spacing between blocks visible in a browser.
