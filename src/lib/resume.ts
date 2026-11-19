@@ -2,7 +2,8 @@
  * Résumé availability (PRD FR-10, architecture §4): the one rule every
  * résumé link on the site follows. The résumé is downloadable once the owner
  * puts `resume.pdf` in `public/`; until then `/resume` says it is available
- * on request, and no other page links to it.
+ * on request, through any contact link. Other pages link to `/resume` only
+ * while one of those two ways to get it exists.
  */
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -21,11 +22,14 @@ export function resumeAccess(pdfPresent: boolean, links: SiteLinks): ResumeAcces
 }
 
 /**
- * Résumé links outside `/resume` (footer, homepage): one link to the résumé
- * page once the PDF is hosted, none before, so no link leads to a dead end.
+ * Résumé links outside `/resume` (footer, homepage hero, command palette): one
+ * link to the résumé page once the résumé can be obtained there, either as the
+ * PDF or by request through a contact link. With neither, there is none, so no
+ * link leads to a dead end.
  */
 export function resumeLinks(access: ResumeAccess): Link[] {
-  return access.kind === 'pdf' ? [{ label: 'Résumé', href: '/resume' }] : [];
+  const obtainable = access.kind === 'pdf' || access.contacts.length > 0;
+  return obtainable ? [{ label: 'Résumé', href: '/resume' }] : [];
 }
 
 /** Whether any public layer (see `ContentSource.publicDirs`) holds the PDF. */

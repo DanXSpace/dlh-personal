@@ -7,7 +7,7 @@ import HeritageSignature from './HeritageSignature.astro';
 
 const year = new Date().getFullYear();
 // Only owner-supplied links render; none exist until they are approved (PRD FR-10).
-// The résumé joins them once its PDF is hosted (src/lib/resume.ts). The RSS
+// The résumé joins them once it can be obtained (src/lib/resume.ts). The RSS
 // feed always exists, so it always comes last and the list is never empty.
 const links = [
   ...visibleLinks(site.links),

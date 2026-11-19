@@ -7,7 +7,7 @@ import { site } from '../site.config.ts';
 /**
  * The command palette's entry list (architecture §9), built with the site and
  * fetched only when the palette first opens. Published content only, and the
- * résumé only once its PDF is hosted, like every other résumé link.
+ * résumé only once it can be obtained, like every other résumé link.
  */
 export const GET: APIRoute = async () => {
   const entries = paletteEntries({
