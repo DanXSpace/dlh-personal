@@ -265,6 +265,8 @@ Filter chips are plain links to prerendered `/writing/category/[category]` pages
 | Command palette (secondary) | vanilla TS module, imported on first Cmd/Ctrl+K or button click | on demand |
 | Search (secondary) | Pagefind JS + index, imported by the palette | on demand |
 
+The palette (ticket 16) is a small loader in `CommandPalette.astro` that imports `src/lib/palette-dialog.ts` and fetches `/palette.json` (Home, the primary navigation, the résumé once its PDF is hosted, published articles and published projects, built by `src/pages/palette.json.ts`) on first use. Results come from `ResultSource`s in `src/lib/palette.ts`: the built-in list answers synchronously, and an asynchronous source such as Pagefind (ticket 17) is added to the `sources` array in `palette-dialog.ts`. Its results appear after the built-in ones when they arrive, and results that come back for an outdated query are dropped.
+
 No UI framework (React, Svelte, etc.) is planned. If the command palette proves complex enough to justify one, that is an ADR-worthy decision requiring approval.
 
 ## 10. SEO and metadata (FR-13)
