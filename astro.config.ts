@@ -1,18 +1,34 @@
 import mdx from '@astrojs/mdx';
 import { satteri } from '@astrojs/markdown-satteri';
 import tailwindcss from '@tailwindcss/vite';
+import { cpSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, fontProviders } from 'astro/config';
+import type { AstroIntegration } from 'astro';
 import { resolveContentSource } from './src/lib/content-source.ts';
 import { scriptHash } from './src/lib/csp.ts';
 import { THEME_INIT_SCRIPT } from './src/lib/theme.ts';
 import { hastPlugins, shikiConfig } from './src/markdown/pipeline.ts';
 
 const contentSource = resolveContentSource(process.env);
+const [publicDir, ...publicOverlays] = contentSource.publicDirs;
+
+// Astro serves one public directory; later layers (fixture files such as a
+// résumé PDF, ADR-0004) are copied over the finished build output.
+const publicOverlay: AstroIntegration = {
+  name: 'public-overlay',
+  hooks: {
+    'astro:build:done': ({ dir }) => {
+      for (const overlay of publicOverlays) cpSync(overlay, fileURLToPath(dir), { recursive: true });
+    },
+  },
+};
 
 // https://docs.astro.build/en/reference/configuration-reference/
 export default defineConfig({
   output: 'static',
   outDir: `./${contentSource.outDir}`,
+  publicDir: `./${publicDir}`,
   // Self-hosted at build time with generated, metric-matched fallbacks
   // (architecture §7.3). `<Font>` in BaseLayout preloads only the sans 400 file.
   fonts: [
@@ -43,7 +59,7 @@ export default defineConfig({
     shikiConfig,
   },
   // `.mdx` entries inherit the Markdown pipeline above, so both render alike.
-  integrations: [mdx()],
+  integrations: [mdx(), publicOverlay],
   security: {
     // Astro emits the policy as a <meta> tag on every page and adds `script-src`
     // and `style-src` with hashes of the inline scripts and styles it renders, so
