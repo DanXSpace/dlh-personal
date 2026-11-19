@@ -12,11 +12,22 @@ export interface ContentSource {
   contentRoot: string;
   /** Astro build output directory, relative to the project root. */
   outDir: string;
+  /**
+   * Directories whose files are served from the site root, in layers: the
+   * first is Astro's `publicDir`, and later ones are copied over the build
+   * output afterwards. Fixtures use this for files such as a résumé PDF.
+   */
+  publicDirs: string[];
 }
 
 const SOURCES: Record<ContentSource['name'], ContentSource> = {
-  production: { name: 'production', contentRoot: 'src/content', outDir: 'dist' },
-  fixtures: { name: 'fixtures', contentRoot: 'tests/fixtures/content', outDir: 'dist-fixtures' },
+  production: { name: 'production', contentRoot: 'src/content', outDir: 'dist', publicDirs: ['public'] },
+  fixtures: {
+    name: 'fixtures',
+    contentRoot: 'tests/fixtures/content',
+    outDir: 'dist-fixtures',
+    publicDirs: ['public', 'tests/fixtures/public'],
+  },
 };
 
 export function resolveContentSource(

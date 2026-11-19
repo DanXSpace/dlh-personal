@@ -52,6 +52,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 ├── tsconfig.json                 # extends astro/tsconfigs/strictest
 ├── wrangler.jsonc                # static assets config (§12)
 ├── .nvmrc
+├── scripts/                      # one-off tools, e.g. render-social-image.ts (§10.2)
 ├── docs/
 │   ├── prd.md
 │   ├── design-spec.md
@@ -60,6 +61,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   └── agents/
 ├── public/
 │   ├── _headers                  # security headers (§11)
+│   ├── _redirects                # /sitemap.xml → /sitemap-index.xml (§4)
+│   ├── social/default.png        # default link-preview image (§10.2)
 │   ├── resume.pdf                # only once supplied by the owner
 │   └── favicon.svg
 ├── src/
@@ -68,8 +71,9 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   ├── content/
 │   │   ├── projects/<slug>/index.mdx (+ colocated images)
 │   │   ├── writing/<slug>/index.{md,mdx} (+ colocated images)
-│   │   └── now/index.md
-│   ├── assets/                   # site-wide images (hero, portrait)
+│   │   ├── now/index.md
+│   │   └── home/index.md         # hero introduction (§5.7)
+│   ├── assets/                   # site-wide images (hero, portrait); hero.ts (§5.7)
 │   ├── components/
 │   │   ├── layout/               # Header, Footer, Nav, ThemeToggle, Seo
 │   │   ├── content/              # MDX components: Callout, Figure, Gallery, Diagram, Meta
@@ -96,8 +100,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 
 | Route | File | Source |
 | --- | --- | --- |
-| `/` | `pages/index.astro` | featured `projects`, 3 newest `writing`, `now` summary |
-| `/about` | `pages/about.astro` | page content in an MDX partial so copy edits avoid template edits |
+| `/` | `pages/index.astro` | `home` introduction, featured `projects`, 3 newest `writing`, `now` summary (§5.7) |
+| `/about` | `pages/about.astro` | the single `about` entry (§5.6), so copy edits avoid template edits |
 | `/work` | `pages/work/index.astro` | published `projects` |
 | `/work/[slug]` | `pages/work/[slug].astro` | `getStaticPaths` over published `projects` |
 | `/writing` | `pages/writing/index.astro` | published `writing`, grouped by year |
@@ -109,6 +113,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 | `/robots.txt` | `pages/robots.txt.ts` | `lib/site-env.ts` (§10.4) |
 | `/sitemap-index.xml` | `@astrojs/sitemap` | all built routes |
 | 404 | `pages/404.astro` | served via `not_found_handling` (§12) |
+
+Links to an article or case study are built with `entryHref(kind, id)` in `lib/routes.ts`, which `entryKindOf(path)` reverses. Links between pages have no trailing slash; canonical URLs, the sitemap and RSS add one. `withoutTrailingSlash()` in the same module is the one place trailing slashes are stripped.
 
 **Note:** `@astrojs/sitemap` emits `/sitemap-index.xml` and `/sitemap-0.xml`. To meet the PRD's `/sitemap.xml`, add a `_redirects` rule (`/sitemap.xml /sitemap-index.xml 301`) and reference the index in `robots.txt`.
 
@@ -161,9 +167,11 @@ Author is a single constant from `site.config.ts`, not a per-post field.
 
 Single entry (`now/index.md`) with `updated: date` (required) and a body using `##` headings for Building, Learning, Exploring, Training and Listening. The homepage summary comes from an optional `summary` frontmatter field.
 
+The schema is `nowSchema` in `lib/now.ts`. `summary` is limited to 160 characters, like the other collections' summaries. A missing or invalid `updated` fails the build with a message asking for a `YYYY-MM-DD` date. The text before the first `##` is the page's introduction, and a section the entry leaves out doesn't render. The entry has no `draft` flag. Pages read it through `getSingleEntry('now')` in `lib/content.ts`. Until the entry exists, `/now` shows its heading and "No update published yet." (ticket 11).
+
 ### 5.4 Site identity — `src/site.config.ts`
 
-Name, tagline, description, canonical origin, nav items, and social/contact links. **Contact fields start empty.** Components render a link only when its value is set, so nothing placeholder-shaped can reach production (FR-10, PRD §11). This file is typed so a missing required field is a type error.
+Name, tagline, description, canonical origin, nav items, and social/contact links. **Contact fields start empty.** Components render a link only when its value is set, so nothing placeholder-shaped can reach production (FR-10, PRD §11). This file is typed so a missing required field is a type error. `lib/links.ts` gives each link its kinds, in one table: contact channels (email, LinkedIn), profiles (GitHub, LinkedIn; schema.org `sameAs`) and code (GitHub). Callers ask `visibleLinks(links, kind)` for the kind they mean: `/resume` lists contact channels, structured data lists profiles, the homepage hero shows the code link, and the footer and About's contact invitation show every set link.
 
 ### 5.5 Drafts and validation
 
@@ -172,6 +180,31 @@ Name, tagline, description, canonical origin, nav items, and social/contact link
 - Schema violations fail the build with Astro's field-level error messages.
 - **Duplicate slugs:** the glob loader warns rather than fails on a duplicate id, and its optional `prerenderConflictBehavior: 'error'` check can miss a duplicate when two new files load concurrently. Instead each collection's loader takes its `generateId` from `lib/content-ids.ts`, which sees every file in turn and fails the build naming both files. Entries are `<slug>.md` or `<slug>/index.md`, and a slug that isn't lowercase and hyphenated also fails the build (ticket 06).
 - **Reading time** is computed in `lib/reading-time.ts` from the entry's raw `body` (word count ÷ ~230 wpm, code blocks stripped). No dependency or Markdown plugin needed.
+
+### 5.6 `about`
+
+Single entry (`about/index.md(x)`), read through `getSingleEntry('about')`, which applies the draft rule. A collection rather than an imported MDX partial, so the fixture build (ADR-0004) can supply its own entry. Every field is optional, and `/about` omits each section whose field is absent (ticket 12).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| body | MDX | the opener's introduction, under the fixed "More than an engineer." heading |
+| `portrait` | `{ image, alt, label, caption? }` | numbered figure paired with the opener |
+| `timeline` | `{ period, title, detail? }[]` (≥ 1) | career timeline, in the order listed |
+| `heritage` | `{ text?: string[], figure? }` | at least one of the two (refinement); `figure` as for `portrait` |
+| `interests` | `{ name, detail?, photo?: { image, alt } }[]` (≥ 1) | photo tiles shown only where `photo` is set |
+| `contact` | string | the invitation sentence; the invitation shows only site-config links (§5.4), and only once one is set |
+| `description` | string (≤ 160) | meta description; falls back to interim, non-biographical wording |
+| `draft` | boolean | default `false` |
+
+With no entry, production `/about` is the opener heading alone: no copy, imagery or sections are invented (ticket 12, needs owner review).
+
+### 5.7 `home` and the hero image
+
+Single entry (`home/index.md`) whose Markdown body is the homepage hero's introduction. It has no frontmatter fields and no `draft` flag. Pages read it through `getSingleEntry('home')` in `lib/content.ts`. Until the owner supplies it (ticket 18), the hero shows the role label, wordmark, tagline, calls to action and image with no introduction and no stand-in text (ticket 14).
+
+The homepage's selection rules are in `lib/home.ts`: `selectedWork()` (featured projects in directory order, at most three), `recentWriting()` (the three newest articles) and `heroActions()` ("Explore my work" once a project is published, GitHub when its URL is set, and the résumé through `resumeLinks()`). A section with nothing to show is left out, and `sectionNumbers()` numbers the shown sections consecutively, so their `01 /` labels never skip a number.
+
+The hero image is set in `src/assets/hero.ts`. Until the licensed landscape arrives (ticket 18) it is a generated preview, `src/assets/preview/hero-landscape-preview.jpg`, with "PREVIEW IMAGE / NOT FOR PRODUCTION" drawn on it. While `preview` is `true`, the figure has a `data-preview-asset` attribute and its caption says it is a preview. The launch gate (ticket 20) blocks production while `dist/` HTML contains `data-preview-asset` or `dist/_astro/` contains a `hero-landscape-preview` file. The image's focal point is its `object-position` in `Hero.astro`, because the CSP blocks inline `style` attributes. Each breakpoint crops the image with `object-fit: cover` (3:2 below 768px, 2:1 to 1023px, 4:5 in the 7/5 split).
 
 ## 6. Markdown and MDX pipeline
 
@@ -243,6 +276,10 @@ Filter chips are plain links to prerendered `/writing/category/[category]` pages
 | Command palette (secondary) | vanilla TS module, imported on first Cmd/Ctrl+K or button click | on demand |
 | Search (secondary) | Pagefind JS + index, imported by the palette | on demand |
 
+The palette (ticket 16) is a small loader in `CommandPalette.astro` that imports `src/lib/palette-dialog.ts` and fetches `/palette.json` (Home, the primary navigation, the résumé once it can be obtained (`resumeLinks` in `src/lib/resume.ts`), published articles and published projects, built by `src/pages/palette.json.ts`) on first use. Results come from `ResultSource`s in `src/lib/palette.ts`: the built-in list answers synchronously, and an asynchronous source such as Pagefind (ticket 17) is added to the `sources` array in `palette-dialog.ts`. Its results appear after the built-in ones when they arrive, and results that come back for an outdated query are dropped.
+
+Full-text search (ticket 17) is that asynchronous source: `pagefindSource` in `src/lib/search.ts`. `src/lib/search-index.ts`, an Astro integration, writes the Pagefind index into each build's output (`dist/pagefind/`, or `dist-fixtures/pagefind/` for the fixture build, so fixture content never reaches the production index) once `astro build` finishes. It indexes only pages that mark content with `data-pagefind-body`: an article's deck and body, and a case study's summary and body, without heading links (owner decision, 2026-11-19). Titles reach results through `data-pagefind-meta="title"` on the H1, and title matches come from the palette's own list, so a title is never itself indexed. The palette imports `/pagefind/pagefind.js` on the first non-blank query, and Pagefind runs its WebAssembly in its own worker, which the CSP allows without `'wasm-unsafe-eval'`. Results show the page title and a short excerpt, after the title matches, and a page both sources find is listed once.
+
 No UI framework (React, Svelte, etc.) is planned. If the command palette proves complex enough to justify one, that is an ADR-worthy decision requiring approval.
 
 ## 10. SEO and metadata (FR-13)
@@ -251,9 +288,13 @@ No UI framework (React, Svelte, etc.) is planned. If the command palette proves 
 
 Rendered by `BaseLayout` from page props: `<title>` (pattern `Page — Daniel Lee Holung`), meta description, canonical URL (from `site` in `astro.config.ts`), Open Graph and Twitter card tags.
 
+An ordinary page passes `title` and `description` and nothing else; `description` is required, so a page without one fails `astro check`. Entry layouts (article, case study) and category pages also pass an optional `seo` object with an image, article dates, a breadcrumb trail and further structured data. Canonical URLs end in a slash (`/work/`), because Cloudflare serves `work/index.html` at `/work/` and redirects `/work` there; the sitemap and RSS use the same form. The 404 page has no canonical URL. `Seo` also renders the RSS autodiscovery link and the non-production `noindex` (§10.4). Rules live in `lib/seo.ts`.
+
 ### 10.2 Social images
 
 A single default OG image (designed per the spec) at launch, with an optional per-entry `ogImage`. Generated per-article OG images are deferred; they would add a rendering dependency.
+
+The default is `public/social/default.png`, 1200 × 630: the light palette, the `dlh.` monogram in Geist Mono and the name in Geist Sans, nothing else. `scripts/render-social-image.ts` renders it with Playwright from the built fonts; rerun it after `npm run build` if the identity changes. An article's `ogImage`, or a case study's `cover`, replaces it with a 1200 × 630 JPEG crop made at build time (`lib/social-image.ts`).
 
 ### 10.3 Structured data
 
@@ -264,6 +305,7 @@ A single default OG image (designed per the spec) at launch, with an optional pe
 - Drafts are never built in production (§5.5).
 - A build-time env var `PUBLIC_SITE_ENV` is `production` only on the production deployment. Any other value adds `<meta name="robots" content="noindex, nofollow">` to every page and writes a disallow-all `robots.txt`.
 - Workers Builds shares build variables across branches, so a Workers Builds run of any branch other than `main` (`WORKERS_CI_BRANCH`) is non-indexable even when `PUBLIC_SITE_ENV` is `production` (ADR-0005).
+- An indexable build fails while `origin` in `src/site.config.ts` is still a `*.workers.dev` address (`launchOriginProblem()` in `src/lib/site-env.ts`, checked in `astro.config.ts`), so canonical URLs, the sitemap and RSS can't go live on the interim origin (owner decision, 2026-11-19).
 - Production `robots.txt` allows all and points to the sitemap.
 
 ## 11. Security and privacy
@@ -298,13 +340,13 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 
 ### 12.2 Pipeline
 
-1. **GitHub Actions (on every push and PR):** `npm ci` → `astro check` → unit tests → `astro build` → Pagefind index (once search lands) → Playwright e2e + axe against `astro preview` → `npm audit --audit-level=high`.
+1. **GitHub Actions (on every push and PR):** `npm ci` → `astro check` → unit tests → `astro build` (which writes the Pagefind index, §9) → Playwright e2e + axe against `astro preview` → `npm audit --audit-level=high`.
 2. **Cloudflare Workers Builds**, connected to the GitHub repo, builds and deploys `main` to production and non-`main` branches to preview URLs, with `PUBLIC_SITE_ENV` set as a build variable. Previews stay non-indexable through the branch check in §10.4 (ADR-0005).
 3. Branch protection on `main` requires step 1 to pass.
 
 ### 12.3 Domain
 
-The custom domain and canonical origin (`site` in `astro.config.ts`) are not yet decided. Sitemap, RSS, canonical URLs and OG tags all depend on it. Until then, `site` holds a clearly marked placeholder origin, and the production deployment ticket is blocked on this decision. The domain must be on a Cloudflare-managed zone (ADR-0001).
+The custom domain and canonical origin (`site` in `astro.config.ts`) are not yet decided. Sitemap, RSS, canonical URLs and OG tags all depend on it. Until then, `site` reads `origin` in `site.config.ts`, which holds the live `workers.dev` address as a clearly marked interim origin, and the production deployment ticket is blocked on this decision. The domain must be on a Cloudflare-managed zone (ADR-0001).
 
 ## 13. Testing and verification
 

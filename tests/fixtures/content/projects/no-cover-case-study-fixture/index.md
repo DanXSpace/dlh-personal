@@ -7,6 +7,7 @@ stack: [CSS]
 status: complete
 type: other
 year: 2026
+featured: true
 ---
 
 A fixture case study with contents but no cover. It never ships, and nothing in it describes real work.

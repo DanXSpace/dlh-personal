@@ -1,0 +1,226 @@
+---
+/**
+ * The command palette's dialog (PRD FR-11, architecture §9). It stays closed,
+ * and its behavior unloaded, until the visitor presses Cmd+K / Ctrl+K or a
+ * `[data-palette-trigger]` button (in the header). Then `palette-dialog.ts`
+ * and `/palette.json` load once. Without JavaScript the trigger is hidden and
+ * the site is navigated as usual.
+ */
+---
+
+<dialog class="palette" aria-label="Search" data-palette>
+  <div class="palette-panel">
+    <div class="palette-field">
+      <label for="palette-input" class="sr-only">Search pages, writing and work</label>
+      <input
+        id="palette-input"
+        class="palette-input"
+        type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded="false"
+        aria-controls="palette-results"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="go"
+        placeholder="Search pages, writing and work"
+      />
+      <button type="button" class="palette-close" data-palette-close>Close</button>
+    </div>
+    <div id="palette-results" class="palette-results" role="listbox" aria-label="Results"></div>
+    <p class="palette-status" role="status"></p>
+  </div>
+</dialog>
+
+<script>
+  import type { Palette } from '../../lib/palette-dialog.ts';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-palette]');
+  const trigger = document.querySelector<HTMLButtonElement>('[data-palette-trigger]');
+  const shortcut = document.querySelector<HTMLElement>('[data-palette-shortcut]');
+  // Below 768px the trigger sits in the Menu panel, which closes when the palette opens.
+  const menuButton = document.querySelector<HTMLElement>('[popovertarget="site-nav"]');
+
+  let palette: Promise<Palette> | undefined;
+
+  /** Where focus goes on close: the element that opened it, or the Menu button when that is now hidden. */
+  function focusReturn(target: HTMLElement): () => void {
+    return () => {
+      const fallback = menuButton?.checkVisibility() ? menuButton : undefined;
+      (target.checkVisibility() ? target : fallback)?.focus();
+    };
+  }
+
+  function open(target: HTMLElement) {
+    if (!dialog) return;
+    palette ??= import('../../lib/palette-dialog.ts')
+      .then(({ createPalette }) => createPalette(dialog))
+      .catch((error: unknown) => {
+        palette = undefined; // Let the next attempt retry the download.
+        throw error;
+      });
+    palette.then((loaded) => loaded.open(focusReturn(target))).catch(() => {});
+  }
+
+  if (shortcut) {
+    shortcut.textContent = /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K';
+    shortcut.hidden = false;
+  }
+
+  trigger?.addEventListener('click', () => open(trigger));
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+    event.preventDefault();
+    const focused = document.activeElement;
+    const opener = focused instanceof HTMLElement && focused !== document.body ? focused : trigger;
+    if (opener) open(opener);
+  });
+</script>
+
+<style>
+  @reference '../../styles/global.css';
+
+  .palette {
+    width: min(var(--measure), 100% - var(--gutter) * 2);
+    max-width: none;
+    max-height: none;
+    margin: var(--section-space) auto auto;
+    padding: 0;
+    border: var(--rule-width) solid var(--color-control-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .palette::backdrop {
+    background-color: var(--color-backdrop);
+  }
+
+  .palette-field {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 3);
+    padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3) calc(var(--space-unit) * 2) calc(var(--space-unit) * 4);
+    border-block-end: var(--rule-width) solid var(--color-rule);
+  }
+
+  .palette-input {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--target-min);
+    border: 0;
+    background-color: transparent;
+    color: var(--color-text);
+    font-size: var(--text-body-large);
+  }
+
+  .palette-input::placeholder {
+    color: var(--color-muted);
+  }
+
+  .palette-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--target-min);
+    min-height: var(--target-min);
+    padding-inline: calc(var(--space-unit) * 2);
+    border: var(--rule-width) solid var(--color-control-border);
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .palette-close:hover {
+    color: var(--color-text);
+  }
+
+  /* Room for eight results; more scroll. */
+  .palette-results {
+    max-height: calc(var(--target-min) * 8);
+    overflow-y: auto;
+    padding-block: calc(var(--space-unit) * 2);
+  }
+
+  .palette-results:empty {
+    display: none;
+  }
+
+  /* Options are rendered by script, so they sit outside this component's scope. */
+  .palette-results :global(.palette-option) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--space-unit) * 4);
+    min-height: var(--target-min);
+    padding: calc(var(--space-unit) * 2.5) calc(var(--space-unit) * 4);
+    border-inline-start: var(--focus-ring-width) solid transparent;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  /* The active option: surface fill plus a leading bar, so the state never relies on color alone. */
+  .palette-results :global(.palette-option[aria-selected='true']) {
+    border-inline-start-color: var(--color-text);
+    background-color: var(--color-surface);
+  }
+
+  .palette-results :global(.palette-option-title) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .palette-results :global(.palette-option-kind) {
+    flex-shrink: 0;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  /* Full-text results add a passage from the page on its own line, up to two lines long. */
+  .palette-results :global(.palette-option:has(.palette-option-excerpt)) {
+    flex-wrap: wrap;
+    row-gap: var(--space-unit);
+  }
+
+  /* A long title wraps beside its kind label rather than pushing the label onto the next line. */
+  .palette-results :global(.palette-option:has(.palette-option-excerpt) .palette-option-title) {
+    flex: 1 1 0;
+  }
+
+  .palette-results :global(.palette-option-excerpt) {
+    display: -webkit-box;
+    flex-basis: 100%;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    color: var(--color-muted);
+  }
+
+  /* Matched words: full text color and weight, no fill, so the palette stays monochrome. */
+  .palette-results :global(.palette-option-excerpt mark) {
+    background-color: transparent;
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .palette-status {
+    padding: calc(var(--space-unit) * 3) calc(var(--space-unit) * 4);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-label);
+  }
+</style>

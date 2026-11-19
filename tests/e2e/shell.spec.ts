@@ -47,13 +47,14 @@ test.describe('at desktop width', () => {
 test.describe('keyboard order at desktop width', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test('focus moves from the skip link through dlh., the navigation and the theme control', async ({ page }) => {
+  test('focus moves from the skip link through dlh., the navigation, Search and the theme control', async ({ page }) => {
     await page.goto('/');
     const header = page.getByRole('banner');
     const sequence = [
       page.getByRole('link', { name: 'Skip to content' }),
       header.getByRole('link', { name: 'dlh.' }),
       ...['About', 'Work', 'Writing', 'Now'].map((name) => header.getByRole('link', { name, exact: true })),
+      header.getByRole('button', { name: 'Search' }),
       header.getByRole('radio', { name: 'System' }),
     ];
     for (const target of sequence) {

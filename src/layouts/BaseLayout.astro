@@ -1,20 +1,29 @@
 ---
 import { Font } from 'astro:assets';
+import CommandPalette from '../components/layout/CommandPalette.astro';
 import Footer from '../components/layout/Footer.astro';
 import Header from '../components/layout/Header.astro';
-import { resolveSiteEnv } from '../lib/site-env.ts';
+import Seo from '../components/layout/Seo.astro';
+import type { SeoDetails } from '../lib/seo.ts';
 import { THEME_INIT_SCRIPT } from '../lib/theme.ts';
-import { site } from '../site.config.ts';
 import '../styles/global.css';
 
+/**
+ * A page passes its title and description; that is all an ordinary page needs
+ * for complete search and social metadata (architecture §10):
+ *
+ *   <BaseLayout title="Now" description="One or two sentences about the page.">
+ */
 interface Props {
-  /** Page-specific title. Omit on the homepage to use the site name alone. */
+  /** The page's own title, shown as `Title — Daniel Lee Holung`. Omit on the homepage only. */
   title?: string;
+  /** One or two sentences for search results and link previews, up to 160 characters. */
+  description: string;
+  /** Entry pages only (article and case-study layouts): image, dates, breadcrumbs, structured data. */
+  seo?: SeoDetails | undefined;
 }
 
-const { title } = Astro.props;
-const documentTitle = title ? `${title} — ${site.name}` : site.name;
-const { indexable } = resolveSiteEnv(process.env);
+const { title, description, seo } = Astro.props;
 ---
 
 <!doctype html>
@@ -24,8 +33,7 @@ const { indexable } = resolveSiteEnv(process.env);
     <!-- Render-blocking on purpose: applies a stored theme before first paint. -->
     <script is:inline set:html={THEME_INIT_SCRIPT} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{documentTitle}</title>
-    {!indexable && <meta name="robots" content="noindex, nofollow" />}
+    <Seo title={title} description={description} seo={seo} />
     <Font cssVariable="--font-geist-sans" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />
     <Font cssVariable="--font-geist-mono" />
   </head>
@@ -42,5 +50,6 @@ const { indexable } = resolveSiteEnv(process.env);
       <slot />
     </main>
     <Footer />
+    <CommandPalette />
   </body>
 </html>

@@ -28,6 +28,7 @@ The approved direction is monochrome with decorative heritage accents. The hex v
 | `--color-control-border` | `#767676` | `#858585` | Functional control boundaries |
 | `--color-link` | `#171717` | `#F4F4F2` | Links, with underlines in prose |
 | `--color-focus` | `#171717` | `#F4F4F2` | Visible keyboard focus |
+| `--color-backdrop` | `--color-bg` at 85% | `--color-bg` at 85% | Dims the page behind a modal dialog (the command palette); derived from `--color-bg` with `color-mix`, so it adds no new colour |
 
 Heritage tokens are `--heritage-green: #009B3A`, `--heritage-gold: #FED100`, and `--heritage-black: #000000`.
 

@@ -7,8 +7,12 @@ import TableOfContents from '../components/ui/TableOfContents.astro';
 import TextLink from '../components/ui/TextLink.astro';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import { caseStudyImage } from '../lib/figures.ts';
+import { caseStudy } from '../lib/json-ld.ts';
 import { projectStatusLabels, projectTypeLabels } from '../lib/projects.ts';
+import { entryHref } from '../lib/routes.ts';
+import { socialImage } from '../lib/social-image.ts';
 import { tableOfContents } from '../lib/toc.ts';
+import { site } from '../site.config.ts';
 import '../styles/prose.css';
 import BaseLayout from './BaseLayout.astro';
 
@@ -28,6 +32,18 @@ const links = [
 ].filter((link): link is { label: string; href: string } => link.href !== undefined);
 // Same rule as articles: contents once there are three or more sections.
 const contents = tableOfContents(headings, undefined);
+
+// The cover, when there is one, is the project's link-preview image.
+const path = Astro.url.pathname;
+const image = await socialImage(cover, coverAlt);
+const seo = {
+  image,
+  breadcrumbs: [
+    { label: 'Work', href: '/work' },
+    { label: title, href: path },
+  ],
+  structuredData: [caseStudy({ title, summary, path, image: image.src, repo }, site.origin)],
+};
 ---
 
 <!--
@@ -35,14 +51,17 @@ const contents = tableOfContents(headings, undefined);
   writing share the 680px reading column at the leading edge of the shell; the
   wide image spans the content shell (design-spec §5). At 1024px and up the
   contents sit in the space to the right of the body, as on an article.
+  `data-pagefind-body` marks what full-text search indexes: the summary and the
+  body (src/lib/search-index.ts). `data-pagefind-meta="title"` gives each result
+  the project's title, which Pagefind reads from outside the body.
 -->
-<BaseLayout title={title}>
+<BaseLayout title={title} description={summary} seo={seo}>
   <article class="case-study mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
     <header class="case-study-header flex max-w-measure flex-col items-start gap-6">
       <TextLink href="/work">Back to Work</TextLink>
       <p class="font-mono text-label uppercase tracking-label text-muted">Case study</p>
-      <h1 class="text-page-heading leading-heading font-medium">{title}</h1>
-      <p class="text-body-large text-muted">{summary}</p>
+      <h1 class="text-page-heading leading-heading font-medium" data-pagefind-meta="title">{title}</h1>
+      <p class="text-body-large text-muted" data-pagefind-body>{summary}</p>
       <div class="w-full">
         <Meta
           items={{
@@ -88,7 +107,7 @@ const contents = tableOfContents(headings, undefined);
     }
 
     <div class="case-study-main flex flex-col gap-12">
-      <div class="case-study-body prose">
+      <div class="case-study-body prose" data-pagefind-body>
         <slot />
       </div>
 
@@ -101,7 +120,7 @@ const contents = tableOfContents(headings, undefined);
             <ul class="related-list">
               {related.map((article) => (
                 <li class="related-row">
-                  <a href={`/writing/${article.id}`} class="related-link text-body-large font-medium">
+                  <a href={entryHref('article', article.id)} class="related-link text-body-large font-medium">
                     {article.data.title}
                   </a>
                   <time

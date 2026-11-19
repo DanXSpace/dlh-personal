@@ -11,3 +11,19 @@ export function getPublished<C extends CollectionKey>(collection: C): Promise<Co
     isVisible(entry as { data: { draft: boolean } }, { production: import.meta.env.PROD }),
   );
 }
+
+/** Collections that hold at most one entry, `<collection>/index.md(x)`. */
+export type SingleEntryCollection = 'about' | 'now' | 'home';
+
+/**
+ * A single-entry collection's entry, or undefined until the owner supplies it
+ * (ticket 18). It goes through `getPublished`, so a draft About entry is left
+ * out of production builds; Now and Home have no draft flag, so their entry
+ * always shows.
+ */
+export async function getSingleEntry<C extends SingleEntryCollection>(
+  collection: C,
+): Promise<CollectionEntry<C> | undefined> {
+  const [entry] = await getPublished(collection);
+  return entry;
+}

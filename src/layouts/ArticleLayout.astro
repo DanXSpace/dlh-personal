@@ -4,7 +4,9 @@ import type { CollectionEntry } from 'astro:content';
 import TableOfContents from '../components/ui/TableOfContents.astro';
 import { categoryLabels } from '../lib/categories.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
+import { blogPosting } from '../lib/json-ld.ts';
 import { readingMinutes } from '../lib/reading-time.ts';
+import { socialImage } from '../lib/social-image.ts';
 import { tableOfContents } from '../lib/toc.ts';
 import { site } from '../site.config.ts';
 import '../styles/prose.css';
@@ -16,17 +18,32 @@ interface Props {
 }
 
 const { article, headings } = Astro.props;
-const { title, deck, published, updated, category, toc } = article.data;
+const { title, description, deck, published, updated, category, toc, ogImage } = article.data;
 const minutes = readingMinutes(article.body ?? '');
 const contents = tableOfContents(headings, toc);
+
+const path = Astro.url.pathname;
+const image = await socialImage(ogImage);
+const seo = {
+  image,
+  article: { published, updated },
+  breadcrumbs: [
+    { label: 'Writing', href: '/writing' },
+    { label: title, href: path },
+  ],
+  structuredData: [blogPosting({ title, description, published, updated, path, image: image.src }, site.origin)],
+};
 ---
 
 <!--
   Article page (design-spec §4 `/writing/[slug]`). The header and prose share
   the 680px reading column at the leading edge of the shell; at 1024px and up
   the table of contents sits in the space to its right, an asymmetric split.
+  `data-pagefind-body` marks what full-text search indexes: the deck and the
+  body (src/lib/search-index.ts). `data-pagefind-meta="title"` gives each result
+  the article's title, which Pagefind reads from outside the body.
 -->
-<BaseLayout title={title}>
+<BaseLayout title={title} description={description} seo={seo}>
   <article class="article mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
     <header class="article-header flex max-w-measure flex-col items-start gap-6">
       <p class="flex flex-wrap gap-x-3 font-mono text-label uppercase tracking-label text-muted">
@@ -34,8 +51,8 @@ const contents = tableOfContents(headings, toc);
         <span aria-hidden="true">/</span>
         <time datetime={isoDate(published)}>{formatDate(published)}</time>
       </p>
-      <h1 class="text-page-heading leading-heading font-medium">{title}</h1>
-      {deck && <p class="text-body-large text-muted">{deck}</p>}
+      <h1 class="text-page-heading leading-heading font-medium" data-pagefind-meta="title">{title}</h1>
+      {deck && <p class="text-body-large text-muted" data-pagefind-body>{deck}</p>}
       <p class="flex flex-wrap gap-x-3 gap-y-1 font-mono text-label tracking-label text-muted">
         <span>By {site.name}</span>
         <span aria-hidden="true">·</span>
@@ -61,7 +78,7 @@ const contents = tableOfContents(headings, toc);
       )
     }
 
-    <div class="article-body prose">
+    <div class="article-body prose" data-pagefind-body>
       <slot />
     </div>
   </article>

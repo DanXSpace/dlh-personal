@@ -15,6 +15,8 @@ export interface SiteConfig {
   monogram: string;
   tagline: string;
   description: string;
+  /** Canonical origin for canonical URLs, social tags, the sitemap and RSS. */
+  origin: string;
   nav: Link[];
   links: SiteLinks;
 }
@@ -26,6 +28,9 @@ export const site: SiteConfig = {
   // Interim wording drawn from the project brief, not owner-approved copy.
   // Replace with the owner's description in ticket 18.
   description: 'Software engineering portfolio and writing by Daniel Lee Holung.',
+  // Interim origin: the live workers.dev address, until the owner chooses a
+  // custom domain (ticket 19, architecture §12.3). Not the final canonical origin.
+  origin: 'https://dlh-personal.dan-holung.workers.dev',
   nav: [
     { label: 'About', href: '/about' },
     { label: 'Work', href: '/work' },

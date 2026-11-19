@@ -4,11 +4,17 @@ import { archiveByYear } from '../lib/archive.ts';
 import { categoryLabels, type Category } from '../lib/categories.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import { readingMinutes } from '../lib/reading-time.ts';
+import { entryHref } from '../lib/routes.ts';
+import type { Link } from '../lib/links.ts';
 import BaseLayout from './BaseLayout.astro';
 
 interface Props {
   /** Page-specific document title. */
   title: string;
+  /** Meta and link-preview description. */
+  description: string;
+  /** Breadcrumb trail after Home, ending with this page; category pages only. */
+  breadcrumbs?: Link[];
   /** The articles to list: every published article, or one category's. */
   articles: CollectionEntry<'writing'>[];
   /** Categories that have published articles; each gets a filter link. */
@@ -17,7 +23,7 @@ interface Props {
   current?: Category | undefined;
 }
 
-const { title, articles, categories, current } = Astro.props;
+const { title, description, breadcrumbs, articles, categories, current } = Astro.props;
 const years = archiveByYear(articles);
 const filters = [
   { label: 'All', href: '/writing', active: current === undefined },
@@ -35,7 +41,7 @@ const filters = [
   pages. From 768px each year sits in a narrow leading column beside its rows,
   an asymmetric split on the 12-column grid.
 -->
-<BaseLayout title={title}>
+<BaseLayout title={title} description={description} seo={breadcrumbs ? { breadcrumbs } : undefined}>
   <div class="mx-auto flex max-w-shell flex-col gap-16 px-gutter py-section">
     <header class="flex flex-col items-start gap-8">
       <h1 class="text-page-heading leading-heading font-medium">Writing</h1>
@@ -70,7 +76,7 @@ const filters = [
                 {entries.map((article) => (
                   <li class="archive-row">
                     <h3 class="text-body-large font-medium">
-                      <a href={`/writing/${article.id}`} class="archive-link">
+                      <a href={entryHref('article', article.id)} class="archive-link">
                         {article.data.title}
                       </a>
                     </h3>

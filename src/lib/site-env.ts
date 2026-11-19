@@ -22,7 +22,28 @@ export function resolveSiteEnv(env: Record<string, string | undefined>): SiteEnv
   return { indexable: env['PUBLIC_SITE_ENV'] === 'production' && !isPreviewBranch };
 }
 
-/** The `robots.txt` body: disallow-all for previews, allow-all for production. */
-export function robotsTxt({ indexable }: SiteEnv): string {
-  return indexable ? 'User-agent: *\nAllow: /\n' : 'User-agent: *\nDisallow: /\n';
+/**
+ * The `robots.txt` body: disallow-all for previews; allow-all for production,
+ * pointing to the sitemap index (architecture §10.4).
+ */
+export function robotsTxt({ indexable }: SiteEnv, sitemapUrl: string): string {
+  return indexable
+    ? `User-agent: *\nAllow: /\n\nSitemap: ${sitemapUrl}\n`
+    : 'User-agent: *\nDisallow: /\n';
+}
+
+/**
+ * Why an indexable build must not ship with this origin, or `undefined` when
+ * it may. A `*.workers.dev` origin is the interim address used until the
+ * owner's custom domain is attached (ticket 19), so canonical URLs, the
+ * sitemap and RSS built from it would point search engines at the wrong host.
+ * Previews may keep using it.
+ */
+export function launchOriginProblem({ indexable }: SiteEnv, origin: string): string | undefined {
+  if (!indexable || !new URL(origin).hostname.endsWith('.workers.dev')) return undefined;
+  return (
+    `This build is indexable (PUBLIC_SITE_ENV=production) but the site origin is still the interim ` +
+    `workers.dev address (${origin}). Set \`origin\` in src/site.config.ts to the custom domain ` +
+    `before turning on indexing (ticket 19).`
+  );
 }
