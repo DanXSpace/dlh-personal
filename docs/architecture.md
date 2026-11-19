@@ -89,6 +89,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 └── tests/
     ├── e2e/                      # Playwright: routes, nav, theme, palette
     ├── a11y/                     # axe per route × theme
+    ├── fixtures/content/         # fixture entries, built only with CONTENT_SOURCE=fixtures (ADR-0004)
     └── unit/                     # lib/ functions
 ```
 
@@ -162,6 +163,7 @@ Name, tagline, description, canonical origin, nav items, and social/contact link
 
 ### 5.5 Drafts and validation
 
+- Collection loaders take their `base` from `resolveContentSource(process.env).contentRoot` (`lib/content-source.ts`), so template tests can build against fixtures into `dist-fixtures/` without fixtures ever reaching `dist/` (ADR-0004).
 - `lib/content.ts` exposes `getPublished(collection)`, which filters `draft: true` when `import.meta.env.PROD`. Every page, RSS, sitemap and search reads through it, so the FR-06 rule lives in one place. Drafts still render in `astro dev`.
 - Schema violations fail the build with Astro's field-level error messages.
 - **Duplicate slugs:** the glob loader warns rather than fails on a duplicate id. A small integration (`astro:build:start` hook) or test asserts unique ids per collection and fails with the conflicting file paths.
@@ -318,7 +320,7 @@ Node's built-in test runner keeps unit tests dependency-free; switch to Vitest o
 ## 14. Dependencies
 
 **Runtime/build:** `astro`, `@astrojs/mdx`, `@astrojs/sitemap`, `@astrojs/rss`, `tailwindcss`, `@tailwindcss/vite`, `sharp`.
-**Dev:** `typescript@6`, `@astrojs/check`, `@playwright/test`, `@axe-core/playwright`, `wrangler`.
+**Dev:** `typescript@6`, `@types/node` (types for `node:test` and `process.env` under `astro check`), `@astrojs/check`, `@playwright/test`, `@axe-core/playwright`, `wrangler`.
 **Secondary (added with their tickets):** `pagefind`.
 **Explicitly not used:** UI frameworks, `@tailwindcss/typography`, `reading-time`, rehype/remark plugins, CSS-in-JS, analytics SDKs, any CMS.
 

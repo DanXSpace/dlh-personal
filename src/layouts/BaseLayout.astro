@@ -1,0 +1,24 @@
+---
+interface Props {
+  /** Page-specific title. Omit on the homepage to use the site name alone. */
+  title?: string;
+}
+
+const siteName = 'Daniel Lee Holung';
+const { title } = Astro.props;
+const documentTitle = title ? `${title} — ${siteName}` : siteName;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{documentTitle}</title>
+  </head>
+  <body>
+    <main id="main">
+      <slot />
+    </main>
+  </body>
+</html>

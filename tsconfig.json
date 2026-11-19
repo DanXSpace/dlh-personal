@@ -1,0 +1,10 @@
+{
+  "extends": "astro/tsconfigs/strictest",
+  "compilerOptions": {
+    // Unit tests run on Node's native type stripping, which only handles erasable syntax.
+    "erasableSyntaxOnly": true,
+    "types": ["node"]
+  },
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist", "dist-fixtures", "playwright-report", "test-results"]
+}
