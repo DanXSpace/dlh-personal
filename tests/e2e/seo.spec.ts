@@ -8,6 +8,7 @@ import { headMetadata, origin } from '../support/seo.ts';
 
 const pages = [
   { path: '/', title: 'Daniel Lee Holung', ogTitle: 'Daniel Lee Holung', canonical: `${origin}/` },
+  { path: '/about', title: 'About — Daniel Lee Holung', ogTitle: 'About', canonical: `${origin}/about/` },
   { path: '/work', title: 'Work — Daniel Lee Holung', ogTitle: 'Work', canonical: `${origin}/work/` },
   { path: '/writing', title: 'Writing — Daniel Lee Holung', ogTitle: 'Writing', canonical: `${origin}/writing/` },
   { path: '/now', title: 'Now — Daniel Lee Holung', ogTitle: 'Now', canonical: `${origin}/now/` },

@@ -1,0 +1,273 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Figure from '../components/content/Figure.astro';
+import { contentComponents } from '../components/content/index.ts';
+import TextLink from '../components/ui/TextLink.astro';
+import Timeline from '../components/ui/Timeline.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { contactInvitation } from '../lib/about.ts';
+import { getPublished } from '../lib/content.ts';
+import { site } from '../site.config.ts';
+import { aboutLandscapeSizes, aboutPortraitSizes, interestTileImage } from '../lib/figures.ts';
+import '../styles/prose.css';
+
+// The single About entry, or none: production has none until ticket 18. A
+// draft entry is left out of production builds, like any other draft.
+const [entry] = await getPublished('about');
+const data = entry?.data;
+const Content = entry ? (await render(entry)).Content : undefined;
+const hasIntro = (entry?.body ?? '').trim() !== '';
+// Only links set in site config, and none until the owner approves them (PRD FR-10).
+const contact = contactInvitation(site.links, data?.contact);
+// The entry's own description when it has one; otherwise interim, non-biographical
+// wording that the owner may replace (ticket 18).
+const description = data?.description ?? 'About Daniel Lee Holung: background, heritage and interests.';
+
+// Figures are numbered in page order, so a left-out image never leaves a gap.
+let figureCount = 0;
+const nextFigure = () => ++figureCount;
+---
+
+<!--
+  About (design-spec §4 `/about`, PRD FR-07). The opener is approved copy from
+  the design spec; everything else comes from the About entry, and each section
+  is omitted when the entry leaves it out. With no entry the page is the opener
+  alone, so nothing biographical is invented.
+-->
+<BaseLayout title="About" description={description}>
+  <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
+    <div class="about-opener">
+      <div class="about-opener-text">
+        <h1 class="text-page-heading leading-heading font-medium">More than an engineer.</h1>
+        {
+          Content && hasIntro && (
+            <div class="prose">
+              <Content components={contentComponents} />
+            </div>
+          )
+        }
+      </div>
+      {
+        data?.portrait && (
+          <div class="about-portrait">
+            <Figure
+              src={data.portrait.image}
+              alt={data.portrait.alt}
+              number={nextFigure()}
+              label={data.portrait.label}
+              caption={data.portrait.caption}
+              sizes={aboutPortraitSizes}
+            />
+          </div>
+        )
+      }
+    </div>
+
+    {
+      data?.timeline && (
+        <section aria-labelledby="about-career" class="about-section">
+          <h2 id="about-career" class="text-section-heading leading-heading font-medium">
+            Career
+          </h2>
+          <Timeline entries={data.timeline} />
+        </section>
+      )
+    }
+
+    {
+      data?.heritage && (
+        <section aria-labelledby="about-heritage" class="about-heritage">
+          <div class="about-heritage-text">
+            <h2 id="about-heritage" class="text-section-heading leading-heading font-medium">
+              Heritage
+            </h2>
+            {data.heritage.text?.map((paragraph) => (
+              <p class="text-body-large">{paragraph}</p>
+            ))}
+          </div>
+          {data.heritage.figure && (
+            <div class="about-landscape">
+              <Figure
+                src={data.heritage.figure.image}
+                alt={data.heritage.figure.alt}
+                number={nextFigure()}
+                label={data.heritage.figure.label}
+                caption={data.heritage.figure.caption}
+                sizes={aboutLandscapeSizes}
+              />
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    {
+      data?.interests && (
+        <section aria-labelledby="about-interests" class="about-section">
+          <h2 id="about-interests" class="text-section-heading leading-heading font-medium">
+            Interests
+          </h2>
+          <ul class="interests">
+            {data.interests.map(({ name, detail, photo }) => (
+              <li class="interest">
+                {photo && (
+                  <Image
+                    src={photo.image}
+                    alt={photo.alt}
+                    widths={[...interestTileImage.widths]}
+                    sizes={interestTileImage.sizes}
+                    class="interest-photo"
+                  />
+                )}
+                <h3 class="text-body-large leading-heading font-medium">{name}</h3>
+                {detail && <p class="text-muted">{detail}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      contact && (
+        <section aria-labelledby="about-contact" class="about-section">
+          <h2 id="about-contact" class="text-section-heading leading-heading font-medium">
+            Get in touch
+          </h2>
+          {contact.text && <p class="about-contact-text text-body-large">{contact.text}</p>}
+          <ul class="flex flex-wrap gap-x-6">
+            {contact.links.map((link) => (
+              <li>
+                <TextLink href={link.href}>{link.label}</TextLink>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  @reference '../styles/global.css';
+
+  .about-opener {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 12);
+  }
+
+  .about-opener-text {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 8);
+    min-width: 0;
+  }
+
+  .about-section {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 8);
+  }
+
+  .about-heritage {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 12);
+  }
+
+  .about-heritage-text {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 6);
+    max-width: var(--measure);
+    min-width: 0;
+  }
+
+  .about-heritage-text p {
+    margin: 0;
+    line-height: var(--leading-prose);
+  }
+
+  .about-contact-text {
+    max-width: var(--measure);
+    margin: 0;
+  }
+
+  .interests {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    gap: calc(var(--space-unit) * 10) calc(var(--space-unit) * 6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .interest {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 3);
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .interest h3,
+  .interest p {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* Tiles share one crop so a row of photos lines up; the image keeps its focal center. */
+  .interest-photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+  }
+
+  /* 768px and up: opener in the leading seven columns, portrait in the last five. */
+  @media (width >= theme(--breakpoint-md)) {
+    .about-opener {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      column-gap: calc(var(--space-unit) * 6);
+      align-items: start;
+    }
+
+    .about-opener-text {
+      grid-column: 1 / span 7;
+    }
+
+    .about-portrait {
+      grid-column: 8 / -1;
+    }
+
+    .interest {
+      grid-column: span 6;
+    }
+  }
+
+  /* 1024px and up: heritage text in the leading five columns, landscape in the last seven. */
+  @media (width >= theme(--breakpoint-lg)) {
+    .about-heritage {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+      column-gap: calc(var(--space-unit) * 6);
+      align-items: start;
+    }
+
+    .about-heritage-text {
+      grid-column: 1 / span 5;
+    }
+
+    .about-landscape {
+      grid-column: 6 / -1;
+    }
+
+    .interest {
+      grid-column: span 4;
+    }
+  }
+</style>
