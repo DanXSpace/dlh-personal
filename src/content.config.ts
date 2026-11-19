@@ -86,4 +86,13 @@ const now = defineCollection({
   schema: nowSchema,
 });
 
-export const collections = { projects, writing, now };
+/**
+ * A single entry, `home/index.md`, whose body is the homepage hero's
+ * introduction (ticket 14). Other files there are ignored.
+ */
+const home = defineCollection({
+  loader: glob({ base: `${contentRoot}/home`, pattern: 'index.md' }),
+  schema: z.object({}),
+});
+
+export const collections = { projects, writing, now, home };

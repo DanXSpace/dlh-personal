@@ -1,6 +1,6 @@
 /**
  * Figure captions and responsive image sizes: for content figures, the case
- * study's wide image and `/work` row thumbnails.
+ * study's wide image, `/work` row thumbnails and the homepage hero.
  */
 
 /**
@@ -60,4 +60,16 @@ export const caseStudyImage = {
 export const directoryImage = {
   widths: [320, 480, 640, 960, 1280],
   sizes: '(min-width: 48rem) 18rem, calc(100vw - 3rem)',
+} as const;
+
+/**
+ * Responsive candidates for the homepage hero image. From 1024px (64rem) it
+ * takes five of the 12 grid columns, about 23rem of the 57–58rem shell content
+ * box with 1.5rem column gaps. Below that the hero stacks and the image fills
+ * the content box: the viewport less a 3–3.4rem `--gutter` on each side from
+ * 768px, or 1.5rem below it.
+ */
+export const heroImage = {
+  widths: [480, 720, 960, 1440, 1920],
+  sizes: '(min-width: 64rem) 23.5rem, (min-width: 48rem) calc(100vw - 6rem), calc(100vw - 3rem)',
 } as const;

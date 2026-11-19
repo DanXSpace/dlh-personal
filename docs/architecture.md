@@ -68,8 +68,9 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   ├── content/
 │   │   ├── projects/<slug>/index.mdx (+ colocated images)
 │   │   ├── writing/<slug>/index.{md,mdx} (+ colocated images)
-│   │   └── now/index.md
-│   ├── assets/                   # site-wide images (hero, portrait)
+│   │   ├── now/index.md
+│   │   └── home/index.md         # hero introduction (§5.6)
+│   ├── assets/                   # site-wide images (hero, portrait); hero.ts (§5.6)
 │   ├── components/
 │   │   ├── layout/               # Header, Footer, Nav, ThemeToggle, Seo
 │   │   ├── content/              # MDX components: Callout, Figure, Gallery, Diagram, Meta
@@ -96,7 +97,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 
 | Route | File | Source |
 | --- | --- | --- |
-| `/` | `pages/index.astro` | featured `projects`, 3 newest `writing`, `now` summary |
+| `/` | `pages/index.astro` | `home` introduction, featured `projects`, 3 newest `writing`, `now` summary (§5.6) |
 | `/about` | `pages/about.astro` | page content in an MDX partial so copy edits avoid template edits |
 | `/work` | `pages/work/index.astro` | published `projects` |
 | `/work/[slug]` | `pages/work/[slug].astro` | `getStaticPaths` over published `projects` |
@@ -174,6 +175,14 @@ Name, tagline, description, canonical origin, nav items, and social/contact link
 - Schema violations fail the build with Astro's field-level error messages.
 - **Duplicate slugs:** the glob loader warns rather than fails on a duplicate id, and its optional `prerenderConflictBehavior: 'error'` check can miss a duplicate when two new files load concurrently. Instead each collection's loader takes its `generateId` from `lib/content-ids.ts`, which sees every file in turn and fails the build naming both files. Entries are `<slug>.md` or `<slug>/index.md`, and a slug that isn't lowercase and hyphenated also fails the build (ticket 06).
 - **Reading time** is computed in `lib/reading-time.ts` from the entry's raw `body` (word count ÷ ~230 wpm, code blocks stripped). No dependency or Markdown plugin needed.
+
+### 5.6 `home` and the hero image
+
+Single entry (`home/index.md`) whose Markdown body is the homepage hero's introduction. It has no frontmatter fields and no `draft` flag. Pages read it through `getHomeIntroduction()` in `lib/content.ts`. Until the owner supplies it (ticket 18), the hero shows the role label, wordmark, tagline, calls to action and image with no introduction and no stand-in text (ticket 14).
+
+The homepage's selection rules are in `lib/home.ts`: `selectedWork()` (featured projects in directory order, at most three), `recentWriting()` (the three newest articles) and `heroActions()` ("Explore my work" once a project is published, GitHub when its URL is set, and the résumé through `resumeLinks()`). A section with nothing to show is left out.
+
+The hero image is set in `src/assets/hero.ts`. Until the licensed landscape arrives (ticket 18) it is a generated preview, `src/assets/preview/hero-landscape-preview.jpg`, with "PREVIEW IMAGE / NOT FOR PRODUCTION" drawn on it. While `preview` is `true`, the figure has a `data-preview-asset` attribute and its caption says it is a preview. The launch gate (ticket 20) blocks production while `dist/` HTML contains `data-preview-asset` or `dist/_astro/` contains a `hero-landscape-preview` file. The image's focal point is its `object-position` in `Hero.astro`, because the CSP blocks inline `style` attributes. Each breakpoint crops the image with `object-fit: cover` (3:2 below 768px, 2:1 to 1023px, 4:5 in the 7/5 split).
 
 ## 6. Markdown and MDX pipeline
 
