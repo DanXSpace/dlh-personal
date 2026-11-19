@@ -9,6 +9,7 @@ import { formatDate, isoDate } from '../lib/dates.ts';
 import { caseStudyImage } from '../lib/figures.ts';
 import { caseStudy } from '../lib/json-ld.ts';
 import { projectStatusLabels, projectTypeLabels } from '../lib/projects.ts';
+import { entryHref } from '../lib/routes.ts';
 import { socialImage } from '../lib/social-image.ts';
 import { tableOfContents } from '../lib/toc.ts';
 import { site } from '../site.config.ts';
@@ -119,7 +120,7 @@ const seo = {
             <ul class="related-list">
               {related.map((article) => (
                 <li class="related-row">
-                  <a href={`/writing/${article.id}`} class="related-link text-body-large font-medium">
+                  <a href={entryHref('article', article.id)} class="related-link text-body-large font-medium">
                     {article.data.title}
                   </a>
                   <time

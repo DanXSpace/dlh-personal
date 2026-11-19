@@ -8,8 +8,9 @@
 import { newestFirst, type Dated } from './archive.ts';
 import type { Link } from './links.ts';
 import { directoryOrder, type Orderable } from './projects.ts';
+import { entryHref, type EntryKind } from './routes.ts';
 
-export type PaletteEntryKind = 'page' | 'article' | 'project';
+export type PaletteEntryKind = 'page' | EntryKind;
 
 /** One place the palette can go. */
 export interface PaletteEntry {
@@ -43,9 +44,11 @@ export function paletteEntries({
   const primary = [{ label: 'Home', href: '/' }, ...pages].map(
     ({ label, href }): PaletteEntry => ({ title: label, href, kind: 'page' }),
   );
-  const writing = newestFirst(articles).map(({ id, data }): PaletteEntry => ({ title: data.title, href: `/writing/${id}`, kind: 'article' }));
+  const writing = newestFirst(articles).map(
+    ({ id, data }): PaletteEntry => ({ title: data.title, href: entryHref('article', id), kind: 'article' }),
+  );
   const work = directoryOrder(projects).map(
-    ({ id, data }): PaletteEntry => ({ title: data.title, href: `/work/${id}`, kind: 'project' }),
+    ({ id, data }): PaletteEntry => ({ title: data.title, href: entryHref('project', id), kind: 'project' }),
   );
   return [...primary, ...writing, ...work];
 }

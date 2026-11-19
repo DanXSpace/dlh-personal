@@ -9,6 +9,7 @@ import { formatDate, isoDate } from '../lib/dates.ts';
 import { directoryImage } from '../lib/figures.ts';
 import { heroActions, recentWriting, sectionNumbers, selectedWork } from '../lib/home.ts';
 import { resumeLinks, siteResumeAccess } from '../lib/resume.ts';
+import { entryHref } from '../lib/routes.ts';
 import { site } from '../site.config.ts';
 
 const projects = await getPublished('projects');
@@ -54,7 +55,7 @@ const numbers = sectionNumbers({
                 )}
                 <div class="project-body">
                   <h3 class="text-section-heading leading-heading font-medium">
-                    <a href={`/work/${id}`} class="home-link">
+                    <a href={entryHref('project', id)} class="home-link">
                       {data.title}
                     </a>
                   </h3>
@@ -79,7 +80,7 @@ const numbers = sectionNumbers({
             {articles.map(({ id, data }) => (
               <li class="home-row article-row">
                 <h3 class="text-body-large font-medium">
-                  <a href={`/writing/${id}`} class="home-link">
+                  <a href={entryHref('article', id)} class="home-link">
                     {data.title}
                   </a>
                 </h3>

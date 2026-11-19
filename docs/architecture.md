@@ -114,6 +114,8 @@ This document records how the site is built and why. Visual decisions (tokens, t
 | `/sitemap-index.xml` | `@astrojs/sitemap` | all built routes |
 | 404 | `pages/404.astro` | served via `not_found_handling` (§12) |
 
+Links to an article or case study are built with `entryHref(kind, id)` in `lib/routes.ts`, which `entryKindOf(path)` reverses. Links between pages have no trailing slash; canonical URLs, the sitemap and RSS add one. `withoutTrailingSlash()` in the same module is the one place trailing slashes are stripped.
+
 **Note:** `@astrojs/sitemap` emits `/sitemap-index.xml` and `/sitemap-0.xml`. To meet the PRD's `/sitemap.xml`, add a `_redirects` rule (`/sitemap.xml /sitemap-index.xml 301`) and reference the index in `robots.txt`.
 
 ## 5. Content model

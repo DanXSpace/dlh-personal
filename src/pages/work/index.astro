@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPublished } from '../../lib/content.ts';
 import { directoryImage } from '../../lib/figures.ts';
 import { directoryOrder, projectStatusLabels, projectTypeLabels } from '../../lib/projects.ts';
+import { entryHref } from '../../lib/routes.ts';
 
 const projects = directoryOrder(await getPublished('projects'));
 ---
@@ -40,7 +41,7 @@ const projects = directoryOrder(await getPublished('projects'));
               )}
               <div class="work-body">
                 <h2 class="text-section-heading leading-heading font-medium">
-                  <a href={`/work/${id}`} class="work-link">
+                  <a href={entryHref('project', id)} class="work-link">
                     {data.title}
                   </a>
                 </h2>

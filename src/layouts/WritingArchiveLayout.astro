@@ -4,6 +4,7 @@ import { archiveByYear } from '../lib/archive.ts';
 import { categoryLabels, type Category } from '../lib/categories.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import { readingMinutes } from '../lib/reading-time.ts';
+import { entryHref } from '../lib/routes.ts';
 import type { Link } from '../lib/links.ts';
 import BaseLayout from './BaseLayout.astro';
 
@@ -75,7 +76,7 @@ const filters = [
                 {entries.map((article) => (
                   <li class="archive-row">
                     <h3 class="text-body-large font-medium">
-                      <a href={`/writing/${article.id}`} class="archive-link">
+                      <a href={entryHref('article', article.id)} class="archive-link">
                         {article.data.title}
                       </a>
                     </h3>

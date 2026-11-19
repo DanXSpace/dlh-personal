@@ -5,6 +5,7 @@
 import { site } from '../site.config.ts';
 import type { JsonLd } from './json-ld.ts';
 import type { Link } from './links.ts';
+import { withoutTrailingSlash } from './routes.ts';
 
 /** `Page — Daniel Lee Holung`, or the site name alone on the homepage. */
 export function documentTitle(title: string | undefined): string {
@@ -17,9 +18,9 @@ export function documentTitle(title: string | undefined): string {
  * The 404 page stands in for any missing address, so it has none.
  */
 export function canonicalUrl(pathname: string, origin: string): string | undefined {
-  const route = pathname.replace(/(index)?\.html$/, '').replace(/\/+$/, '');
+  const route = withoutTrailingSlash(pathname.replace(/(index)?\.html$/, ''));
   if (route === '/404') return undefined;
-  return `${origin.replace(/\/+$/, '')}${route}/`;
+  return `${withoutTrailingSlash(origin)}${route === '/' ? '' : route}/`;
 }
 
 /** An image for link previews; `src` is a site path. */
