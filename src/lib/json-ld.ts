@@ -6,6 +6,7 @@
  */
 import { site } from '../site.config.ts';
 import type { Link } from './links.ts';
+import { withoutTrailingSlash } from './routes.ts';
 import { canonicalUrl } from './seo.ts';
 
 export type JsonLd = Record<string, unknown>;
@@ -13,7 +14,7 @@ export type JsonLd = Record<string, unknown>;
 /** Pages that describe the person and the website (architecture §10.3). */
 const identityRoutes = new Set(['/', '/about']);
 
-const home = (origin: string) => `${origin.replace(/\/+$/, '')}/`;
+const home = (origin: string) => `${withoutTrailingSlash(origin)}/`;
 const personId = (origin: string) => `${home(origin)}#person`;
 const absolute = (path: string, origin: string) => new URL(path, origin).href;
 const page = (path: string, origin: string) => canonicalUrl(path, origin) ?? absolute(path, origin);
@@ -27,8 +28,7 @@ function author(origin: string): JsonLd {
  * `sameAs` holds approved profile URLs only, and is left out while there are none.
  */
 export function identityNodes(pathname: string, origin: string, profiles: string[]): JsonLd[] {
-  const route = pathname.replace(/\/+$/, '') || '/';
-  if (!identityRoutes.has(route)) return [];
+  if (!identityRoutes.has(withoutTrailingSlash(pathname))) return [];
   return [
     { ...author(origin), ...(profiles.length > 0 && { sameAs: profiles }) },
     {

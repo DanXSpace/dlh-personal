@@ -3,7 +3,8 @@
  * `ResultSource` backed by the Pagefind index that `search-index.ts` writes at
  * build time. Imported by browser code, so it must stay free of Node APIs.
  */
-import type { PaletteEntry, PaletteEntryKind, ResultSource } from './palette.ts';
+import type { PaletteEntry, ResultSource } from './palette.ts';
+import { entryKindOf, withoutTrailingSlash } from './routes.ts';
 
 /** What Pagefind knows about one matching page. */
 export interface PagefindResultData {
@@ -21,16 +22,10 @@ export interface Pagefind {
 /** Pagefind ranks results best first. Each one kept costs a small download. */
 const MAX_RESULTS = 8;
 
-function kindOf(href: string): PaletteEntryKind {
-  if (href.startsWith('/writing/')) return 'article';
-  if (href.startsWith('/work/')) return 'project';
-  return 'page';
-}
-
 function toEntry({ url, meta, excerpt }: PagefindResultData): PaletteEntry {
   // Pagefind links to `/writing/slug/`; the palette's other entries use `/writing/slug`.
-  const href = url.length > 1 ? url.replace(/\/$/, '') : url;
-  return { title: meta.title ?? href, href, kind: kindOf(href), excerpt };
+  const href = withoutTrailingSlash(url);
+  return { title: meta.title ?? href, href, kind: entryKindOf(href) ?? 'page', excerpt };
 }
 
 /**

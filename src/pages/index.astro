@@ -4,21 +4,29 @@ import Hero from '../components/home/Hero.astro';
 import HomeSection from '../components/home/HomeSection.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { categoryLabels } from '../lib/categories.ts';
-import { getHomeIntroduction, getNowSummary, getPublished } from '../lib/content.ts';
+import { getPublished, getSingleEntry } from '../lib/content.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import { directoryImage } from '../lib/figures.ts';
-import { heroActions, recentWriting, selectedWork } from '../lib/home.ts';
+import { heroActions, recentWriting, sectionNumbers, selectedWork } from '../lib/home.ts';
 import { resumeLinks, siteResumeAccess } from '../lib/resume.ts';
+import { entryHref } from '../lib/routes.ts';
 import { site } from '../site.config.ts';
+import '../styles/project-rows.css';
 
 const projects = await getPublished('projects');
 const featured = selectedWork(projects);
 const articles = recentWriting(await getPublished('writing'));
-const nowSummary = await getNowSummary();
+const nowSummary = (await getSingleEntry('now'))?.data.summary;
 const actions = heroActions({
   hasProjects: projects.length > 0,
   links: site.links,
   resume: resumeLinks(siteResumeAccess()),
+});
+// Sections are numbered in page order among those shown, so a left-out section leaves no gap.
+const numbers = sectionNumbers({
+  selectedWork: featured.length > 0,
+  recentWriting: articles.length > 0,
+  inThePresent: nowSummary !== undefined,
 });
 ---
 
@@ -29,14 +37,14 @@ const actions = heroActions({
 -->
 <BaseLayout description={site.description}>
   <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
-    <Hero introduction={await getHomeIntroduction()} actions={actions} />
+    <Hero introduction={await getSingleEntry('home')} actions={actions} />
 
     {
-      featured.length > 0 && (
-        <HomeSection number={1} title="Selected work" id="selected-work" link={{ label: 'All work', href: '/work' }}>
+      numbers.selectedWork && (
+        <HomeSection number={numbers.selectedWork} title="Selected work" id="selected-work" link={{ label: 'All work', href: '/work' }}>
           <ul class="home-list">
             {featured.map(({ id, data }) => (
-              <li class="home-row project-row">
+              <li class="home-row project-row selected-work-row">
                 {data.thumbnail && (
                   <Image
                     src={data.thumbnail}
@@ -46,9 +54,9 @@ const actions = heroActions({
                     class="project-thumbnail"
                   />
                 )}
-                <div class="project-body">
+                <div class="project-body selected-work-body">
                   <h3 class="text-section-heading leading-heading font-medium">
-                    <a href={`/work/${id}`} class="home-link">
+                    <a href={entryHref('project', id)} class="entry-link">
                       {data.title}
                     </a>
                   </h3>
@@ -62,9 +70,9 @@ const actions = heroActions({
     }
 
     {
-      articles.length > 0 && (
+      numbers.recentWriting && (
         <HomeSection
-          number={2}
+          number={numbers.recentWriting}
           title="Recent writing"
           id="recent-writing"
           link={{ label: 'Writing archive', href: '/writing' }}
@@ -73,7 +81,7 @@ const actions = heroActions({
             {articles.map(({ id, data }) => (
               <li class="home-row article-row">
                 <h3 class="text-body-large font-medium">
-                  <a href={`/writing/${id}`} class="home-link">
+                  <a href={entryHref('article', id)} class="entry-link">
                     {data.title}
                   </a>
                 </h3>
@@ -92,8 +100,8 @@ const actions = heroActions({
     }
 
     {
-      nowSummary && (
-        <HomeSection number={3} title="In the present" id="in-the-present" link={{ label: 'Now page', href: '/now' }}>
+      numbers.inThePresent && (
+        <HomeSection number={numbers.inThePresent} title="In the present" id="in-the-present" link={{ label: 'Now page', href: '/now' }}>
           <div class="now-row">
             <p class="now-summary text-body-large">{nowSummary}</p>
           </div>
@@ -104,8 +112,6 @@ const actions = heroActions({
 </BaseLayout>
 
 <style>
-  @reference '../styles/global.css';
-
   .home-list {
     margin: 0;
     padding: 0;
@@ -120,24 +126,13 @@ const actions = heroActions({
     border-block-end: var(--rule-width) solid var(--color-rule);
   }
 
-  .project-row {
-    display: flex;
-    flex-direction: column;
-    gap: calc(var(--space-unit) * 6);
+  /* Row layout, thumbnail and title links (as on /work): src/styles/project-rows.css. */
+  .selected-work-row {
     padding-block: calc(var(--space-unit) * 8);
   }
 
-  .project-thumbnail {
-    width: 100%;
-    height: auto;
-    border-radius: var(--radius-sm);
-  }
-
-  .project-body {
-    display: flex;
-    flex-direction: column;
+  .selected-work-body {
     gap: calc(var(--space-unit) * 3);
-    min-width: 0;
   }
 
   .article-row {
@@ -150,20 +145,6 @@ const actions = heroActions({
   /* A title with one long unbroken word still wraps at 320px. */
   .home-row h3 {
     overflow-wrap: anywhere;
-  }
-
-  /* Inline, as in the writing archive and /work, so a wrapped title keeps even line boxes. */
-  .home-link {
-    color: var(--color-link);
-    text-decoration-line: underline;
-    text-decoration-color: transparent;
-    text-decoration-thickness: var(--rule-width);
-    text-underline-offset: var(--underline-offset);
-    transition: text-decoration-color var(--duration-fast) var(--ease-standard);
-  }
-
-  .home-link:hover {
-    text-decoration-color: currentColor;
   }
 
   /* A separator wraps with the item after it, so no line starts with a bare "/". */
@@ -181,23 +162,5 @@ const actions = heroActions({
 
   .now-summary {
     max-width: var(--measure);
-  }
-
-  /* 768px and up: as on /work, the thumbnail takes the leading four grid columns and the text the rest. */
-  @media (width >= theme(--breakpoint-md)) {
-    .project-row {
-      display: grid;
-      grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
-      column-gap: calc(var(--space-unit) * 6);
-      align-items: start;
-    }
-
-    .project-thumbnail {
-      grid-column: 1 / span 4;
-    }
-
-    .project-body {
-      grid-column: 5 / -1;
-    }
   }
 </style>

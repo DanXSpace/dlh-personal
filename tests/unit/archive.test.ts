@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { archiveByYear, categoriesWithArticles } from '../../src/lib/archive.ts';
+import { archiveByYear, categoriesWithArticles, newestFirst } from '../../src/lib/archive.ts';
 
 function article(id: string, published: string) {
   return { id, data: { published: new Date(published) } };
@@ -27,6 +27,18 @@ test('groups articles by publication year, newest year first and newest article 
 
 test('no articles means no years', () => {
   assert.deepEqual(archiveByYear([]), []);
+});
+
+test('newest first sorts a copy by publication date, leaving the original order alone', () => {
+  const articles = [article('middle', '2025-06-01'), article('newest', '2026-02-10'), article('oldest', '2024-09-15')];
+  assert.deepEqual(
+    newestFirst(articles).map((entry) => entry.id),
+    ['newest', 'middle', 'oldest'],
+  );
+  assert.deepEqual(
+    articles.map((entry) => entry.id),
+    ['middle', 'newest', 'oldest'],
+  );
 });
 
 test('an article published on January 1 belongs to that year on a build machine behind UTC', (t) => {

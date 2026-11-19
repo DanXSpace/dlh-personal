@@ -4,8 +4,14 @@
  */
 import { categories, type Category } from './categories.ts';
 
-interface Dated {
+/** An entry with a publication date, such as an article. */
+export interface Dated {
   data: { published: Date };
+}
+
+/** A sorted copy of `entries`, most recently published first. */
+export function newestFirst<T extends Dated>(entries: readonly T[]): T[] {
+  return [...entries].sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
 }
 
 interface Categorized {
@@ -23,9 +29,8 @@ export interface ArchiveYear<T> {
  * January 1 never lands in the previous year on a build machine behind UTC.
  */
 export function archiveByYear<T extends Dated>(articles: readonly T[]): ArchiveYear<T>[] {
-  const newestFirst = [...articles].sort((a, b) => b.data.published.getTime() - a.data.published.getTime());
   const years: ArchiveYear<T>[] = [];
-  for (const article of newestFirst) {
+  for (const article of newestFirst(articles)) {
     const year = article.data.published.getUTCFullYear();
     const current = years.at(-1);
     if (current?.year === year) current.articles.push(article);

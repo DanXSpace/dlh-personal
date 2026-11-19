@@ -32,3 +32,34 @@ test('a whitespace-only value counts as empty, and set values are trimmed', () =
     { label: 'GitHub', href: 'https://github.com/example' },
   ]);
 });
+
+const allLinks = {
+  email: 'hello@example.com',
+  github: 'https://github.com/example',
+  linkedin: 'https://www.linkedin.com/in/example',
+};
+
+test('contact channels are the links a visitor can send a message through: email and LinkedIn', () => {
+  assert.deepEqual(visibleLinks(allLinks, 'contact'), [
+    { label: 'Email', href: 'mailto:hello@example.com' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/example' },
+  ]);
+});
+
+test('profiles are the public pages about the owner, GitHub and LinkedIn, never the email address', () => {
+  assert.deepEqual(visibleLinks(allLinks, 'profile'), [
+    { label: 'GitHub', href: 'https://github.com/example' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/example' },
+  ]);
+});
+
+test('the code link is where the owner’s code is published: GitHub', () => {
+  assert.deepEqual(visibleLinks(allLinks, 'code'), [{ label: 'GitHub', href: 'https://github.com/example' }]);
+});
+
+test('asking for a kind still leaves out the fields that are not set', () => {
+  assert.deepEqual(visibleLinks({ ...allLinks, linkedin: '' }, 'contact'), [
+    { label: 'Email', href: 'mailto:hello@example.com' },
+  ]);
+  assert.deepEqual(visibleLinks({ ...allLinks, github: ' ' }, 'code'), []);
+});

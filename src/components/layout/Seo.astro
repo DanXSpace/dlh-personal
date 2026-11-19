@@ -27,10 +27,7 @@ const shareTitle = title ?? site.name;
 const image = seo.image ?? defaultSocialImage;
 const imageUrl = new URL(image.src, origin).href;
 
-// Profile links only; an email address isn't a profile.
-const profiles = visibleLinks(site.links)
-  .map((link) => link.href)
-  .filter((href) => !href.startsWith('mailto:'));
+const profiles = visibleLinks(site.links, 'profile').map((link) => link.href);
 const structuredData = [
   ...identityNodes(pathname, origin, profiles),
   ...(seo.structuredData ?? []),

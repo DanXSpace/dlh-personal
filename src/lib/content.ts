@@ -12,25 +12,18 @@ export function getPublished<C extends CollectionKey>(collection: C): Promise<Co
   );
 }
 
-/**
- * The Now entry (architecture §5.3), or undefined until `now/index.md` exists.
- * It has no draft flag: the page shows whatever snapshot is committed.
- */
-export async function getNow(): Promise<CollectionEntry<'now'> | undefined> {
-  const [entry] = await getCollection('now');
-  return entry;
-}
+/** Collections that hold at most one entry, `<collection>/index.md(x)`. */
+export type SingleEntryCollection = 'about' | 'now' | 'home';
 
 /**
- * The homepage entry (`home/index.md`), whose body is the hero's
- * introduction, or undefined until the owner supplies one (ticket 18).
+ * A single-entry collection's entry, or undefined until the owner supplies it
+ * (ticket 18). It goes through `getPublished`, so a draft About entry is left
+ * out of production builds; Now and Home have no draft flag, so their entry
+ * always shows.
  */
-export async function getHomeIntroduction(): Promise<CollectionEntry<'home'> | undefined> {
-  const [entry] = await getCollection('home');
+export async function getSingleEntry<C extends SingleEntryCollection>(
+  collection: C,
+): Promise<CollectionEntry<C> | undefined> {
+  const [entry] = await getPublished(collection);
   return entry;
-}
-
-/** The Now entry's optional homepage summary, for the homepage's "In the present" section. */
-export async function getNowSummary(): Promise<string | undefined> {
-  return (await getNow())?.data.summary;
 }
