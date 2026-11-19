@@ -1,0 +1,126 @@
+/*
+ * Quiet Precision design tokens: docs/design-spec.md §2, architecture §7.1.
+ *
+ * The only file in the codebase that holds raw color, size or duration values.
+ * Everything else references these custom properties, directly or through the
+ * Tailwind utilities that `global.css` maps onto them.
+ *
+ * Fluid values interpolate linearly between the spec's mobile endpoint at a
+ * 320px viewport and its desktop endpoint at 1440px (20rem → 90rem), the
+ * narrowest and widest review widths in design-spec §7. The interpolation
+ * factor is (desktop − mobile) / 1120, the width of that range in px.
+ */
+
+:root {
+  /* Color: light theme. Dark values are redefined below (architecture §8). */
+  --color-bg: #fafaf8;
+  --color-surface: #f1f1ee;
+  --color-text: #171717;
+  --color-muted: #595959;
+  --color-rule: #d6d6d2; /* decorative only: 1.3–1.8:1, never a control's only boundary */
+  --color-control-border: #767676;
+  --color-link: #171717;
+  --color-focus: #171717;
+
+  /* Heritage: unthemed and reserved for the decorative heritage signature.
+     Never for text, links, states or focus. */
+  --heritage-green: #009b3a;
+  --heritage-gold: #fed100;
+  --heritage-black: #000000;
+
+  /* Type: families come from Astro's Fonts API (astro.config.ts), whose
+     variables carry the generated metric-matched fallbacks. */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  --text-hero: clamp(2.5rem, calc(2.5rem + (100vw - 20rem) * 24 / 1120), 4rem); /* 40 → 64px */
+  --text-page-heading: clamp(2.25rem, calc(2.25rem + (100vw - 20rem) * 12 / 1120), 3rem); /* 36 → 48px */
+  --text-section-heading: clamp(1.625rem, calc(1.625rem + (100vw - 20rem) * 6 / 1120), 2rem); /* 26 → 32px */
+  --text-body: 1rem; /* 16px */
+  --text-body-large: 1.125rem; /* 18px */
+  --text-prose: 1.125rem; /* 18px */
+  --text-label: 0.875rem; /* 14px, Geist Mono */
+  --text-caption: 0.75rem; /* 12px, Geist Mono */
+
+  --leading-heading: 1.1;
+  --leading-body: 1.6;
+  --leading-prose: 1.75;
+  --tracking-label: 0.04em;
+
+  /* Layout */
+  --shell-max: 65rem; /* 1,040px content shell */
+  --measure: 42.5rem; /* 680px reading column */
+  --gutter: 1.5rem; /* 24px below 768px */
+  --section-space: clamp(4rem, calc(4rem + (100vw - 20rem) * 32 / 1120), 6rem); /* 64 → 96px */
+  --grid-columns: 4;
+  --space-unit: 0.25rem; /* 4px step for spacing inside components */
+
+  /* Rules, corners and controls */
+  --rule-width: 1px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --target-min: 2.75rem; /* 44 × 44 CSS px standalone control target (design-spec §6) */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Motion: no default shadow, so there are no elevation tokens. */
+  --duration-fast: 150ms;
+  --duration-slow: 250ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  color-scheme: light;
+}
+
+/* Tablet and up: 12 columns and 48 → 64px gutters (design-spec §5). */
+@media (min-width: 48rem) {
+  :root {
+    --gutter: clamp(3rem, calc(3rem + (100vw - 48rem) * 16 / 672), 4rem);
+    --grid-columns: 12;
+  }
+}
+
+/* Dark theme: an explicit choice, or the OS preference while System is selected. */
+:root[data-theme='dark'] {
+  --color-bg: #171717;
+  --color-surface: #222222;
+  --color-text: #f4f4f2;
+  --color-muted: #b5b5b5;
+  --color-rule: #414141;
+  --color-control-border: #858585;
+  --color-link: #f4f4f2;
+  --color-focus: #f4f4f2;
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-bg: #171717;
+    --color-surface: #222222;
+    --color-text: #f4f4f2;
+    --color-muted: #b5b5b5;
+    --color-rule: #414141;
+    --color-control-border: #858585;
+    --color-link: #f4f4f2;
+    --color-focus: #f4f4f2;
+
+    color-scheme: dark;
+  }
+}
+
+/*
+ * Tailwind's theme. Clearing every default (`--*: initial`) removes its color
+ * palette, type scale, shadows and other off-system values, so only the
+ * utilities that `global.css` maps onto the tokens above exist.
+ *
+ * Media queries can't read custom properties, so the breakpoints are raw
+ * values and live here: `md` is the 12-column grid, `lg` the centered desktop
+ * shell (design-spec §5).
+ */
+@theme {
+  --*: initial;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+}

@@ -1,0 +1,104 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+/*
+ * Tailwind utilities resolve to the design tokens, so they switch with the
+ * theme. `reference` stops Tailwind from re-declaring the variables, which
+ * would shadow the tokens with self-references; `inline` makes utilities use
+ * `var(--token)` directly.
+ */
+@theme inline reference {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-rule: var(--color-rule);
+  --color-control-border: var(--color-control-border);
+  --color-link: var(--color-link);
+  --color-focus: var(--color-focus);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-weight-regular: var(--font-weight-regular);
+  --font-weight-medium: var(--font-weight-medium);
+
+  --text-hero: var(--text-hero);
+  --text-page-heading: var(--text-page-heading);
+  --text-section-heading: var(--text-section-heading);
+  --text-body: var(--text-body);
+  --text-body-large: var(--text-body-large);
+  --text-prose: var(--text-prose);
+  --text-label: var(--text-label);
+  --text-caption: var(--text-caption);
+
+  --leading-heading: var(--leading-heading);
+  --leading-body: var(--leading-body);
+  --leading-prose: var(--leading-prose);
+  --tracking-label: var(--tracking-label);
+
+  --spacing: var(--space-unit);
+  --spacing-gutter: var(--gutter);
+  --spacing-section: var(--section-space);
+  --spacing-target: var(--target-min);
+  --container-shell: var(--shell-max);
+  --container-measure: var(--measure);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+
+  --ease-standard: var(--ease-standard);
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-standard);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 100%;
+    line-height: var(--leading-body);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-size: var(--text-body);
+    font-weight: var(--font-weight-regular);
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  a {
+    color: var(--color-link);
+  }
+
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+/*
+ * No JavaScript: controls that need it, such as the theme control, aren't shown
+ * (architecture §8). Unlayered so it beats display utilities like `inline-flex`.
+ */
+.no-js [data-requires-js] {
+  display: none;
+}
+
+/* Remove nonessential motion (design-spec §6). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

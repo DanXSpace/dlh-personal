@@ -1,0 +1,84 @@
+---
+import type { ThemeChoice } from '../../lib/theme.ts';
+
+const options: { value: ThemeChoice; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
+---
+
+<!--
+  Appearance selector (architecture §8): three native radios, so the group's
+  name, each option's name, the selected state and arrow-key operation all come
+  from the platform. The selected option is inverted and set in the medium
+  weight, so its state doesn't rely on color alone. Each radio covers its label, making the whole 44 × 44 px
+  box the target and drawing the focus ring around it. Hidden without JS.
+-->
+<fieldset class="inline-flex rounded-sm border border-control-border" data-theme-control data-requires-js>
+  <legend class="sr-only">Theme</legend>
+  {
+    options.map(({ value, label }) => (
+      <label class="relative inline-flex min-h-target min-w-target items-center justify-center px-3 font-mono text-label uppercase tracking-label text-muted transition-colors hover:text-text has-checked:bg-text has-checked:font-medium has-checked:text-bg">
+        <input
+          class="absolute inset-0 cursor-pointer appearance-none"
+          type="radio"
+          name="theme"
+          value={value}
+          checked={value === 'system'}
+        />
+        {label}
+      </label>
+    ))
+  }
+</fieldset>
+
+<script>
+  import { parseThemeChoice, THEME_STORAGE_KEY, type ThemeChoice } from '../../lib/theme.ts';
+
+  const root = document.documentElement;
+  const radios = document.querySelectorAll<HTMLInputElement>('[data-theme-control] input[name="theme"]');
+
+  function storedChoice(): ThemeChoice {
+    try {
+      return parseThemeChoice(localStorage.getItem(THEME_STORAGE_KEY));
+    } catch {
+      return 'system';
+    }
+  }
+
+  /** System leaves `data-theme` unset so CSS follows the OS live. */
+  function setRootTheme(choice: ThemeChoice) {
+    if (choice === 'system') delete root.dataset['theme'];
+    else root.dataset['theme'] = choice;
+  }
+
+  function store(choice: ThemeChoice) {
+    try {
+      if (choice === 'system') localStorage.removeItem(THEME_STORAGE_KEY);
+      else localStorage.setItem(THEME_STORAGE_KEY, choice);
+    } catch {
+      // Storage blocked: the choice applies to this page view only.
+    }
+  }
+
+  /** Match <html> and the radios to storage, including after a back/forward cache restore. */
+  function sync() {
+    const choice = storedChoice();
+    setRootTheme(choice);
+    for (const radio of radios) radio.checked = radio.value === choice;
+  }
+
+  sync();
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) sync();
+  });
+  for (const radio of radios) {
+    radio.addEventListener('change', () => {
+      if (!radio.checked) return;
+      const choice = parseThemeChoice(radio.value);
+      setRootTheme(choice);
+      store(choice);
+    });
+  }
+</script>
