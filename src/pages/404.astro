@@ -1,0 +1,10 @@
+---
+// Minimal stub so `not_found_handling: "404-page"` has a page to serve.
+// The designed 404 page arrives with the global shell (ticket 05).
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found">
+  <h1>Page not found</h1>
+  <p><a href="/">Go to the homepage</a></p>
+</BaseLayout>

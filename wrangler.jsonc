@@ -1,0 +1,14 @@
+// Cloudflare Workers static assets: the prerendered build is uploaded as-is,
+// with no Worker script and no Astro adapter (ADR-0001). Workers Builds runs
+// `npm run build` and then `npx wrangler deploy` with this config.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "personal-site",
+  "compatibility_date": "2026-11-18",
+  "assets": {
+    "directory": "./dist",
+    // Workers does not infer this from 404.html the way Pages did. Without it,
+    // unknown URLs get an empty 404 instead of the site's 404 page.
+    "not_found_handling": "404-page"
+  }
+}

@@ -1,4 +1,6 @@
 ---
+import { resolveSiteEnv } from '../lib/site-env.ts';
+
 interface Props {
   /** Page-specific title. Omit on the homepage to use the site name alone. */
   title?: string;
@@ -7,6 +9,7 @@ interface Props {
 const siteName = 'Daniel Lee Holung';
 const { title } = Astro.props;
 const documentTitle = title ? `${title} — ${siteName}` : siteName;
+const { indexable } = resolveSiteEnv(process.env);
 ---
 
 <!doctype html>
@@ -15,6 +18,7 @@ const documentTitle = title ? `${title} — ${siteName}` : siteName;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{documentTitle}</title>
+    {!indexable && <meta name="robots" content="noindex, nofollow" />}
   </head>
   <body>
     <main id="main">

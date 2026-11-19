@@ -60,7 +60,6 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   └── agents/
 ├── public/
 │   ├── _headers                  # security headers (§11)
-│   ├── robots.txt                # generated variant for previews (§10.4)
 │   ├── resume.pdf                # only once supplied by the owner
 │   └── favicon.svg
 ├── src/
@@ -80,7 +79,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   │   ├── ArticleLayout.astro
 │   │   └── CaseStudyLayout.astro
 │   ├── lib/                      # pure functions: content queries, reading time, dates, JSON-LD
-│   ├── pages/                    # routes (§4)
+│   ├── pages/                    # routes (§4), including robots.txt.ts (§10.4)
 │   ├── markdown/                 # in-repo Sätteri plugins (§6)
 │   └── styles/
 │       ├── tokens.css            # the only place raw color/space/type values live
@@ -107,6 +106,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 | `/now` | `pages/now.astro` | `now` entry |
 | `/resume` | `pages/resume.astro` | links to `/resume.pdf` once supplied |
 | `/rss.xml` | `pages/rss.xml.ts` | published `writing` |
+| `/robots.txt` | `pages/robots.txt.ts` | `lib/site-env.ts` (§10.4) |
 | `/sitemap-index.xml` | `@astrojs/sitemap` | all built routes |
 | 404 | `pages/404.astro` | served via `not_found_handling` (§12) |
 
@@ -259,12 +259,13 @@ A single default OG image (designed per the spec) at launch, with an optional pe
 
 - Drafts are never built in production (§5.5).
 - A build-time env var `PUBLIC_SITE_ENV` is `production` only on the production deployment. Any other value adds `<meta name="robots" content="noindex, nofollow">` to every page and writes a disallow-all `robots.txt`.
+- Workers Builds shares build variables across branches, so a Workers Builds run of any branch other than `main` (`WORKERS_CI_BRANCH`) is non-indexable even when `PUBLIC_SITE_ENV` is `production` (ADR-0005).
 - Production `robots.txt` allows all and points to the sitemap.
 
 ## 11. Security and privacy
 
 - **No** cookies, analytics, third-party scripts, forms, or personal-data collection at launch.
-- **Content Security Policy:** use Astro's CSP support (`security.csp`, introduced in Astro 6) so inline scripts (theme init) are hashed rather than allowing `'unsafe-inline'`. **Confirm Astro 7 config shape in the shell ticket.**
+- **Content Security Policy:** use Astro's CSP support (`security.csp`, introduced in Astro 6) so inline scripts (theme init) are hashed rather than allowing `'unsafe-inline'`. Confirmed in Astro 7.4 (ticket 02): `security.csp.directives` adds directives beyond `script-src` and `style-src`, and the policy is emitted as a `<meta>` tag, so `frame-ancestors` is ineffective there and framing is blocked by `X-Frame-Options` instead. Astro hashes only the scripts it processes, not `<script is:inline>`, and it places the `<meta>` at the end of `<head>`. An `is:inline` script such as theme init needs its hash supplied (`security.csp.scriptDirective.hashes` or the `Astro.csp` runtime API). A browser test fails on any inline script whose hash is missing from the policy.
 - **`public/_headers`** (served natively by Workers static assets): `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (deny camera, mic, geolocation, etc.), `X-Frame-Options: DENY`, and long-lived `Cache-Control: immutable` for `/_astro/*` hashed assets.
 - `npm audit` runs in CI; Dependabot (or Renovate) keeps dependencies current.
 - No secrets live in the repo; deployment credentials live in Cloudflare/GitHub settings.
@@ -294,7 +295,7 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 ### 12.2 Pipeline
 
 1. **GitHub Actions (on every push and PR):** `npm ci` → `astro check` → unit tests → `astro build` → Pagefind index (once search lands) → Playwright e2e + axe against `astro preview` → `npm audit --audit-level=high`.
-2. **Cloudflare Workers Builds**, connected to the GitHub repo, builds and deploys `main` to production and non-`main` branches to preview URLs, with `PUBLIC_SITE_ENV` set per environment.
+2. **Cloudflare Workers Builds**, connected to the GitHub repo, builds and deploys `main` to production and non-`main` branches to preview URLs, with `PUBLIC_SITE_ENV` set as a build variable. Previews stay non-indexable through the branch check in §10.4 (ADR-0005).
 3. Branch protection on `main` requires step 1 to pass.
 
 ### 12.3 Domain
