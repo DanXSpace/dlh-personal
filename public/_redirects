@@ -1,0 +1,3 @@
+# Served natively by Cloudflare Workers static assets (architecture §4).
+# @astrojs/sitemap writes /sitemap-index.xml; this keeps /sitemap.xml working too.
+/sitemap.xml /sitemap-index.xml 301

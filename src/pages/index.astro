@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../site.config.ts';
 ---
 
-<BaseLayout>
+<BaseLayout description={site.description}>
   <div class="mx-auto max-w-shell px-gutter py-section">
     <h1 class="text-hero leading-heading font-medium">Daniel Lee Holung</h1>
   </div>
