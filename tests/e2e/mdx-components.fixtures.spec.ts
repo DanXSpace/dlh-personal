@@ -122,6 +122,34 @@ test.describe('Gallery', () => {
     expect(f!.y).toBe(d!.y);
     expect(f!.x + f!.width).toBeLessThanOrEqual(prose.x + prose.width + 1);
   });
+
+  test('a gallery figure can carry a caption sentence', async ({ page }) => {
+    await page.goto(mdx);
+    const caption = page.locator('.gallery figure').filter({ hasText: 'FIG. 04 / NOON' }).locator('figcaption');
+    await expect(caption).toContainText('A gallery figure can carry a caption sentence too.');
+  });
+
+  // The candidate the browser picks shows whether `sizes` matches the figure's real width.
+  const chosenWidth = (image: import('@playwright/test').Locator) =>
+    image.evaluate((img: HTMLImageElement) => {
+      const path = new URL(img.currentSrc).pathname;
+      const match = img.srcset.split(',').map((c) => c.trim().split(/\s+/)).find(([url]) => url === path);
+      return Number(match?.[1]?.replace('w', ''));
+    });
+
+  test('downloads images sized for its columns, not for the full reading column', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(mdx);
+    // A lone figure fills the 680px column; gallery figures are a half or a third of it.
+    const lone = page.getByRole('img', { name: 'A gray placeholder ridgeline under a pale sky.' });
+    await lone.scrollIntoViewIfNeeded();
+    await expect.poll(() => chosenWidth(lone)).toBe(680);
+    for (const name of ['A gray placeholder ridgeline, repeated in the gallery.', 'A wide placeholder in a three-up gallery.']) {
+      const image = page.getByRole('img', { name });
+      await image.scrollIntoViewIfNeeded();
+      await expect.poll(() => chosenWidth(image)).toBe(480);
+    }
+  });
 });
 
 // Text colors from docs/design-spec.md §2.

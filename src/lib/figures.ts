@@ -16,11 +16,21 @@ export function figureLabel(number: number, label: string): string {
 
 /**
  * Responsive image candidates for figures and image diagrams. `sizes` can't
- * read custom properties, so this repeats two tokens (tokens.css) and must
- * change with them: the 42.5rem `--measure`, and 45.5rem, the measure plus the
- * 1.5rem `--gutter` on each side, the viewport at which the column stops being fluid.
+ * read custom properties, so these values repeat tokens (tokens.css) and the
+ * gallery gap (Gallery.astro) and must change with them:
+ *
+ * - 42.5rem is `--measure`, the reading column a lone figure fills.
+ * - 45.5rem is the measure plus the 1.5rem `--gutter` on each side, the
+ *   viewport at which that column stops being fluid.
+ * - 48rem is `--breakpoint-md`, where a gallery leaves its stacked layout for
+ *   columns separated by a 1.5rem gap.
  */
 export const figureImage = {
   widths: [480, 680, 960, 1360],
   sizes: '(min-width: 45.5rem) 42.5rem, 100vw',
 } as const;
+
+/** `sizes` for a figure in a gallery of the given number of columns. */
+export function galleryImageSizes(columns: 2 | 3): string {
+  return `(min-width: 48rem) calc((42.5rem - ${columns - 1} * 1.5rem) / ${columns}), 100vw`;
+}

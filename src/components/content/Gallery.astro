@@ -1,32 +1,56 @@
 ---
 /**
- * A set of `Figure`s (design-spec §5; architecture §6). They stack on a phone
- * and sit on the 12-column grid from 768px, two or three to a row.
+ * A set of figures (design-spec §5; architecture §6). They stack on a phone
+ * and sit on the 12-column grid from 768px, two or three to a row. Gallery
+ * renders the figures itself, so each image is sized for its column.
  *
- *   <Gallery columns={3}>
- *     <Figure … />
- *     <Figure … />
- *     <Figure … />
- *   </Gallery>
+ *   <Gallery
+ *     columns={3}
+ *     figures={[
+ *       { src: morning, alt: 'Mist on the ridge at dawn.', number: 3, label: 'Morning' },
+ *       { src: noon, alt: '…', number: 4, label: 'Noon', caption: 'An optional sentence.' },
+ *     ]}
+ *   />
+ *
+ * Each figure takes the same `src`, `alt`, `number` and `label` as `Figure`,
+ * plus an optional `caption` sentence.
  */
+import type { ImageMetadata } from 'astro';
+import { galleryImageSizes } from '../../lib/figures.ts';
+import Figure from './Figure.astro';
+
+interface GalleryFigure {
+  src: ImageMetadata;
+  alt: string;
+  number: number;
+  label: string;
+  caption?: string;
+}
+
 interface Props {
+  figures: GalleryFigure[];
   /** Figures per row from 768px. */
   columns?: 2 | 3;
 }
 
-const { columns = 2 } = Astro.props;
+const { figures, columns = 2 } = Astro.props;
 if (columns !== 2 && columns !== 3) {
   throw new Error(`Gallery columns must be 2 or 3, not ${columns}.`);
 }
+if (!Array.isArray(figures) || figures.length === 0) {
+  throw new Error('Gallery needs `figures`, a list of { src, alt, number, label } objects.');
+}
+const sizes = galleryImageSizes(columns);
 ---
 
 <div class="gallery" data-columns={columns}>
-  <slot />
+  {figures.map((figure) => <Figure {...figure} sizes={sizes} />)}
 </div>
 
 <style>
   @reference '../../styles/global.css';
 
+  /* The 1.5rem column gap is repeated in `galleryImageSizes` (src/lib/figures.ts). */
   .gallery {
     display: grid;
     grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));

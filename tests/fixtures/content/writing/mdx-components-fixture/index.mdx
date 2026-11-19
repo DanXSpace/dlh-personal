@@ -42,17 +42,22 @@ export const answer = 42;
 
 ## Galleries
 
-<Gallery>
-  <Figure src={ridgeSquare} alt="A darker gray placeholder ridgeline." number={3} label="Morning" />
-  <Figure src={ridgeWide} alt="A gray placeholder ridgeline, repeated in the gallery." number={4} label="Noon" />
-  <Figure src={ridgeTall} alt="A taller gray placeholder ridgeline, repeated in the gallery." number={5} label="Evening" />
-</Gallery>
+<Gallery
+  figures={[
+    { src: ridgeSquare, alt: 'A darker gray placeholder ridgeline.', number: 3, label: 'Morning' },
+    { src: ridgeWide, alt: 'A gray placeholder ridgeline, repeated in the gallery.', number: 4, label: 'Noon', caption: 'A gallery figure can carry a caption sentence too.' },
+    { src: ridgeTall, alt: 'A taller gray placeholder ridgeline, repeated in the gallery.', number: 5, label: 'Evening' },
+  ]}
+/>
 
-<Gallery columns={3}>
-  <Figure src={ridgeSquare} alt="A darker placeholder in a three-up gallery." number={6} label="One" />
-  <Figure src={ridgeWide} alt="A wide placeholder in a three-up gallery." number={7} label="Two" />
-  <Figure src={ridgeTall} alt="A tall placeholder in a three-up gallery." number={8} label="Three" />
-</Gallery>
+<Gallery
+  columns={3}
+  figures={[
+    { src: ridgeSquare, alt: 'A darker placeholder in a three-up gallery.', number: 6, label: 'One' },
+    { src: ridgeWide, alt: 'A wide placeholder in a three-up gallery.', number: 7, label: 'Two' },
+    { src: ridgeTall, alt: 'A tall placeholder in a three-up gallery.', number: 8, label: 'Three' },
+  ]}
+/>
 
 ## Diagrams
 

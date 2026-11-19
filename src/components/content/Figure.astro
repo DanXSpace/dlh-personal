@@ -10,7 +10,8 @@
  *
  * `alt` is required: describe the image, or pass `alt=""` when it is purely
  * decorative (design-spec §6). Children, if any, follow the label as a short
- * caption sentence.
+ * caption sentence. `Gallery` renders its figures through this component and
+ * passes `caption` and `sizes` instead.
  */
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
@@ -21,9 +22,13 @@ interface Props {
   alt: string;
   number: number;
   label: string;
+  /** A caption sentence given as a prop rather than as children. */
+  caption?: string;
+  /** Overrides the reading-column `sizes`; set by `Gallery`. */
+  sizes?: string;
 }
 
-const { src, alt, number, label } = Astro.props;
+const { src, alt, number, label, caption: sentence, sizes = figureImage.sizes } = Astro.props;
 if (typeof alt !== 'string') {
   throw new Error(`Figure ${number} needs an \`alt\` description, or \`alt=""\` if the image is purely decorative.`);
 }
@@ -35,12 +40,13 @@ const caption = figureLabel(number, label);
     src={src}
     alt={alt}
     widths={[...figureImage.widths]}
-    sizes={figureImage.sizes}
+    sizes={sizes}
     class="figure-image"
   />
   <figcaption class="figure-caption font-mono text-caption tracking-label text-muted">
     <div class="figure-label">{caption}</div>
-    {Astro.slots.has('default') && <div class="figure-text"><slot /></div>}
+    {sentence && <div class="figure-text">{sentence}</div>}
+    {!sentence && Astro.slots.has('default') && <div class="figure-text"><slot /></div>}
   </figcaption>
 </figure>
 
