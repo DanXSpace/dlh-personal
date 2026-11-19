@@ -1,5 +1,9 @@
 ---
+import { Font } from 'astro:assets';
+import ThemeControl from '../components/layout/ThemeControl.astro';
 import { resolveSiteEnv } from '../lib/site-env.ts';
+import { THEME_INIT_SCRIPT } from '../lib/theme.ts';
+import '../styles/global.css';
 
 interface Props {
   /** Page-specific title. Omit on the homepage to use the site name alone. */
@@ -13,14 +17,22 @@ const { indexable } = resolveSiteEnv(process.env);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="utf-8" />
+    <!-- Render-blocking on purpose: applies a stored theme before first paint. -->
+    <script is:inline set:html={THEME_INIT_SCRIPT} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{documentTitle}</title>
     {!indexable && <meta name="robots" content="noindex, nofollow" />}
+    <Font cssVariable="--font-geist-sans" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />
+    <Font cssVariable="--font-geist-mono" />
   </head>
   <body>
+    <!-- Placeholder position until the global shell (ticket 05) adds the header. -->
+    <header class="flex justify-end px-gutter pt-6">
+      <ThemeControl />
+    </header>
     <main id="main">
       <slot />
     </main>
