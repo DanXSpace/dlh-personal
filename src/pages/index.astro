@@ -4,7 +4,7 @@ import Hero from '../components/home/Hero.astro';
 import HomeSection from '../components/home/HomeSection.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { categoryLabels } from '../lib/categories.ts';
-import { getHomeIntroduction, getNowSummary, getPublished } from '../lib/content.ts';
+import { getPublished, getSingleEntry } from '../lib/content.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import { directoryImage } from '../lib/figures.ts';
 import { heroActions, recentWriting, sectionNumbers, selectedWork } from '../lib/home.ts';
@@ -14,7 +14,7 @@ import { site } from '../site.config.ts';
 const projects = await getPublished('projects');
 const featured = selectedWork(projects);
 const articles = recentWriting(await getPublished('writing'));
-const nowSummary = await getNowSummary();
+const nowSummary = (await getSingleEntry('now'))?.data.summary;
 const actions = heroActions({
   hasProjects: projects.length > 0,
   links: site.links,
@@ -35,7 +35,7 @@ const numbers = sectionNumbers({
 -->
 <BaseLayout description={site.description}>
   <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
-    <Hero introduction={await getHomeIntroduction()} actions={actions} />
+    <Hero introduction={await getSingleEntry('home')} actions={actions} />
 
     {
       numbers.selectedWork && (

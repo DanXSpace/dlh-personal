@@ -7,14 +7,14 @@ import TextLink from '../components/ui/TextLink.astro';
 import Timeline from '../components/ui/Timeline.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { contactInvitation } from '../lib/about.ts';
-import { getPublished } from '../lib/content.ts';
+import { getSingleEntry } from '../lib/content.ts';
 import { site } from '../site.config.ts';
 import { aboutLandscapeSizes, aboutPortraitSizes, interestTileImage } from '../lib/figures.ts';
 import '../styles/prose.css';
 
 // The single About entry, or none: production has none until ticket 18. A
 // draft entry is left out of production builds, like any other draft.
-const [entry] = await getPublished('about');
+const entry = await getSingleEntry('about');
 const data = entry?.data;
 const Content = entry ? (await render(entry)).Content : undefined;
 const hasIntro = (entry?.body ?? '').trim() !== '';

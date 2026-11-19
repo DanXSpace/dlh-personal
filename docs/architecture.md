@@ -165,7 +165,7 @@ Author is a single constant from `site.config.ts`, not a per-post field.
 
 Single entry (`now/index.md`) with `updated: date` (required) and a body using `##` headings for Building, Learning, Exploring, Training and Listening. The homepage summary comes from an optional `summary` frontmatter field.
 
-The schema is `nowSchema` in `lib/now.ts`. `summary` is limited to 160 characters, like the other collections' summaries. A missing or invalid `updated` fails the build with a message asking for a `YYYY-MM-DD` date. The text before the first `##` is the page's introduction, and a section the entry leaves out doesn't render. The entry has no `draft` flag. Pages read it through `getNow()` and `getNowSummary()` in `lib/content.ts`. Until the entry exists, `/now` shows its heading and "No update published yet." (ticket 11).
+The schema is `nowSchema` in `lib/now.ts`. `summary` is limited to 160 characters, like the other collections' summaries. A missing or invalid `updated` fails the build with a message asking for a `YYYY-MM-DD` date. The text before the first `##` is the page's introduction, and a section the entry leaves out doesn't render. The entry has no `draft` flag. Pages read it through `getSingleEntry('now')` in `lib/content.ts`. Until the entry exists, `/now` shows its heading and "No update published yet." (ticket 11).
 
 ### 5.4 Site identity — `src/site.config.ts`
 
@@ -181,7 +181,7 @@ Name, tagline, description, canonical origin, nav items, and social/contact link
 
 ### 5.6 `about`
 
-Single entry (`about/index.md(x)`), read through `getPublished`. A collection rather than an imported MDX partial, so the fixture build (ADR-0004) can supply its own entry. Every field is optional, and `/about` omits each section whose field is absent (ticket 12).
+Single entry (`about/index.md(x)`), read through `getSingleEntry('about')`, which applies the draft rule. A collection rather than an imported MDX partial, so the fixture build (ADR-0004) can supply its own entry. Every field is optional, and `/about` omits each section whose field is absent (ticket 12).
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -198,7 +198,7 @@ With no entry, production `/about` is the opener heading alone: no copy, imagery
 
 ### 5.7 `home` and the hero image
 
-Single entry (`home/index.md`) whose Markdown body is the homepage hero's introduction. It has no frontmatter fields and no `draft` flag. Pages read it through `getHomeIntroduction()` in `lib/content.ts`. Until the owner supplies it (ticket 18), the hero shows the role label, wordmark, tagline, calls to action and image with no introduction and no stand-in text (ticket 14).
+Single entry (`home/index.md`) whose Markdown body is the homepage hero's introduction. It has no frontmatter fields and no `draft` flag. Pages read it through `getSingleEntry('home')` in `lib/content.ts`. Until the owner supplies it (ticket 18), the hero shows the role label, wordmark, tagline, calls to action and image with no introduction and no stand-in text (ticket 14).
 
 The homepage's selection rules are in `lib/home.ts`: `selectedWork()` (featured projects in directory order, at most three), `recentWriting()` (the three newest articles) and `heroActions()` ("Explore my work" once a project is published, GitHub when its URL is set, and the résumé through `resumeLinks()`). A section with nothing to show is left out, and `sectionNumbers()` numbers the shown sections consecutively, so their `01 /` labels never skip a number.
 

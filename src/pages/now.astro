@@ -1,11 +1,11 @@
 ---
 import { render } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { getNow } from '../lib/content.ts';
+import { getSingleEntry } from '../lib/content.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
 import '../styles/prose.css';
 
-const now = await getNow();
+const now = await getSingleEntry('now');
 const Content = now ? (await render(now)).Content : undefined;
 // The entry's own summary when it has one; otherwise interim, factual wording (ticket 18).
 const description = now?.data.summary ?? 'What Daniel Lee Holung is focused on now.';
