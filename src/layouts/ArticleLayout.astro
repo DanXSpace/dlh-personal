@@ -1,0 +1,163 @@
+---
+import type { MarkdownHeading } from 'astro';
+import type { CollectionEntry } from 'astro:content';
+import { categoryLabels } from '../lib/categories.ts';
+import { formatDate, isoDate } from '../lib/dates.ts';
+import { readingMinutes } from '../lib/reading-time.ts';
+import { tableOfContents } from '../lib/toc.ts';
+import { site } from '../site.config.ts';
+import '../styles/prose.css';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  article: CollectionEntry<'writing'>;
+  headings: MarkdownHeading[];
+}
+
+const { article, headings } = Astro.props;
+const { title, deck, published, updated, category, toc } = article.data;
+const minutes = readingMinutes(article.body ?? '');
+const contents = tableOfContents(headings, toc);
+---
+
+<!--
+  Article page (design-spec §4 `/writing/[slug]`). The header and prose share
+  the 680px reading column at the leading edge of the shell; at 1024px and up
+  the table of contents sits in the space to its right, an asymmetric split.
+-->
+<BaseLayout title={title}>
+  <article class="article mx-auto max-w-shell px-gutter py-section" class:list={{ 'has-contents': contents.length > 0 }}>
+    <header class="article-header flex max-w-measure flex-col items-start gap-6">
+      <p class="flex flex-wrap gap-x-3 font-mono text-label uppercase tracking-label text-muted">
+        <span>{categoryLabels[category]}</span>
+        <span aria-hidden="true">/</span>
+        <time datetime={isoDate(published)}>{formatDate(published)}</time>
+      </p>
+      <h1 class="text-page-heading leading-heading font-medium">{title}</h1>
+      {deck && <p class="text-body-large text-muted">{deck}</p>}
+      <p class="flex flex-wrap gap-x-3 gap-y-1 font-mono text-label tracking-label text-muted">
+        <span>By {site.name}</span>
+        <span aria-hidden="true">·</span>
+        <span>{minutes} min read</span>
+        {
+          updated && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                Updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time>
+              </span>
+            </>
+          )
+        }
+      </p>
+    </header>
+
+    {
+      contents.length > 0 && (
+        <nav class="article-contents" aria-labelledby="contents-label">
+          <p id="contents-label" class="font-mono text-label uppercase tracking-label text-muted">
+            Contents
+          </p>
+          <ol class="contents-list">
+            {contents.map((item) => (
+              <li>
+                <a href={`#${item.slug}`}>{item.text}</a>
+                {item.children.length > 0 && (
+                  <ol>
+                    {item.children.map((child) => (
+                      <li>
+                        <a href={`#${child.slug}`}>{child.text}</a>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
+    <div class="article-body prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  @reference '../styles/global.css';
+
+  .article {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: calc(var(--space-unit) * 12);
+  }
+
+  .article-contents {
+    padding-block-start: calc(var(--space-unit) * 6);
+    border-block-start: var(--rule-width) solid var(--color-rule);
+    max-width: var(--measure);
+  }
+
+  .contents-list,
+  .contents-list ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contents-list {
+    margin-block-start: calc(var(--space-unit) * 2);
+  }
+
+  .contents-list ol {
+    padding-inline-start: calc(var(--space-unit) * 4);
+  }
+
+  .contents-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    color: var(--color-muted);
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: var(--rule-width);
+    text-underline-offset: var(--underline-offset);
+    transition:
+      color var(--duration-fast) var(--ease-standard),
+      text-decoration-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .contents-list a:hover {
+    color: var(--color-text);
+    text-decoration-color: currentColor;
+  }
+
+  /*
+   * 1024px and up: reading column on the left, contents beside it, staying in
+   * view while the article scrolls.
+   */
+  @media (width >= theme(--breakpoint-lg)) {
+    .article.has-contents {
+      grid-template-columns: minmax(0, var(--measure)) minmax(0, 1fr);
+      column-gap: calc(var(--space-unit) * 12);
+    }
+
+    .has-contents .article-header {
+      grid-column: 1 / -1;
+    }
+
+    .has-contents .article-contents {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: start;
+      position: sticky;
+      top: calc(var(--space-unit) * 8);
+    }
+
+    .has-contents .article-body {
+      grid-column: 1;
+      grid-row: 2;
+    }
+  }
+</style>

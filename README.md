@@ -23,11 +23,12 @@ npx playwright install chromium   # browser for the end-to-end and accessibility
 | --- | --- |
 | `npm run dev` | Start the dev server at `http://localhost:4321`. |
 | `npm run build` | Build the static site into `dist/`. |
+| `npm run build:fixtures` | Build the site from test fixture content into `dist-fixtures/` (never deployed). |
 | `npm run preview` | Serve the built `dist/` locally. |
 | `npm run check` | Type-check `.astro` and `.ts` files with `astro check` (strictest tsconfig). |
 | `npm run test:unit` | Run unit tests in `tests/unit/` with Node's built-in test runner. |
-| `npm run test:e2e` | Run Playwright browser and axe accessibility tests against the built site. Run `npm run build` first. |
-| `npm run verify` | Run the type check, unit tests, build and browser tests in that order. Exits non-zero if any step fails. |
+| `npm run test:e2e` | Run Playwright browser and axe accessibility tests against the built sites. Run `npm run build` and `npm run build:fixtures` first. |
+| `npm run verify` | Run the type check, unit tests, both builds and the browser tests, in that order. Exits non-zero if any step fails. |
 
 Run `npm run verify` before every commit.
 
@@ -39,11 +40,14 @@ Run `npm run verify` before every commit.
 
 ### Fixture content
 
-Template tests will use fixture entries in `tests/fixtures/content/`, which never ship.
-`CONTENT_SOURCE=fixtures npm run build` writes to `dist-fixtures/` instead of `dist/`.
-Content collections don't exist yet. When they're added, their loaders read from the
-fixtures directory in that mode. The production build reads only `src/content/` and
+Template tests use fixture entries in `tests/fixtures/content/`, which never ship.
+`npm run build:fixtures` (`CONTENT_SOURCE=fixtures astro build`) reads them and writes
+`dist-fixtures/` instead of `dist/`. The production build reads only `src/content/` and
 writes `dist/`. See [ADR-0004](docs/adr/0004-fixture-content-via-separate-build.md).
+
+Browser tests named `*.fixtures.spec.ts` run in Playwright's `fixtures` project against
+the fixture build, served on port 4323. All other browser tests run against the production
+build on port 4322. `npm run verify` builds both first.
 
 ## Environment variables
 

@@ -2,11 +2,21 @@ import { defineConfig, devices } from '@playwright/test';
 
 // Not 4321, so a running `astro dev` server is never mistaken for the build.
 const port = 4322;
+// The fixture build (ADR-0004), served from `dist-fixtures/` on its own port.
+const fixturesPort = 4323;
+
+// `--ignore-lock` runs a one-off foreground server that skips Astro's lock
+// file. Without it, Astro auto-backgrounds preview when run by a coding agent,
+// and Playwright sees the command exit.
+const preview = (listenOn: number) => `npx astro preview --port ${listenOn} --ignore-lock`;
 
 /**
- * Browser tests run against the built site served by `astro preview`, never the
- * dev server, so they exercise exactly what ships. Run `npm run build` first
- * (`npm run verify` does this).
+ * Browser tests run against built sites served by `astro preview`, never the
+ * dev server, so they exercise exactly what ships. Run `npm run build` and
+ * `npm run build:fixtures` first (`npm run verify` does both).
+ *
+ * `*.fixtures.spec.ts` files test templates against fixture content in the
+ * fixture build. Everything else tests the production build.
  */
 export default defineConfig({
   testDir: './tests',
@@ -16,17 +26,33 @@ export default defineConfig({
   retries: process.env['CI'] ? 1 : 0,
   reporter: process.env['CI'] ? 'github' : 'list',
   use: {
-    baseURL: `http://localhost:${port}`,
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    // `--ignore-lock` runs a one-off foreground server that skips Astro's lock
-    // file. Without it, Astro auto-backgrounds preview when run by a coding
-    // agent, and Playwright sees the command exit.
-    command: `npx astro preview --port ${port} --ignore-lock`,
-    url: `http://localhost:${port}`,
-    reuseExistingServer: false,
-    stdout: 'ignore',
-  },
+  projects: [
+    {
+      name: 'chromium',
+      testIgnore: '**/*.fixtures.spec.ts',
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${port}` },
+    },
+    {
+      name: 'fixtures',
+      testMatch: '**/*.fixtures.spec.ts',
+      use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${fixturesPort}` },
+    },
+  ],
+  webServer: [
+    {
+      command: preview(port),
+      url: `http://localhost:${port}`,
+      reuseExistingServer: false,
+      stdout: 'ignore',
+    },
+    {
+      command: preview(fixturesPort),
+      env: { CONTENT_SOURCE: 'fixtures' },
+      url: `http://localhost:${fixturesPort}`,
+      reuseExistingServer: false,
+      stdout: 'ignore',
+    },
+  ],
 });

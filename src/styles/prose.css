@@ -1,0 +1,189 @@
+/*
+ * Article prose (design-spec §2, §4; architecture §2.1, §6). Hand-written
+ * against the design tokens instead of `@tailwindcss/typography`. Styles the
+ * HTML that the Markdown pipeline in `src/markdown/` renders inside `.prose`.
+ *
+ * Spacing steps are multiples of `--space-unit` (4px).
+ */
+
+.prose {
+  max-width: var(--measure);
+  font-size: var(--text-prose);
+  line-height: var(--leading-prose);
+  overflow-wrap: break-word;
+}
+
+.prose > * {
+  margin-block: 0;
+}
+
+.prose > * + * {
+  margin-block-start: calc(var(--space-unit) * 6);
+}
+
+/* Headings, each wrapped with its anchor link by `heading-anchors.ts`. */
+.prose .heading-anchored {
+  display: flex;
+  align-items: baseline;
+}
+
+.prose > .heading-anchored:has(> h2) {
+  margin-block-start: calc(var(--space-unit) * 16);
+}
+
+.prose > .heading-anchored:has(> :is(h3, h4, h5, h6)) {
+  margin-block-start: calc(var(--space-unit) * 10);
+}
+
+.prose > .heading-anchored + * {
+  margin-block-start: calc(var(--space-unit) * 4);
+}
+
+.prose :is(h2, h3, h4, h5, h6) {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.prose h2 {
+  font-size: var(--text-section-heading);
+  line-height: var(--leading-heading);
+}
+
+.prose :is(h3, h4, h5, h6) {
+  font-size: var(--text-prose);
+  line-height: var(--leading-body);
+}
+
+.prose .heading-anchor {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--target-min);
+  min-block-size: var(--target-min);
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-muted);
+  text-decoration-line: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.prose .heading-anchor:hover {
+  color: var(--color-text);
+}
+
+/* Links in prose are underlined, so they never rely on color alone. */
+.prose a:not(.heading-anchor) {
+  color: var(--color-link);
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--rule-width);
+  text-underline-offset: var(--underline-offset);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+.prose a:not(.heading-anchor):hover {
+  color: var(--color-muted);
+}
+
+.prose :is(ul, ol) {
+  padding-inline-start: calc(var(--space-unit) * 6);
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li + li {
+  margin-block-start: calc(var(--space-unit) * 2);
+}
+
+.prose li::marker {
+  color: var(--color-muted);
+}
+
+.prose blockquote {
+  padding-inline-start: calc(var(--space-unit) * 6);
+  border-inline-start: var(--rule-width) solid var(--color-control-border);
+  color: var(--color-muted);
+}
+
+.prose hr {
+  border: 0;
+  border-block-start: var(--rule-width) solid var(--color-rule);
+}
+
+.prose strong {
+  font-weight: var(--font-weight-medium);
+}
+
+.prose :not(pre) > code {
+  padding-inline: var(--space-unit);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  font-size: var(--text-label);
+}
+
+/*
+ * Code blocks and tables scroll inside their own labelled, focusable region
+ * (`scroll-regions.ts`), never the page.
+ */
+.prose .scroll-region {
+  overflow-x: auto;
+}
+
+.prose pre {
+  margin: 0;
+  padding: calc(var(--space-unit) * 4);
+  width: max-content;
+  min-width: 100%;
+  font-size: var(--text-label);
+  line-height: var(--leading-body);
+}
+
+.prose .scroll-region:has(> pre) {
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+}
+
+/*
+ * Syntax highlighting in the approved monochrome palette (owner decision,
+ * 2026-11-19): keywords in medium weight, comments and literals in muted
+ * gray, everything else in the text color. `shiki-token-classes.ts` turns
+ * Shiki's tokens into these classes.
+ */
+.prose pre .token-keyword {
+  font-weight: var(--font-weight-medium);
+}
+
+.prose pre :is(.token-comment, .token-string, .token-string-expression) {
+  color: var(--color-muted);
+}
+
+.prose table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+/* A minimum cell width keeps columns readable on a phone: the table scrolls in its region instead of crushing them. */
+.prose :is(th, td) {
+  min-inline-size: calc(var(--space-unit) * 32);
+  padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
+  border-block-end: var(--rule-width) solid var(--color-rule);
+  text-align: start;
+  vertical-align: top;
+}
+
+.prose :is(th, td):first-child {
+  padding-inline-start: 0;
+}
+
+.prose th {
+  font-weight: var(--font-weight-medium);
+  border-block-end-color: var(--color-control-border);
+}
