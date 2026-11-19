@@ -6,7 +6,7 @@ test.describe('the Now page', () => {
   test('is titled “In the present” and marks Now as the current page', async ({ page }) => {
     await page.goto('/now');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('In the present');
-    await expect(page).toHaveTitle('Now — Daniel Lee Holung');
+    await expect(page).toHaveTitle('In the present — Daniel Lee Holung');
     const now = page.getByRole('banner').getByRole('link', { name: 'Now', exact: true });
     await expect(now).toHaveAttribute('aria-current', 'page');
   });

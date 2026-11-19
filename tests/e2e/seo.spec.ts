@@ -11,7 +11,7 @@ const pages = [
   { path: '/about', title: 'About — Daniel Lee Holung', ogTitle: 'About', canonical: `${origin}/about/` },
   { path: '/work', title: 'Work — Daniel Lee Holung', ogTitle: 'Work', canonical: `${origin}/work/` },
   { path: '/writing', title: 'Writing — Daniel Lee Holung', ogTitle: 'Writing', canonical: `${origin}/writing/` },
-  { path: '/now', title: 'Now — Daniel Lee Holung', ogTitle: 'Now', canonical: `${origin}/now/` },
+  { path: '/now', title: 'In the present — Daniel Lee Holung', ogTitle: 'In the present', canonical: `${origin}/now/` },
   { path: '/resume', title: 'Résumé — Daniel Lee Holung', ogTitle: 'Résumé', canonical: `${origin}/resume/` },
 ];
 
