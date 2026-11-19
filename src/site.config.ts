@@ -24,6 +24,7 @@ export interface SiteConfig {
 export const site: SiteConfig = {
   name: 'Daniel Lee Holung',
   monogram: 'dlh.',
+  // Approved by the owner, 2026-11-19 (ticket 18).
   tagline: 'Building things. Exploring ideas. Always learning.',
   // Interim wording drawn from the project brief, not owner-approved copy.
   // Replace with the owner's description in ticket 18.
@@ -37,9 +38,11 @@ export const site: SiteConfig = {
     { label: 'Writing', href: '/writing' },
     { label: 'Now', href: '/now' },
   ],
+  // Supplied and approved by the owner, 2026-11-19 (ticket 18). A link left
+  // empty is not shown anywhere on the site.
   links: {
-    email: '',
-    github: '',
-    linkedin: '',
+    email: 'danielleeholung@gmail.com',
+    github: 'https://github.com/DanXSpace',
+    linkedin: 'https://www.linkedin.com/in/daniel-holung-a87236222/',
   },
 };

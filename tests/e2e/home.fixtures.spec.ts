@@ -108,7 +108,7 @@ test.describe('the homepage hero', () => {
   test('shows the landscape image with a figure caption', async ({ page }) => {
     await page.goto('/');
     const figure = page.locator('.hero figure');
-    await expect(figure.getByRole('img')).toHaveAccessibleName(/ridgelines/);
+    await expect(figure.getByRole('img')).toHaveAccessibleName(/cove in Jamaica/);
     await expect(figure.locator('figcaption')).toContainText('FIG. 01 / ROOTS');
   });
 
@@ -159,15 +159,15 @@ test.describe('the homepage hero', () => {
       await page.goto('/');
       const image = page.locator('.hero figure img');
       await expect(image).toHaveCSS('object-fit', 'cover');
-      await expect(image).toHaveCSS('object-position', '56% 42%');
+      await expect(image).toHaveCSS('object-position', '75% 60%');
     });
   }
 
-  test('offers “Explore my work” first, then the résumé once its PDF is hosted', async ({ page }) => {
+  test('offers “Explore my work” first, then GitHub and the résumé once its PDF is hosted', async ({ page }) => {
     await page.goto('/');
     const links = page.locator('.hero-actions a');
-    // The fixture build hosts a résumé PDF and has published projects; no GitHub URL is set.
-    await expect(links).toHaveText(['Explore my work', 'Résumé']);
+    // The fixture build hosts a résumé PDF and has published projects; site config sets a GitHub URL.
+    await expect(links).toHaveText(['Explore my work', 'GitHub', 'Résumé']);
     await expect(links.first()).toHaveAttribute('href', '/work');
     await expect(links.last()).toHaveAttribute('href', '/resume');
   });
