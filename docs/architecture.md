@@ -27,7 +27,7 @@ This document records how the site is built and why. Visual decisions (tokens, t
 | Content | Astro content collections + `@astrojs/mdx` | 8.1.x | Markdown via Astro 7's default Sätteri processor (§6). |
 | Styling | Tailwind CSS via `@tailwindcss/vite` + CSS custom properties | 4.3.x | Tokens as CSS variables, exposed to Tailwind with `@theme inline` (§7). |
 | Fonts | Astro Fonts API, Fontsource provider | built-in | Self-hosted at build time with generated fallback metrics (§7.3). |
-| Images | `astro:assets` + `sharp` | built-in / 0.35.x | AVIF/WebP, explicit dimensions. |
+| Images | `astro:assets` + `sharp` | built-in / 0.35.x | AVIF/WebP, explicit dimensions. Astro's image cache doesn't key on encoder settings: after changing a quality in `astro.config.ts`, delete `node_modules/.astro/assets` locally and clear the Workers Builds build cache (Worker `dlh-personal` → Settings → Build cache → Clear Cache). |
 | Sitemap | `@astrojs/sitemap` | 3.7.x | |
 | RSS | `@astrojs/rss` | 4.0.x | |
 | Search (secondary) | Pagefind | 1.6.x | Static index generated post-build. |

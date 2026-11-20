@@ -6,11 +6,11 @@
  * come first in the source, so they stack before the image below 1024px; from
  * 1024px the copy takes seven grid columns and the image five.
  */
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import { heroImage } from '../../assets/hero.ts';
-import { figureLabel, heroImage as heroImageSizes } from '../../lib/figures.ts';
+import { figureLabel, heroImage as heroImageSizes, rasterFormats } from '../../lib/figures.ts';
 import type { HeroActions } from '../../lib/home.ts';
 import { site } from '../../site.config.ts';
 import TextLink from '../ui/TextLink.astro';
@@ -59,7 +59,8 @@ const hasActions = actions.primary !== undefined || actions.secondary.length > 0
   </div>
 
   <figure class="hero-figure" data-preview-asset={heroImage.preview ? '' : undefined}>
-    <Image
+    <Picture
+      {...rasterFormats()}
       src={heroImage.src}
       alt={heroImage.alt}
       widths={[...heroImageSizes.widths]}

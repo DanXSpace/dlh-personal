@@ -132,8 +132,13 @@ test.describe('Gallery', () => {
   // The candidate the browser picks shows whether `sizes` matches the figure's real width.
   const chosenWidth = (image: import('@playwright/test').Locator) =>
     image.evaluate((img: HTMLImageElement) => {
+      // The chosen candidate can come from the `<picture>`'s AVIF source or the WebP `<img>`.
       const path = new URL(img.currentSrc).pathname;
-      const match = img.srcset.split(',').map((c) => c.trim().split(/\s+/)).find(([url]) => url === path);
+      const sources = [...(img.parentElement?.querySelectorAll('source') ?? [])].map((source) => source.srcset);
+      const match = [...sources, img.srcset]
+        .flatMap((srcset) => srcset.split(','))
+        .map((c) => c.trim().split(/\s+/))
+        .find(([url]) => url === path);
       return Number(match?.[1]?.replace('w', ''));
     });
 
