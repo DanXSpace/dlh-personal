@@ -1,7 +1,7 @@
 import type { APIRequestContext, Page } from '@playwright/test';
 
-/** The interim canonical origin in `src/site.config.ts` (ticket 19 replaces it). */
-export const origin = 'https://dlh-personal.dan-holung.workers.dev';
+/** The canonical origin in `src/site.config.ts`: the custom domain (ticket 19). */
+export const origin = 'https://danielholung.dev';
 
 /** Every page URL in the build's sitemap, as absolute canonical URLs. */
 export async function sitemapUrls(request: APIRequestContext): Promise<string[]> {

@@ -13,6 +13,15 @@
     // unknown URLs get an empty 404 instead of the site's 404 page.
     "not_found_handling": "404-page"
   },
+  // The site is served from the custom domain danielholung.dev, attached to
+  // this Worker in the Cloudflare dashboard (ticket 19), so the production
+  // workers.dev address is turned off. Set here, not only in the dashboard,
+  // because a deploy re-enables it otherwise. There is no `routes` key, so
+  // deploys leave the dashboard's custom domains alone.
+  "workers_dev": false,
+  // Branch previews still get their own workers.dev preview and version URLs
+  // (ADR-0005). Their default follows `workers_dev`, so keep them on explicitly.
+  "preview_urls": true,
   // `wrangler preview` (the non-main deploy command) refuses to run without this
   // block. Empty is enough: previews inherit the top-level settings above.
   "previews": {}

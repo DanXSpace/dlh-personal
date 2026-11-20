@@ -36,9 +36,9 @@ export const site: SiteConfig = {
     'Daniel Lee Holung — engineer, independent developer and writer. Explore my software projects, technical writing and interests in technology, design and life.',
   shareDescription:
     "An engineer's corner of the internet. Software projects, technical writing and an ongoing exploration of technology and life.",
-  // Interim origin: the live workers.dev address, until the owner chooses a
-  // custom domain (ticket 19, architecture §12.3). Not the final canonical origin.
-  origin: 'https://dlh-personal.dan-holung.workers.dev',
+  // The owner's custom domain (ticket 19, architecture §12.3), attached to the
+  // Worker in Cloudflare. www.danielholung.dev redirects here.
+  origin: 'https://danielholung.dev',
   nav: [
     { label: 'About', href: '/about' },
     { label: 'Work', href: '/work' },
