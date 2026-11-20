@@ -1,12 +1,14 @@
 ---
 title: No cover case study fixture
 summary: Test fixture with several sections and no cover image.
-deck: Fixture deck that stands in for the summary under the title.
+deck: Fixture deck that sits above the summary.
+platform: Fixture platform
+role: Fixture role
 metaTitle: No cover fixture — Full title override
 thumbnail: ./thumbnail.jpg
 thumbnailAlt: A darker gray placeholder ridgeline.
 stack: [CSS]
-status: complete
+status: in-development
 type: other
 year: 2026
 featured: true

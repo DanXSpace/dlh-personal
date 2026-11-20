@@ -4,6 +4,7 @@
  */
 import { newestFirst, type Dated } from './archive.ts';
 export const projectStatusLabels = {
+  'in-development': 'In development',
   active: 'Active',
   maintained: 'Maintained',
   complete: 'Complete',

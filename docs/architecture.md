@@ -128,14 +128,16 @@ All schemas live in `src/content.config.ts`, use the `glob()` loader, and use `z
 | --- | --- | --- | --- |
 | `title` | string | ✓ | |
 | `summary` | string (≤ 160) | ✓ | directory blurb + meta description |
-| `deck` | string | | optional standfirst under the case study's title, shown in place of the summary (2026-11-20) |
+| `deck` | string | | optional standfirst under the case study's title, above the summary (2026-11-20) |
+| `platform` | string | | optional, shown in the case study's metadata, e.g. `iOS` (2026-11-20) |
+| `role` | string | | optional, shown in the case study's metadata, e.g. `Independent developer` (2026-11-20) |
 | `metaTitle` | string | | optional full document and link-preview title, replacing `Title — Daniel Lee Holung` (2026-11-20) |
 | `thumbnail` | image | | directory and homepage rows only, shown only when present (approved 2026-11-19) |
 | `thumbnailAlt` | string | with `thumbnail` | required when `thumbnail` is set (refinement), so alt text is never forgotten |
 | `cover` | image | | the case study's wide image, shown only when present (approved 2026-11-19) |
 | `coverAlt` | string | with `cover` | required when `cover` is set (refinement) |
 | `stack` | string[] (≥ 1) | ✓ | |
-| `status` | enum `active \| maintained \| complete \| archived` | ✓ | approved 2026-11-18 |
+| `status` | enum `in-development \| active \| maintained \| complete \| archived` | ✓ | approved 2026-11-18; `in-development` added 2026-11-20 |
 | `type` | enum `application \| experiment \| other` | ✓ | FR-03 |
 | `year` | number | ✓ | |
 | `featured` | boolean | | homepage selection, default `false` |

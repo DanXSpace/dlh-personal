@@ -1,0 +1,135 @@
+---
+/**
+ * LiftDay case study, figure: how the AI template builder changed. Above, the
+ * first approach, where the model planned the week. Below, the current one:
+ * the model only reads the request and quotes its evidence; a dashed boundary
+ * separates that from the deterministic Swift that checks the quotes, builds
+ * the plan from rules and shows an editable preview (ADR-0003).
+ * Drawn twice: wide from 768px, stacked below (Diagram's `d-wide`/`d-narrow`).
+ */
+import { arrow, boxLines, type Box, type TextLine } from './svg.ts';
+
+interface Drawing {
+  viewBox: string;
+  boxes: Box[];
+  arrows: ReturnType<typeof arrow>[];
+  texts: TextLine[];
+  rules: { x1: number; y1: number; x2: number; y2: number; dashed?: boolean }[];
+}
+
+const failures = [
+  '× Incorrect training day counts',
+  '× Equipment outside the user’s constraints',
+  '× Inconsistent instruction adherence',
+];
+const before = [['User request'], ['Language model'], ['Workout plan']];
+const modelSide: [string[], string[]?][] = [
+  [['User request']],
+  [['On-device model'], ['reads the request']],
+  [['Structured intent'], ['+ supporting quotes']],
+];
+const swiftSide: [string[], string[]][] = [
+  [['Check quotes'], ['against the request']],
+  [['Build the plan'], ['from coaching rules']],
+  [['Editable preview'], ['saved on approval']],
+];
+
+const col = [0, 260, 520];
+const wide: Drawing = {
+  viewBox: '0 0 720 480',
+  boxes: [
+    ...before.map((lines, i) => ({ x: col[i]!, y: 28, w: 200, h: 48, lines })),
+    ...modelSide.map(([lines, subtitle], i) => ({ x: col[i]!, y: 220, w: 200, h: 56, lines, subtitle })),
+    ...swiftSide.map(([lines, subtitle], i) => ({ x: col[i]!, y: 360, w: 200, h: 56, lines, subtitle })),
+  ],
+  arrows: [
+    arrow([[200, 52], [260, 52]]),
+    arrow([[460, 52], [520, 52]]),
+    arrow([[200, 248], [260, 248]]),
+    arrow([[460, 248], [520, 248]]),
+    arrow([[620, 276], [620, 298], [100, 298], [100, 360]]),
+    arrow([[200, 388], [260, 388]]),
+    arrow([[460, 388], [520, 388]]),
+  ],
+  rules: [
+    { x1: 0, y1: 172, x2: 720, y2: 172 },
+    { x1: 0, y1: 322, x2: 720, y2: 322, dashed: true },
+  ],
+  texts: [
+    { x: 0, y: 14, text: 'A · Initial approach', label: true, muted: true },
+    ...failures.map((text, i) => ({ x: 0, y: 108 + i * 20, text, muted: true })),
+    { x: 0, y: 204, text: 'B · Revised approach', label: true, muted: true },
+    { x: 720, y: 204, text: 'Model · interprets', anchor: 'end' as const, label: true, muted: true },
+    { x: 720, y: 344, text: 'Deterministic Swift · decides', anchor: 'end' as const, label: true, muted: true },
+    { x: 100, y: 446, text: 'Unsupported details', anchor: 'middle' as const, muted: true },
+    { x: 100, y: 463, text: 'are shown as guesses', anchor: 'middle' as const, muted: true },
+  ],
+};
+
+const narrow: Drawing = {
+  viewBox: '0 0 340 840',
+  boxes: [
+    ...before.map((lines, i) => ({ x: 0, y: 28 + i * 60, w: 340, h: 40, lines })),
+    { x: 0, y: 340, w: 340, h: 40, lines: ['User request'] },
+    ...modelSide.slice(1).map(([lines, subtitle], i) => ({ x: 0, y: 400 + i * 72, w: 340, h: 52, lines, subtitle })),
+    ...swiftSide.map(([lines, subtitle], i) => ({ x: 0, y: 600 + i * 72, w: 340, h: 52, lines, subtitle })),
+  ],
+  arrows: [
+    arrow([[170, 68], [170, 88]]),
+    arrow([[170, 128], [170, 148]]),
+    arrow([[170, 380], [170, 400]]),
+    arrow([[170, 452], [170, 472]]),
+    arrow([[40, 524], [40, 600]]),
+    arrow([[170, 652], [170, 672]]),
+    arrow([[170, 724], [170, 744]]),
+  ],
+  rules: [
+    { x1: 0, y1: 276, x2: 340, y2: 276 },
+    { x1: 0, y1: 552, x2: 340, y2: 552, dashed: true },
+  ],
+  texts: [
+    { x: 0, y: 14, text: 'A · Initial approach', label: true, muted: true },
+    ...failures.map((text, i) => ({ x: 0, y: 214 + i * 18, text, muted: true })),
+    { x: 0, y: 306, text: 'B · Revised approach', label: true, muted: true },
+    { x: 0, y: 326, text: 'Model · interprets', label: true, muted: true },
+    { x: 340, y: 574, text: 'Deterministic Swift · decides', anchor: 'end' as const, label: true, muted: true },
+    { x: 0, y: 824, text: 'Unsupported details are shown as guesses.', muted: true },
+  ],
+};
+
+const drawings = [
+  { className: 'd-wide', drawing: wide },
+  { className: 'd-narrow', drawing: narrow },
+];
+---
+
+{
+  drawings.map(({ className, drawing }) => (
+    <svg class={className} viewBox={drawing.viewBox} aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      {drawing.rules.map((r) => (
+        <line x1={r.x1} y1={r.y1 + 0.5} x2={r.x2} y2={r.y2 + 0.5} stroke-width="1" class:list={r.dashed ? ['d-muted', 'd-dash'] : ['d-rule']} />
+      ))}
+      {drawing.boxes.map((box) => (
+        <>
+          <rect x={box.x + 0.5} y={box.y + 0.5} width={box.w - 1} height={box.h - 1} rx="2" fill="none" stroke="currentColor" stroke-width="1" />
+          {boxLines(box).map((t) => (
+            <text x={t.x} y={t.y} text-anchor={t.anchor} class:list={{ 'd-muted': t.muted }}>
+              {t.text}
+            </text>
+          ))}
+        </>
+      ))}
+      {drawing.arrows.map((a) => (
+        <>
+          <path d={a.path} fill="none" stroke="currentColor" stroke-width="1" />
+          <polygon points={a.head} fill="currentColor" />
+        </>
+      ))}
+      {drawing.texts.map((t) => (
+        <text x={t.x} y={t.y} text-anchor={t.anchor ?? 'start'} class:list={{ 'd-muted': t.muted, 'd-label': t.label }}>
+          {t.text}
+        </text>
+      ))}
+    </svg>
+  ))
+}

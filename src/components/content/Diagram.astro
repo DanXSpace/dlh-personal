@@ -12,7 +12,14 @@
  *
  * `alt` names the diagram in a few words; `description` carries everything it
  * conveys, as the art's accessible description and in a "Text description"
- * disclosure under the caption. Draw inline SVG in `currentColor` so it follows
+ * disclosure under the caption. An optional `caption` sentence follows the
+ * `FIG. 01 / LABEL` line, as on `Figure`.
+ *
+ * Inline SVG can use these classes so it follows the theme without inline
+ * styles (the CSP blocks them): `d-muted` (muted text or strokes), `d-rule`
+ * (hairline rules), `d-dash` (dashed boundaries), `d-label` (small uppercase
+ * mono labels). Art with a `d-wide` and a `d-narrow` SVG shows the wide one
+ * from 768px and the narrow one below, so labels stay readable on a phone. Draw inline SVG in `currentColor` so it follows
  * the theme, and write its attributes as SVG spells them (`stroke-width`, not
  * `strokeWidth`): MDX passes attribute names through unchanged. An image
  * diagram keeps its own colors, so give it its own background.
@@ -30,9 +37,11 @@ interface Props {
   description: string;
   /** An image to show instead of inline SVG children. */
   src?: ImageMetadata;
+  /** An optional caption sentence after the figure label. */
+  caption?: string | undefined;
 }
 
-const { number, label, alt, description, src } = Astro.props;
+const { number, label, alt, description, src, caption: sentence } = Astro.props;
 const caption = figureLabel(number, label);
 const hasArt = Astro.slots.has('default');
 
@@ -68,6 +77,7 @@ const descriptionId = `figure-${number}-description`;
   }
   <figcaption class="diagram-caption font-mono text-caption tracking-label text-muted">
     <div class="diagram-label">{caption}</div>
+    {sentence && <p class="diagram-sentence">{sentence}</p>}
     <details class="diagram-details">
       <summary>Text description</summary>
       <p id={descriptionId}>{description}</p>
@@ -76,6 +86,8 @@ const descriptionId = `figure-${number}-description`;
 </figure>
 
 <style>
+  @reference '../../styles/global.css';
+
   .diagram-art {
     color: var(--color-text);
   }
@@ -87,6 +99,51 @@ const descriptionId = `figure-${number}-description`;
     height: auto;
   }
 
+  .diagram-art :global(svg) {
+    overflow: visible;
+  }
+
+  .diagram-art :global(text) {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    fill: currentColor;
+  }
+
+  .diagram-art :global(.d-label) {
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
+  .diagram-art :global(text.d-muted) {
+    fill: var(--color-muted);
+  }
+
+  .diagram-art :global(.d-muted:not(text)) {
+    stroke: var(--color-muted);
+  }
+
+  .diagram-art :global(.d-rule) {
+    stroke: var(--color-rule);
+  }
+
+  .diagram-art :global(.d-dash) {
+    stroke-dasharray: 4 4;
+  }
+
+  .diagram-art :global(svg.d-wide) {
+    display: none;
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .diagram-art :global(svg.d-wide) {
+      display: block;
+    }
+
+    .diagram-art :global(svg.d-narrow) {
+      display: none;
+    }
+  }
+
   .diagram-image {
     border-radius: var(--radius-sm);
   }
@@ -94,6 +151,14 @@ const descriptionId = `figure-${number}-description`;
   .diagram-caption {
     margin-block-start: calc(var(--space-unit) * 3);
     line-height: var(--leading-body);
+  }
+
+  .diagram-sentence {
+    margin: calc(var(--space-unit) * 1) 0 0;
+    max-width: var(--measure);
+    font-family: var(--font-sans);
+    font-size: var(--text-caption);
+    letter-spacing: normal;
   }
 
   .diagram-details summary {
