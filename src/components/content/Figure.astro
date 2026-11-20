@@ -12,10 +12,14 @@
  * decorative (design-spec §6). Children, if any, follow the label as a short
  * caption sentence. `Gallery` renders its figures through this component and
  * passes `caption` and `sizes` instead.
+ *
+ * The image ships as AVIF with a WebP fallback, and loads lazily. Pass
+ * `priority` only for an image that is visible without scrolling on a desktop,
+ * such as the largest image on the page; it loads eagerly at high priority.
  */
 import type { ImageMetadata } from 'astro';
-import { Image } from 'astro:assets';
-import { figureImage, figureLabel } from '../../lib/figures.ts';
+import { Picture } from 'astro:assets';
+import { figureImage, figureLabel, rasterFormats } from '../../lib/figures.ts';
 
 interface Props {
   src: ImageMetadata;
@@ -26,9 +30,11 @@ interface Props {
   caption?: string | undefined;
   /** Overrides the reading-column `sizes`; set by `Gallery`. */
   sizes?: string;
+  /** Loads the image eagerly at high priority, for an image above the fold. */
+  priority?: boolean;
 }
 
-const { src, alt, number, label, caption: sentence, sizes = figureImage.sizes } = Astro.props;
+const { src, alt, number, label, caption: sentence, sizes = figureImage.sizes, priority = false } = Astro.props;
 if (typeof alt !== 'string') {
   throw new Error(`Figure ${number} needs an \`alt\` description, or \`alt=""\` if the image is purely decorative.`);
 }
@@ -36,11 +42,13 @@ const caption = figureLabel(number, label);
 ---
 
 <figure class="figure">
-  <Image
+  <Picture
+    {...rasterFormats}
     src={src}
     alt={alt}
     widths={[...figureImage.widths]}
     sizes={sizes}
+    priority={priority}
     class="figure-image"
   />
   <figcaption class="figure-caption font-mono text-caption tracking-label text-muted">

@@ -67,6 +67,15 @@
     font-weight: var(--font-weight-regular);
   }
 
+  /*
+   * Raster images ship in a `<picture>` (AVIF with a WebP fallback). The
+   * wrapper takes no box of its own, so the `<img>` stays the flex or grid
+   * item and every style that targets its class lays it out as before.
+   */
+  picture {
+    display: contents;
+  }
+
   code,
   kbd,
   pre,

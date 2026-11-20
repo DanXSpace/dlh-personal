@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import { render } from 'astro:content';
 import Figure from '../components/content/Figure.astro';
 import { contentComponents } from '../components/content/index.ts';
@@ -8,7 +8,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { contactInvitation } from '../lib/about.ts';
 import { getSingleEntry } from '../lib/content.ts';
 import { site } from '../site.config.ts';
-import { aboutLandscapeSizes, aboutPortraitSizes, interestTileImage } from '../lib/figures.ts';
+import { aboutLandscapeSizes, aboutPortraitSizes, interestTileImage, rasterFormats } from '../lib/figures.ts';
 import '../styles/prose.css';
 
 // The single About entry, or none: production has none until ticket 18. A
@@ -57,6 +57,7 @@ const nextFigure = () => ++figureCount;
               label={data.portrait.label}
               caption={data.portrait.caption}
               sizes={aboutPortraitSizes}
+              priority
             />
           </div>
         )
@@ -102,7 +103,8 @@ const nextFigure = () => ++figureCount;
             {data.interests.map(({ name, detail, photo }) => (
               <li class="interest">
                 {photo && (
-                  <Image
+                  <Picture
+                    {...rasterFormats}
                     src={photo.image}
                     alt={photo.alt}
                     widths={[...interestTileImage.widths]}

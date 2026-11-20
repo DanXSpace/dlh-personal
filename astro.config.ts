@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { cpSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, fontProviders, sharpImageService } from 'astro/config';
 import type { AstroIntegration } from 'astro';
 import { resolveContentSource } from './src/lib/content-source.ts';
 import { scriptHash } from './src/lib/csp.ts';
@@ -62,6 +62,14 @@ export default defineConfig({
       fallbacks: ['ui-monospace', 'monospace'],
     },
   ],
+  // Raster images ship AVIF with a WebP fallback (src/lib/figures.ts,
+  // architecture §2). At sharp's AVIF default (50) the hero's dark foliage
+  // smears; 60 keeps its grain close to the WebP at about two thirds of the
+  // bytes. WebP stays at its default. Astro's image cache doesn't key on this
+  // setting: after changing it, delete `node_modules/.astro/assets` and rebuild.
+  image: {
+    service: sharpImageService({ avif: { quality: 60 } }),
+  },
   // Astro 7's default Sätteri processor, extended with in-repo plugins for
   // heading anchors and scroll regions, and Shiki with CSP-safe token classes
   // (architecture §6, src/markdown/).

@@ -1,12 +1,12 @@
 ---
-import { Image } from 'astro:assets';
+import { Picture } from 'astro:assets';
 import Hero from '../components/home/Hero.astro';
 import HomeSection from '../components/home/HomeSection.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { categoryLabels } from '../lib/categories.ts';
 import { getPublished, getSingleEntry } from '../lib/content.ts';
 import { formatDate, isoDate } from '../lib/dates.ts';
-import { directoryImage } from '../lib/figures.ts';
+import { directoryImage, rasterFormats } from '../lib/figures.ts';
 import { heroActions, recentWriting, sectionNumbers, selectedWork } from '../lib/home.ts';
 import { resumeLinks, siteResumeAccess } from '../lib/resume.ts';
 import { entryHref } from '../lib/routes.ts';
@@ -52,7 +52,8 @@ const numbers = sectionNumbers({
             {featured.map(({ id, data }) => (
               <li class="home-row project-row selected-work-row">
                 {data.thumbnail && (
-                  <Image
+                  <Picture
+                    {...rasterFormats}
                     src={data.thumbnail}
                     alt={data.thumbnailAlt ?? ''}
                     widths={[...directoryImage.widths]}

@@ -1,6 +1,7 @@
 /**
- * Figure captions and responsive image sizes: for content figures, the case
- * study's wide image, `/work` row thumbnails and the homepage hero.
+ * Figure captions and responsive image sizes and formats: for content figures,
+ * the case study's wide image, `/work` row thumbnails, the homepage hero and
+ * the About page's images.
  */
 
 /**
@@ -26,29 +27,38 @@ export function figureLabel(number: number, label: string): string {
  *
  * - 42.5rem is `--measure`, the reading column a lone figure fills.
  * - 45.5rem is the measure plus the 1.5rem `--gutter` on each side, the
- *   viewport at which that column stops being fluid.
+ *   viewport at which that column stops being fluid. Below it the figure fills
+ *   the viewport less those gutters, `calc(100vw - 3rem)`. From 768px the
+ *   gutter grows to 3rem or more, so the shell's content box can be a little
+ *   under the measure there (42rem at 768px); claiming the full measure is
+ *   close enough.
  * - 48rem is `--breakpoint-md`, where a gallery leaves its stacked layout for
  *   columns separated by a 1.5rem gap.
  */
 export const figureImage = {
   widths: [480, 680, 960, 1360],
-  sizes: '(min-width: 45.5rem) 42.5rem, 100vw',
+  sizes: '(min-width: 45.5rem) 42.5rem, calc(100vw - 3rem)',
 } as const;
 
-/** `sizes` for a figure in a gallery of the given number of columns. */
+/**
+ * `sizes` for a figure in a gallery of the given number of columns. From
+ * 768px each figure takes its share of the measure less the gaps; below that
+ * figures stack and size like a lone figure.
+ */
 export function galleryImageSizes(columns: 2 | 3): string {
-  return `(min-width: 48rem) calc((42.5rem - ${columns - 1} * 1.5rem) / ${columns}), 100vw`;
+  return `(min-width: 48rem) calc((42.5rem - ${columns - 1} * 1.5rem) / ${columns}), (min-width: 45.5rem) 42.5rem, calc(100vw - 3rem)`;
 }
 
 /**
  * Responsive candidates for a case study's wide image, which spans the content
  * shell (design-spec §5). 58.5rem is just above the widest the shell's content
  * box gets: `--shell-max` (65rem) less its fluid `--gutter` on each side, about
- * 58.2rem at a 65rem viewport. Below that the image is close to full width.
+ * 58.2rem at a 65rem viewport. Below that the image fills the viewport less
+ * the gutters: 3–3.4rem on each side from 768px, 1.5rem below it.
  */
 export const caseStudyImage = {
   widths: [480, 960, 1360, 1840],
-  sizes: '(min-width: 65rem) 58.5rem, 100vw',
+  sizes: '(min-width: 65rem) 58.5rem, (min-width: 48rem) calc(100vw - 6rem), calc(100vw - 3rem)',
 } as const;
 
 /**
@@ -83,10 +93,12 @@ export const aboutPortraitSizes = '(min-width: 65rem) 23.5rem, (min-width: 48rem
 
 /**
  * `sizes` for the About landscape, which spans the trailing seven of the 12
- * grid columns from 1024px (about 34rem at the full 65rem shell, under 55vw
- * below it) and the whole content width when stacked.
+ * grid columns from 1024px (about 33–34rem at the full 65rem shell, under 55vw
+ * below it). When stacked it fills the content width: the viewport less a
+ * 3–3.4rem `--gutter` on each side from 768px, or 1.5rem below it.
  */
-export const aboutLandscapeSizes = '(min-width: 65rem) 34rem, (min-width: 64rem) 55vw, 100vw';
+export const aboutLandscapeSizes =
+  '(min-width: 65rem) 34rem, (min-width: 64rem) 55vw, (min-width: 48rem) calc(100vw - 6rem), calc(100vw - 3rem)';
 
 /**
  * Responsive candidates for an About interest photo tile: a third of the shell
@@ -97,3 +109,15 @@ export const interestTileImage = {
   widths: [320, 480, 640, 960],
   sizes: '(min-width: 64rem) 18.5rem, (min-width: 48rem) 45vw, calc(100vw - 3rem)',
 } as const;
+
+/**
+ * Formats for a raster image rendered through `astro:assets` `<Picture>`
+ * (architecture §2): an AVIF `<source>` for browsers that support it, with the
+ * WebP `<img>` as the fallback. Without `fallbackFormat` Astro falls back to
+ * the source format, so JPEG sources would ship JPEG. The AVIF encoder quality
+ * is set once in astro.config.ts. SVG images keep `<Image>`.
+ */
+export const rasterFormats: { formats: ['avif']; fallbackFormat: 'webp' } = {
+  formats: ['avif'],
+  fallbackFormat: 'webp',
+};
