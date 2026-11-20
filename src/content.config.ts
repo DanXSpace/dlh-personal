@@ -34,7 +34,7 @@ const projects = defineCollection({
       .object({
         title: z.string().min(1),
         summary: z.string().min(1).max(160),
-        /** Optional standfirst under the case study's title; the summary shows there without one. */
+        /** Optional standfirst under the case study's title, above the summary. */
         deck: z.string().trim().min(1).optional(),
         /** Optional full document and link-preview title, replacing `Title — Daniel Lee Holung`. */
         metaTitle: z.string().trim().min(1).optional(),
@@ -43,6 +43,10 @@ const projects = defineCollection({
         cover: image().optional(),
         coverAlt: z.string().trim().min(1).optional(),
         stack: z.array(z.string().trim().min(1)).min(1),
+        /** Optional platform, e.g. `iOS`, shown in the case study's metadata. */
+        platform: z.string().trim().min(1).optional(),
+        /** Optional role on the project, e.g. `Independent developer`. */
+        role: z.string().trim().min(1).optional(),
         status: z.enum(projectStatuses),
         type: z.enum(projectTypes),
         year: z.number().int(),

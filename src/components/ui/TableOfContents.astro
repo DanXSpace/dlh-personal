@@ -3,17 +3,49 @@
  * Anchored contents for an article or case study (design-spec §4): `h2`
  * sections with their `h3`s nested, from `tableOfContents` in `lib/toc.ts`.
  * The layout decides where it sits.
+ *
+ * `collapsible` (case studies) folds the list into a closed "Contents"
+ * disclosure below 1024px, where it would otherwise push the body down; from
+ * 1024px the full list shows beside the reading column as usual. Only one of
+ * the two is ever displayed, so assistive technology meets a single list.
  */
 import type { TocItem } from '../../lib/toc.ts';
 
 interface Props {
   items: TocItem[];
+  collapsible?: boolean;
 }
 
-const { items } = Astro.props;
+const { items, collapsible = false } = Astro.props;
 ---
 
-<nav class="toc" aria-labelledby="contents-label">
+{
+  collapsible && (
+    <details class="toc-compact">
+      <summary class="font-mono text-label uppercase tracking-label">Contents</summary>
+      <nav aria-label="Contents">
+        <ol class="contents-list">
+          {items.map((item) => (
+            <li>
+              <a href={`#${item.slug}`}>{item.text}</a>
+              {item.children.length > 0 && (
+                <ol>
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={`#${child.slug}`}>{child.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </details>
+  )
+}
+
+<nav class="toc" class:list={{ 'toc-wide-only': collapsible }} aria-labelledby="contents-label">
   <p id="contents-label" class="font-mono text-label uppercase tracking-label text-muted">Contents</p>
   <ol class="contents-list">
     {
@@ -36,6 +68,60 @@ const { items } = Astro.props;
 </nav>
 
 <style>
+  @reference '../../styles/global.css';
+
+  .toc-compact {
+    max-width: var(--measure);
+    border-block: var(--rule-width) solid var(--color-rule);
+  }
+
+  .toc-compact summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--target-min);
+    padding-block: calc(var(--space-unit) * 2);
+    color: var(--color-muted);
+    cursor: pointer;
+    list-style: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .toc-compact summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc-compact summary:hover {
+    color: var(--color-text);
+  }
+
+  /* State as a plus or minus; the alt text keeps it out of the accessibility tree, which already exposes expanded state. */
+  .toc-compact summary::after {
+    content: '+' / '';
+  }
+
+  .toc-compact[open] summary::after {
+    content: '−' / '';
+  }
+
+  .toc-compact .contents-list {
+    margin-block: 0 calc(var(--space-unit) * 4);
+  }
+
+  .toc-wide-only {
+    display: none;
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    .toc-compact {
+      display: none;
+    }
+
+    .toc-wide-only {
+      display: block;
+    }
+  }
+
   .toc {
     padding-block-start: calc(var(--space-unit) * 6);
     border-block-start: var(--rule-width) solid var(--color-rule);

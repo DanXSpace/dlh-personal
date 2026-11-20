@@ -39,10 +39,18 @@ test('the production index finds no fixture or draft content', async ({ page, re
   const found = await page.evaluate(async () => {
     const url = '/pagefind/pagefind.js';
     const pagefind = (await import(/* @vite-ignore */ url)) as {
-      search(query: string): Promise<{ results: unknown[] }>;
+      search(query: string): Promise<{ results: { data(): Promise<{ url: string }> }[] }>;
     };
-    // Every fixture's title has "fixture"; only the draft fixtures' bodies have "reachable".
-    return Promise.all(['fixture', 'reachable'].map(async (query) => (await pagefind.search(query)).results.length));
+    // Every fixture's slug has "fixture"; only the draft fixtures' bodies have "reachable".
+    // Pagefind matches loosely ("fixture" also finds "fixed" in real copy), so check
+    // which pages come back rather than how many.
+    return Promise.all(
+      ['fixture', 'reachable'].map(async (query) =>
+        Promise.all((await pagefind.search(query)).results.map(async (result) => (await result.data()).url)),
+      ),
+    );
   });
-  expect(found).toEqual([0, 0]);
+  const [fixtureHits, draftHits] = found;
+  expect(fixtureHits!.filter((url) => url.includes('fixture'))).toEqual([]);
+  expect(draftHits).toEqual([]);
 });

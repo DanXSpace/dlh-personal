@@ -1,0 +1,122 @@
+---
+/**
+ * LiftDay case study, figure: the iOS app and the WorkoutCore package.
+ * One dependency arrow, from the app to the package; nothing inside the
+ * package points back at the app (WorkoutCore imports only Foundation).
+ * Drawn twice: wide from 768px, stacked below (Diagram's `d-wide`/`d-narrow`).
+ */
+import { arrow, boxLines, type Box, type TextLine } from './svg.ts';
+
+interface Drawing {
+  viewBox: string;
+  containers: { x: number; y: number; w: number; h: number }[];
+  boxes: Box[];
+  arrows: ReturnType<typeof arrow>[];
+  texts: TextLine[];
+}
+
+const appCells = [
+  { lines: ['SwiftUI'], subtitle: ['presentation'] },
+  { lines: ['SwiftData'], subtitle: ['local persistence'] },
+  { lines: ['HealthKit'], wide: ['body weight from', 'Apple Health'], narrow: ['body weight from Apple Health'] },
+  { lines: ['Foundation Models'], wide: ['on-device', 'language model'], narrow: ['on-device language model'] },
+];
+const coreCells = [
+  ['Training', 'statistics'],
+  ['Progression', 'rules'],
+  ['Workout plan', 'generation'],
+  ['AI-output', 'validation'],
+];
+
+const wideX = [16, 191, 366, 541];
+const wide: Drawing = {
+  viewBox: '0 0 720 420',
+  containers: [
+    { x: 0.5, y: 0.5, w: 719, h: 170 },
+    { x: 0.5, y: 236.5, w: 719, h: 150 },
+  ],
+  boxes: [
+    ...appCells.map((cell, i) => ({
+      x: wideX[i]!,
+      y: 44,
+      w: 163,
+      h: 110,
+      lines: cell.lines,
+      subtitle: cell.subtitle ?? cell.wide,
+    })),
+    ...coreCells.map((lines, i) => ({ x: wideX[i]!, y: 280, w: 163, h: 90, lines })),
+  ],
+  arrows: [arrow([[360, 171], [360, 236]])],
+  texts: [
+    { x: 16, y: 27, text: 'LiftDay · iOS app', label: true, muted: true },
+    { x: 372, y: 208, text: 'imports', muted: true },
+    { x: 16, y: 263, text: 'WorkoutCore · Swift package', label: true, muted: true },
+    { x: 0, y: 414, text: 'WorkoutCore depends only on Foundation: no UI framework, no database.', muted: true },
+  ],
+};
+
+const narrowY = [38, 96, 154, 212];
+const coreY = [374, 422, 470, 518];
+const narrow: Drawing = {
+  viewBox: '0 0 340 630',
+  containers: [
+    { x: 0.5, y: 0.5, w: 339, h: 276 },
+    { x: 0.5, y: 336.5, w: 339, h: 236 },
+  ],
+  boxes: [
+    ...appCells.map((cell, i) => ({
+      x: 12,
+      y: narrowY[i]!,
+      w: 316,
+      h: 50,
+      lines: cell.lines,
+      subtitle: cell.subtitle ?? cell.narrow,
+    })),
+    ...coreCells.map((lines, i) => ({ x: 12, y: coreY[i]!, w: 316, h: 40, lines: [lines.join(' ')] })),
+  ],
+  arrows: [arrow([[170, 277], [170, 336]])],
+  texts: [
+    { x: 12, y: 24, text: 'LiftDay · iOS app', label: true, muted: true },
+    { x: 182, y: 312, text: 'imports', muted: true },
+    { x: 12, y: 360, text: 'WorkoutCore · Swift package', label: true, muted: true },
+    { x: 0, y: 600, text: 'WorkoutCore depends only on', muted: true },
+    { x: 0, y: 618, text: 'Foundation: no UI framework, no database.', muted: true },
+  ],
+};
+
+const drawings = [
+  { className: 'd-wide', drawing: wide },
+  { className: 'd-narrow', drawing: narrow },
+];
+---
+
+{
+  drawings.map(({ className, drawing }) => (
+    <svg class={className} viewBox={drawing.viewBox} aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      {drawing.containers.map((c) => (
+        <rect x={c.x} y={c.y} width={c.w} height={c.h} rx="2" fill="none" class="d-muted" stroke-width="1" />
+      ))}
+      {drawing.boxes.map((box) => (
+        <>
+          <rect x={box.x + 0.5} y={box.y + 0.5} width={box.w - 1} height={box.h - 1} rx="2" fill="none" stroke="currentColor" stroke-width="1" />
+          {boxLines(box).map((t) => (
+            <text x={t.x} y={t.y} text-anchor={t.anchor} class:list={{ 'd-muted': t.muted }}>
+              {t.text}
+            </text>
+          ))}
+        </>
+      ))}
+      {drawing.arrows.map((a) => (
+        <>
+          <path d={a.path} fill="none" stroke="currentColor" stroke-width="1" />
+          <polygon points={a.head} fill="currentColor" />
+        </>
+      ))}
+      {drawing.texts.map((t) => (
+        <text x={t.x} y={t.y} text-anchor={t.anchor ?? 'start'} class:list={{ 'd-muted': t.muted, 'd-label': t.label }}>
+          {t.text}
+        </text>
+      ))}
+    </svg>
+  ))
+}

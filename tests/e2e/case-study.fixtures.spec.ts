@@ -24,11 +24,16 @@ test.describe('case study header', () => {
     await expect(page).toHaveTitle('Case study fixture — Daniel Lee Holung');
   });
 
-  test('a deck replaces the summary under the title, and a metaTitle replaces the whole title', async ({ page }) => {
+  test('a deck sits above the summary, platform and role join the metadata, and a metaTitle replaces the whole title', async ({ page }) => {
     await page.goto(noCover);
     const header = page.getByRole('article').locator('header');
-    await expect(header).toContainText('Fixture deck that stands in for the summary under the title.');
-    await expect(header).not.toContainText('Test fixture with several sections and no cover image.');
+    await expect(header.locator('p.case-study-deck')).toHaveText('Fixture deck that sits above the summary.');
+    await expect(header).toContainText('Test fixture with several sections and no cover image.');
+    const metadata = header.locator('dl');
+    await expect(metadata.locator('dt')).toHaveText(['Type', 'Platform', 'Year', 'Status', 'Role', 'Stack']);
+    await expect(metadata.locator('dd').nth(1)).toHaveText('Fixture platform');
+    await expect(metadata.locator('dd').nth(3)).toHaveText('In development');
+    await expect(metadata.locator('dd').nth(4)).toHaveText('Fixture role');
     await expect(page).toHaveTitle('No cover fixture — Full title override');
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       'content',
@@ -111,6 +116,7 @@ test.describe('body', () => {
     await expect(prose.locator('> p').first()).toHaveCSS('font-size', '18px');
     await expect(prose.getByRole('img', { name: 'Diagram of two placeholder boxes joined by a line.' })).toBeVisible();
     await expect(prose).toContainText('FIG. 01 / FLOW');
+    await expect(prose.locator('.diagram-sentence')).toHaveText('Fixture caption sentence for the diagram.');
     await expect(prose).toContainText('A callout inside a case study sets an aside apart from the prose.');
     await expect(page.getByRole('region', { name: 'Code: TypeScript' })).toBeVisible();
   });
@@ -153,12 +159,24 @@ test.describe('contents', () => {
     expect(prose!.y - (header!.y + header!.height)).toBeLessThanOrEqual(49);
   });
 
-  test('below 1024px the contents come before the body', async ({ page }) => {
+  test('below 1024px the contents fold into a closed disclosure before the body', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 900 });
     await page.goto(full);
-    const contents = await page.getByRole('navigation', { name: 'Contents' }).boundingBox();
-    const prose = await page.locator('.prose').boundingBox();
-    expect(contents!.y + contents!.height).toBeLessThanOrEqual(prose!.y);
+    const disclosure = page.locator('details.toc-compact');
+    const toggle = disclosure.locator('summary');
+    await expect(toggle).toHaveText('Contents');
+    await expect(disclosure).not.toHaveAttribute('open');
+    // Only the folded list is in the accessibility tree, and it starts closed.
+    await expect(page.getByRole('navigation', { name: 'Contents' })).toHaveCount(0);
+    const box = (await disclosure.boundingBox())!;
+    const prose = (await page.locator('.prose').boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(prose.y);
+
+    await toggle.click();
+    const contents = page.getByRole('navigation', { name: 'Contents' });
+    await expect(contents.locator(':scope > ol > li > a')).toHaveText(['Problem', 'Architecture', 'Lessons']);
+    await contents.getByRole('link', { name: 'Lessons' }).click();
+    await expect(page).toHaveURL(/#lessons$/);
   });
 });
 

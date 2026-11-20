@@ -1,21 +1,56 @@
 ---
-# LiftDay case study (/work/liftday). Copy approved by the owner in the
-# website copy revision (2026-11-20). The app is in active development: add
-# architecture, decisions and testing sections only as the owner supplies them.
+# LiftDay case study (/work/liftday). Copy supplied by the owner in the case
+# study revision (2026-11-20), checked against the private LiftDay repo
+# (DanXSpace/liftday at 5d0caa1). Where the repo disagreed, the wording was
+# corrected and the change listed in that revision's report. Screenshots are
+# real simulator captures with sample data (see docs/asset-rights.md).
 
 title: LiftDay
 metaTitle: LiftDay — Strength Training for iOS   # the full browser-tab and link-preview title
 summary: A native iOS strength training application that simplifies workout planning, logging and progress tracking.
 deck: Strength training, without the unnecessary complexity.
-stack: [Swift, SwiftUI]
-status: active
+platform: iOS
+role: Independent developer
+stack: [Swift, SwiftUI, SwiftData, Foundation Models, HealthKit]
+status: in-development
 type: application
 year: 2026
 featured: true                      # shows it in the homepage's Selected Work
 # live: https://FILL-IN             # App Store or TestFlight link, if there is one
 ---
 
-import today from './today.png';
+import LiftDayArchitecture from '../../../components/diagrams/LiftDayArchitecture.astro';
+import LiftDayTemplateBuilder from '../../../components/diagrams/LiftDayTemplateBuilder.astro';
+import todaySuggestion from './today-suggestion.png';
+import logSet from './log-set.png';
+import aiTemplateReview from './ai-template-review.png';
+
+<Gallery
+  columns={3}
+  figures={[
+    {
+      src: todaySuggestion,
+      alt: "LiftDay's Today screen for a Squat / Bench day. A Missed Sets suggestion card for Romanian Deadlift says sets were missed in consecutive sessions and proposes dropping from 135 lb to 127.5 lb for 12 reps, with Why?, Apply and Dismiss. Below it, First Up shows Barbell Back Squat at 140 lb for 6 reps over 3 sets with 180 seconds of rest, then the rest of the day's exercises.",
+      number: 1,
+      label: 'Today',
+      caption: 'A suggestion card above the day’s targets. Sample data.',
+    },
+    {
+      src: logSet,
+      alt: 'The Log Set sheet for Barbell Back Squat: weight 140 lb and 6 reps in large numerals, a Plates button, the target of 140 lb for 6 reps, and a Save Set button.',
+      number: 2,
+      label: 'Log set',
+      caption: 'Logging a set against its target.',
+    },
+    {
+      src: aiTemplateReview,
+      alt: 'The AI template review screen, headed Review before saving, for the request "3 days a week". Under Understood, a chip for 3 days, and dashed chips marked guessed for general fitness, 45 minutes, full gym, full body, no focus, nothing to protect and a new lifter. A sentence explains the plan: three full-body days for 45-minute sessions. Then the Full Body A day lists Barbell Bench Press, Romanian Deadlift, Overhead Press, Goblet Squat and Incline Dumbbell Row with their sets and reps.',
+      number: 3,
+      label: 'AI template',
+      caption: 'Details the request didn’t state are marked as guesses.',
+    },
+  ]}
+/>
 
 ## The idea
 
@@ -33,29 +68,102 @@ Rather than building around an overwhelming collection of features, I want the c
 
 I'm developing the application natively using Swift and SwiftUI, giving me an opportunity to explore Apple's development ecosystem while building something I can use in my own life.
 
-## What I'm exploring
+## How it's built
 
-Beyond the application itself, LiftDay is an exploration of product development, software architecture and AI-assisted engineering workflows.
+LiftDay separates its core training logic from the iOS application itself.
 
-I'm interested in how coding agents can accelerate development while preserving intentional design, maintainability and sound technical decisions.
+WorkoutCore is a standalone Swift package responsible for training statistics, progression rules, workout plan generation and the validation of AI-generated output. The iOS application handles presentation, persistence and platform integrations.
+
+Keeping WorkoutCore independent of the interface and database allows me to test the application's core behavior without launching an iOS simulator. It also gives the training logic a clear boundary, independent of how the application looks or stores its data.
+
+SwiftData handles local persistence. Body weight is managed differently: Apple Health remains the source of truth for weigh-ins, avoiding duplicate records and unnecessary synchronization logic.
+
+<Diagram
+  number={4}
+  label="Application architecture"
+  caption="Separation of platform responsibilities from deterministic training logic."
+  alt="Diagram of the LiftDay iOS app depending on the WorkoutCore Swift package."
+  description="Two layers joined by one arrow. The top layer is the LiftDay iOS app, with four parts: SwiftUI for presentation, SwiftData for local persistence, HealthKit for body weight from Apple Health, and Foundation Models for the on-device language model. An arrow labelled imports points down to the second layer, WorkoutCore, a Swift package with four responsibilities: training statistics, progression rules, workout plan generation and AI-output validation. No arrow points back up: WorkoutCore depends only on Foundation, with no UI framework and no database."
+>
+  <LiftDayArchitecture />
+</Diagram>
+
+## Decisions worth explaining
+
+### Swift does the math. The model does the language.
+
+Every weight recommendation, rep target and progression decision comes from deterministic Swift code.
+
+The language model has a narrower responsibility: interpreting natural language and communicating information generated by the application.
+
+I wanted the flexibility of a language model without introducing its unpredictability into decisions that affect someone's training.
+
+### Intelligence without the cloud.
+
+LiftDay's AI features use Apple's Foundation Models framework, running directly on supported devices.
+
+This eliminates the need for a cloud inference service, avoids per-request API costs and allows supported AI features to work offline. User input processed by these features stays on the device.
+
+Every AI-powered feature also has a non-AI fallback. On devices without Apple Intelligence, for example, the weekly training review presents a straightforward statistical summary instead of a generated narrative.
+
+AI enhances the experience, but it isn't a requirement for using the application.
+
+### The model reads. Swift decides.
+
+The AI workout template builder went through an important architectural change during development.
+
+My initial approach was to have the language model generate an entire training plan. Testing with the real on-device model exposed several problems: incorrect training frequencies, equipment that contradicted user constraints and inconsistent adherence to instructions.
+
+Rather than continuing to refine the prompt, I reconsidered the responsibility I was giving the model.
+
+The current implementation separates interpretation from execution. The model extracts the user's intent — their goals, available equipment, training frequency and other preferences — and provides supporting excerpts from the original request.
+
+Swift validates those excerpts against the input, distinguishes supported information from assumptions and constructs the workout plan using deterministic rules.
+
+In my testing, this narrower responsibility produced more reliable results.
+
+The most useful lesson wasn't how to write a better prompt. It was recognizing that changing the system's boundaries could address the problem more effectively than asking the model to behave better.
+
+<Diagram
+  number={5}
+  label="AI template builder"
+  caption="Moving from generative planning to constrained interpretation and deterministic execution."
+  alt="Diagram comparing the first and current designs of the AI template builder."
+  description="Two flows. A, the initial approach: a user request goes to the language model, which produces a workout plan. Observed failures: incorrect training day counts, equipment outside the user's constraints, and inconsistent instruction adherence. B, the revised approach, split by a dashed boundary. Above it, on the model's side, a user request goes to the on-device model, which reads the request and returns structured intent with supporting quotes. Below it, in deterministic Swift, the quotes are checked against the request, the plan is built from coaching rules, and the person sees an editable preview that is saved only on approval. Details without supporting words are shown as guesses."
+>
+  <LiftDayTemplateBuilder />
+</Diagram>
+
+### One internal representation.
+
+LiftDay stores training weights in pounds and converts them into the user's preferred unit for display.
+
+Using a consistent internal representation prevents calculations, comparisons and progression rules from operating on incompatible units.
+
+It's a small architectural decision that removes an entire category of potential errors.
+
+## Testing and validation
+
+WorkoutCore has automated tests covering training statistics, progression rules, workout plan generation and AI-output validation. These tests run independently of the iOS simulator.
+
+Changes to AI prompts undergo a separate evaluation on a Mac with Apple Intelligence. Because the underlying model can change with operating system updates, I treat prompt behavior as something that requires ongoing validation rather than a fixed dependency.
+
+Interface checks are done by hand in the simulator, on the smallest supported iPhone, at the largest accessibility text size and on the iPhone Duo's outer display. The Duo's inner display hasn't been checked yet.
+
+## How I build
+
+LiftDay is also an experiment in structured, AI-assisted software engineering.
+
+Development is organized around narrowly scoped tickets and a separation of responsibilities between coding agents. One coordinates the work, another implements an individual ticket in an isolated Git worktree, and a third independently reviews the implementation without modification privileges.
+
+The goal is to make development faster without sacrificing review, testing or accountability.
+
+I'm interested not just in what AI can build, but in how engineering workflows need to evolve to make AI-assisted development dependable.
 
 ## Current status
 
-LiftDay is currently in active development. I'm working toward a version that I can use consistently in my own training, identify shortcomings through real-world usage and refine through iteration.
+LiftDay is preparing for a TestFlight beta.
 
-I'll continue documenting the project's development and technical decisions as it evolves.
+My initial release criterion is simple: someone other than me should be able to install the application, complete a month of training and do so without assistance or data loss.
 
-## Screenshots
-
-{/* A gallery, so the tall phone screenshot sits a third of the width on desktop; add more screens to fill the row. */}
-<Gallery
-  columns={3}
-  figures={[
-    {
-      src: today,
-      alt: "LiftDay's Today screen for a Squat / Bench day: 8 exercises and 28 sets. Barbell Back Squat is first up at 140 lb for 6 reps with 180 seconds of rest, followed by a list of the remaining exercises with their weights and reps, a tab bar for Today, Library, Template and History, and a Start Squat / Bench button.",
-      number: 1,
-      label: 'Today',
-    },
-  ]}
-/>
+The next milestone is validating that experience through real-world use.

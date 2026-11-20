@@ -24,7 +24,8 @@ interface Props {
 }
 
 const { project, headings, related } = Astro.props;
-const { title, metaTitle, summary, deck, cover, coverAlt, type, year, status, stack, repo, live } = project.data;
+const { title, metaTitle, summary, deck, cover, coverAlt, type, platform, role, year, status, stack, repo, live } =
+  project.data;
 // Each link renders only when the project provides it (design-spec §4).
 const links = [
   { label: 'Repository', href: repo },
@@ -51,7 +52,8 @@ const seo = {
   writing share the 680px reading column at the leading edge of the shell; the
   wide image spans the content shell (design-spec §5). At 1024px and up the
   contents sit in the space to the right of the body, as on an article.
-  `data-pagefind-body` marks what full-text search indexes: the deck (or summary) and the
+  Below 1024px the contents fold into a closed disclosure above the body.
+  `data-pagefind-body` marks what full-text search indexes: the summary and the
   body (src/lib/search-index.ts). `data-pagefind-meta="title"` gives each result
   the project's title, which Pagefind reads from outside the body.
 -->
@@ -61,14 +63,16 @@ const seo = {
       <TextLink href="/work">Back to Work</TextLink>
       <p class="font-mono text-label uppercase tracking-label text-muted">Case study</p>
       <h1 class="text-page-heading leading-heading font-medium" data-pagefind-meta="title">{title}</h1>
-      {/* The deck, when there is one, stands in for the summary, which still describes the page in search and previews. */}
-      <p class="text-body-large text-muted" data-pagefind-body>{deck ?? summary}</p>
+      {deck && <p class="case-study-deck text-body-large">{deck}</p>}
+      <p class="text-body-large text-muted" data-pagefind-body>{summary}</p>
       <div class="w-full">
         <Meta
           items={{
             Type: projectTypeLabels[type],
+            Platform: platform ?? '',
             Year: String(year),
             Status: projectStatusLabels[status],
+            Role: role ?? '',
             Stack: stack,
           }}
         />
@@ -102,7 +106,7 @@ const seo = {
     {
       contents.length > 0 && (
         <div class="case-study-contents">
-          <TableOfContents items={contents} />
+          <TableOfContents items={contents} collapsible />
         </div>
       )
     }
