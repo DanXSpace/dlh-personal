@@ -2,7 +2,9 @@ import { expect, test, type Locator } from '@playwright/test';
 
 // Image delivery on the production build: every raster photo ships AVIF with
 // the WebP `<img>` as its fallback, and only images above the fold on a
-// desktop load eagerly at high priority. Everything else stays lazy.
+// desktop load eagerly at high priority. Everything else stays lazy. Content
+// figures decode asynchronously even at high priority; only the hero decodes
+// synchronously, as it did before AVIF.
 
 /** Asserts the image sits in a `<picture>` offering the same widths as AVIF first. */
 async function expectAvifWithWebpFallback(image: Locator) {
@@ -17,6 +19,12 @@ async function expectAvifWithWebpFallback(image: Locator) {
 async function expectPriority(image: Locator) {
   await expect(image).toHaveAttribute('loading', 'eager');
   await expect(image).toHaveAttribute('fetchpriority', 'high');
+}
+
+/** High priority for a content figure, which still decodes off the main thread. */
+async function expectFigurePriority(image: Locator) {
+  await expectPriority(image);
+  await expect(image).toHaveAttribute('decoding', 'async');
 }
 
 async function expectLazy(image: Locator) {
@@ -36,24 +44,24 @@ test('the About portrait loads at high priority; the landscape below it stays la
   const portrait = page.locator('.about-portrait img');
   test.skip((await portrait.count()) === 0, 'the production build has no About portrait');
   await expectAvifWithWebpFallback(portrait);
-  await expectPriority(portrait);
+  await expectFigurePriority(portrait);
 
   const landscape = page.locator('.about-landscape img');
   await expectAvifWithWebpFallback(landscape);
   await expectLazy(landscape);
 });
 
-test('the LiftDay gallery after the intro loads at high priority, and every other image is lazy', async ({ page }) => {
+test('the first LiftDay screenshot loads at high priority, and every other image is lazy', async ({ page }) => {
+  // Below 768px the gallery stacks, so only its first screenshot is reliably
+  // above the fold.
   await page.goto('/work/liftday');
   const gallery = page.locator('.gallery').first().locator('img');
   await expect(gallery).toHaveCount(3);
-  for (const image of await gallery.all()) {
-    await expectAvifWithWebpFallback(image);
-    await expectPriority(image);
-  }
-  const firstGallery = page.locator('.gallery').first();
+  for (const image of await gallery.all()) await expectAvifWithWebpFallback(image);
+  const first = gallery.first();
+  await expectFigurePriority(first);
   for (const image of await page.locator('main img').all()) {
-    if (await image.evaluate((el, gallery) => gallery.contains(el), await firstGallery.elementHandle())) continue;
+    if (await image.evaluate((el, first) => el === first, await first.elementHandle())) continue;
     await expectLazy(image);
   }
 });
@@ -66,6 +74,18 @@ test('the picture wrapper leaves the image styles in place', async ({ page }) =>
   await expect(hero).toHaveCSS('object-fit', 'cover');
   await expect(hero).toHaveCSS('border-top-left-radius', /[1-9]/);
   await expect(page.locator('.hero-figure picture')).toHaveCSS('display', 'contents');
+});
+
+test('a hand-written picture keeps its default box', async ({ page }) => {
+  // Only the image components' pictures give up their box, not every
+  // `<picture>` a future post might write by hand.
+  await page.goto('/');
+  const display = await page.evaluate(() => {
+    const picture = document.createElement('picture');
+    document.querySelector('main')!.append(picture);
+    return getComputedStyle(picture).display;
+  });
+  expect(display).toBe('inline');
 });
 
 test.describe('on a 375px phone at 2x', () => {

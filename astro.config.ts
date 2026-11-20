@@ -65,8 +65,16 @@ export default defineConfig({
   // Raster images ship AVIF with a WebP fallback (src/lib/figures.ts,
   // architecture §2). At sharp's AVIF default (50) the hero's dark foliage
   // smears; 60 keeps its grain close to the WebP at about two thirds of the
-  // bytes. WebP stays at its default. Astro's image cache doesn't key on this
-  // setting: after changing it, delete `node_modules/.astro/assets` and rebuild.
+  // bytes. 60 also holds for the LiftDay phone screenshots: at the 480w and
+  // 680w candidates browsers pick, their smallest UI text (letter-spaced
+  // labels, grey list text) is as crisp as the WebP at 2x zoom, with less
+  // ringing, at about 80% of its bytes, so no image needs its own quality.
+  // WebP stays at its default.
+  //
+  // Astro's image cache doesn't key on this setting. After changing it, delete
+  // `node_modules/.astro/assets` locally, and clear the Workers Builds build
+  // cache before the next deploy (Worker dlh-personal → Settings → Build
+  // cache → Clear Cache), or unchanged images keep their old encoding.
   image: {
     service: sharpImageService({ avif: { quality: 60 } }),
   },

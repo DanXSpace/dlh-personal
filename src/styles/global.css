@@ -68,11 +68,13 @@
   }
 
   /*
-   * Raster images ship in a `<picture>` (AVIF with a WebP fallback). The
-   * wrapper takes no box of its own, so the `<img>` stays the flex or grid
-   * item and every style that targets its class lays it out as before.
+   * Raster images from the image components ship in a `<picture>` (AVIF with
+   * a WebP fallback, src/lib/figures.ts `rasterFormats`). That wrapper takes
+   * no box of its own, so the `<img>` stays the flex or grid item and every
+   * style that targets its class lays it out as before. A `<picture>` written
+   * by hand in content keeps its default box.
    */
-  picture {
+  .raster-picture {
     display: contents;
   }
 

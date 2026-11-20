@@ -65,7 +65,7 @@ const descriptionId = `figure-${number}-description`;
       <Image src={src} alt={alt} aria-describedby={descriptionId} class="diagram-image" />
     ) : src ? (
       <Picture
-        {...rasterFormats}
+        {...rasterFormats()}
         src={src}
         alt={alt}
         aria-describedby={descriptionId}

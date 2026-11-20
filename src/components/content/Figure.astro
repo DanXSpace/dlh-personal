@@ -16,10 +16,12 @@
  * The image ships as AVIF with a WebP fallback, and loads lazily. Pass
  * `priority` only for an image that is visible without scrolling on a desktop,
  * such as the largest image on the page; it loads eagerly at high priority.
+ * That is set by hand rather than with Astro's `priority`, which would also
+ * decode the image synchronously and hold up the page's first paint.
  */
 import type { ImageMetadata } from 'astro';
 import { Picture } from 'astro:assets';
-import { figureImage, figureLabel, rasterFormats } from '../../lib/figures.ts';
+import { figureImage, figureLabel, highPriority, rasterFormats } from '../../lib/figures.ts';
 
 interface Props {
   src: ImageMetadata;
@@ -43,12 +45,12 @@ const caption = figureLabel(number, label);
 
 <figure class="figure">
   <Picture
-    {...rasterFormats}
+    {...rasterFormats()}
     src={src}
     alt={alt}
     widths={[...figureImage.widths]}
     sizes={sizes}
-    priority={priority}
+    {...(priority ? highPriority : {})}
     class="figure-image"
   />
   <figcaption class="figure-caption font-mono text-caption tracking-label text-muted">

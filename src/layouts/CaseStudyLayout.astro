@@ -6,7 +6,7 @@ import Meta from '../components/content/Meta.astro';
 import TableOfContents from '../components/ui/TableOfContents.astro';
 import TextLink from '../components/ui/TextLink.astro';
 import { formatDate, isoDate } from '../lib/dates.ts';
-import { caseStudyImage, rasterFormats } from '../lib/figures.ts';
+import { caseStudyImage, highPriority, rasterFormats } from '../lib/figures.ts';
 import { caseStudy } from '../lib/json-ld.ts';
 import { projectStatusLabels, projectTypeLabels } from '../lib/projects.ts';
 import { entryHref } from '../lib/routes.ts';
@@ -93,12 +93,12 @@ const seo = {
     {
       cover && (
         <Picture
-          {...rasterFormats}
+          {...rasterFormats()}
           src={cover}
           alt={coverAlt ?? ''}
           widths={[...caseStudyImage.widths]}
           sizes={caseStudyImage.sizes}
-          loading="eager"
+          {...highPriority}
           class="case-study-image"
         />
       )

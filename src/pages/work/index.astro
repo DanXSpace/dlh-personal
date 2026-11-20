@@ -42,7 +42,7 @@ const projects = directoryOrder(await getPublished('projects'));
             <li class="work-row project-row">
               {data.thumbnail && (
                 <Picture
-                  {...rasterFormats}
+                  {...rasterFormats()}
                   src={data.thumbnail}
                   alt={data.thumbnailAlt ?? ''}
                   widths={[...directoryImage.widths]}

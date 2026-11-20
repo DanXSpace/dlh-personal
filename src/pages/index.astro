@@ -53,7 +53,7 @@ const numbers = sectionNumbers({
               <li class="home-row project-row selected-work-row">
                 {data.thumbnail && (
                   <Picture
-                    {...rasterFormats}
+                    {...rasterFormats()}
                     src={data.thumbnail}
                     alt={data.thumbnailAlt ?? ''}
                     widths={[...directoryImage.widths]}

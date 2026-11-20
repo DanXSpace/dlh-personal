@@ -116,8 +116,27 @@ export const interestTileImage = {
  * WebP `<img>` as the fallback. Without `fallbackFormat` Astro falls back to
  * the source format, so JPEG sources would ship JPEG. The AVIF encoder quality
  * is set once in astro.config.ts. SVG images keep `<Image>`.
+ *
+ * The `<picture>` gets the `raster-picture` class (global.css), which takes
+ * its box away so the `<img>` stays the grid or flex item its styles expect.
+ * It returns a fresh object each time because `<Picture>` writes scope
+ * attributes into `pictureAttributes`, which a shared object would carry from
+ * one image to the next.
  */
-export const rasterFormats: { formats: ['avif']; fallbackFormat: 'webp' } = {
-  formats: ['avif'],
-  fallbackFormat: 'webp',
+export function rasterFormats(): {
+  formats: ['avif'];
+  fallbackFormat: 'webp';
+  pictureAttributes: { class: string };
+} {
+  return { formats: ['avif'], fallbackFormat: 'webp', pictureAttributes: { class: 'raster-picture' } };
+}
+
+/**
+ * Loading attributes for an image above the fold: fetched eagerly at high
+ * priority, still decoded asynchronously. Astro's `priority` would also set
+ * `decoding="sync"`; only the homepage hero uses that.
+ */
+export const highPriority: { loading: 'eager'; fetchpriority: 'high' } = {
+  loading: 'eager',
+  fetchpriority: 'high',
 };

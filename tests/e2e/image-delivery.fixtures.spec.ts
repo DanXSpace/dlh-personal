@@ -48,10 +48,18 @@ test('the About portrait loads at high priority; every other About image stays l
   const portrait = page.locator('.about-portrait img');
   await expect(portrait).toHaveAttribute('loading', 'eager');
   await expect(portrait).toHaveAttribute('fetchpriority', 'high');
+  await expect(portrait).toHaveAttribute('decoding', 'async');
   for (const image of await page.locator('main img:not(.about-portrait img)').all()) {
     await expect(image).toHaveAttribute('loading', 'lazy');
     await expect(image).not.toHaveAttribute('fetchpriority', /.*/);
   }
+});
+
+test("a case study's wide image loads eagerly at high priority", async ({ page }) => {
+  await page.goto('/work/case-study-fixture');
+  const cover = page.locator('.case-study-image');
+  await expect(cover).toHaveAttribute('loading', 'eager');
+  await expect(cover).toHaveAttribute('fetchpriority', 'high');
 });
 
 test('figures and galleries in an article stay lazy by default', async ({ page }) => {
