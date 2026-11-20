@@ -16,12 +16,12 @@ const description = now?.data.summary ?? 'What Daniel Lee Holung is focused on n
   body is the introduction followed by `##` sections (Building, Learning,
   Exploring, Training, Listening), so a section the author leaves out is simply
   absent. The header and body share the 680px reading column at the leading
-  edge of the shell, as on article pages.
+  edge of the shell, as on article pages; a fixed closing line follows the body.
 -->
-<BaseLayout title="In the present" description={description}>
+<BaseLayout title="Now" description={description}>
   <div class="mx-auto flex max-w-shell flex-col gap-12 px-gutter py-section">
     <header class="flex max-w-measure flex-col items-start gap-6">
-      <h1 class="text-page-heading leading-heading font-medium">In the present</h1>
+      <h1 class="text-page-heading leading-heading font-medium">Now.</h1>
       {
         now && (
           <p class="font-mono text-label tracking-label text-muted">
@@ -33,8 +33,13 @@ const description = now?.data.summary ?? 'What Daniel Lee Holung is focused on n
 
     {
       Content ? (
-        <div class="prose">
-          <Content />
+        <div class="flex flex-col gap-12">
+          <div class="prose">
+            <Content />
+          </div>
+          <p class="max-w-measure border-t border-rule pt-6 font-mono text-label tracking-label text-muted">
+            This page changes as my interests and priorities change.
+          </p>
         </div>
       ) : (
         <p class="text-body-large text-muted">No update published yet.</p>

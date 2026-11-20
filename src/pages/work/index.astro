@@ -19,10 +19,19 @@ const projects = directoryOrder(await getPublished('projects'));
   single-project tests rely on this). Type filters are left for later
   (design-spec: "when useful").
 -->
-<!-- Interim description in plain, factual terms; the owner may replace it (ticket 18). -->
-<BaseLayout title="Work" description="Things I’ve built: projects and case studies by Daniel Lee Holung.">
+<BaseLayout title="Selected Work" description="Things I’ve built: projects and case studies by Daniel Lee Holung.">
   <div class="mx-auto flex max-w-shell flex-col gap-16 px-gutter py-section">
-    <h1 class="text-page-heading leading-heading font-medium">Things I’ve built</h1>
+    <header class="flex max-w-measure flex-col gap-8">
+      <h1 class="text-page-heading leading-heading font-medium">Things I’ve built.</h1>
+      <div class="page-intro flex flex-col gap-4 text-body-large">
+        <p>My interests tend to turn into projects.</p>
+        <p class="text-muted">
+          This is a collection of applications, experiments and ideas I’ve brought to life through software. Some are
+          intended to become products. Others are opportunities to explore unfamiliar technologies, test an idea or
+          learn something new.
+        </p>
+      </div>
+    </header>
 
     {
       projects.length === 0 ? (
@@ -75,6 +84,11 @@ const projects = directoryOrder(await getPublished('projects'));
 </BaseLayout>
 
 <style>
+  .page-intro p {
+    margin: 0;
+    line-height: var(--leading-prose);
+  }
+
   .work-list {
     margin: 0;
     padding: 0;

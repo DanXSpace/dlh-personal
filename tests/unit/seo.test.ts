@@ -8,8 +8,8 @@ test('a page title is followed by the site name', () => {
   assert.equal(documentTitle('Work'), 'Work — Daniel Lee Holung');
 });
 
-test('the homepage, with no page title, is titled with the site name alone', () => {
-  assert.equal(documentTitle(undefined), 'Daniel Lee Holung');
+test('the homepage, with no page title, uses its own title from site config', () => {
+  assert.equal(documentTitle(undefined), 'Daniel Lee Holung — Engineer & Developer');
 });
 
 test('the canonical URL of the homepage is the site origin', () => {

@@ -21,9 +21,13 @@ interface Props {
   categories: Category[];
   /** The category this page filters to, or undefined for the full archive. */
   current?: Category | undefined;
+  /** A short line under the heading; the full archive only. */
+  deck?: string | undefined;
+  /** Introductory paragraphs under the deck; the full archive only. */
+  intro?: string[] | undefined;
 }
 
-const { title, description, breadcrumbs, articles, categories, current } = Astro.props;
+const { title, description, breadcrumbs, articles, categories, current, deck, intro = [] } = Astro.props;
 const years = archiveByYear(articles);
 const filters = [
   { label: 'All', href: '/writing', active: current === undefined },
@@ -44,7 +48,19 @@ const filters = [
 <BaseLayout title={title} description={description} seo={breadcrumbs ? { breadcrumbs } : undefined}>
   <div class="mx-auto flex max-w-shell flex-col gap-16 px-gutter py-section">
     <header class="flex flex-col items-start gap-8">
-      <h1 class="text-page-heading leading-heading font-medium">Writing</h1>
+      <div class="flex max-w-measure flex-col gap-6">
+        <h1 class="text-page-heading leading-heading font-medium">Writing.</h1>
+        {deck && <p class="text-body-large">{deck}</p>}
+        {
+          intro.length > 0 && (
+            <div class="archive-intro flex flex-col gap-4 text-body-large text-muted">
+              {intro.map((paragraph) => (
+                <p>{paragraph}</p>
+              ))}
+            </div>
+          )
+        }
+      </div>
       {
         categories.length > 0 && (
           <nav aria-label="Categories">
@@ -64,7 +80,7 @@ const filters = [
 
     {
       years.length === 0 ? (
-        <p class="text-body-large text-muted">No articles published yet.</p>
+        <p class="text-body-large text-muted">Nothing published yet. More to come.</p>
       ) : (
         <div class="flex flex-col gap-16">
           {years.map(({ year, articles: entries }) => (
@@ -104,6 +120,11 @@ const filters = [
 
 <style>
   @reference '../styles/global.css';
+
+  .archive-intro p {
+    margin: 0;
+    line-height: var(--leading-prose);
+  }
 
   .filter-list {
     display: flex;

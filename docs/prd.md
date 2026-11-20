@@ -166,13 +166,13 @@ Present the owner's personal story, including:
 
 - Background in economics
 - Transition from finance into technology
-- Professional experience
-- Jamaican heritage
+- The general shape of their professional background, without naming employers
+- Jamaican and Chinese heritage
 - Personal interests
-- Current career direction
+- Current interests and direction
 - Opportunities to connect
 
-Support portrait photography, landscape photography and a concise career timeline.
+Support portrait photography and landscape photography. Detailed employment history and professional qualifications live only in the résumé, which is their source of truth; public pages and metadata do not name current or previous employers (revised 2026-11-20).
 
 All biographical content must be reviewed by the owner before publication.
 

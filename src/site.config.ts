@@ -14,7 +14,12 @@ export interface SiteConfig {
   /** Lowercase monogram used as the home link. */
   monogram: string;
   tagline: string;
+  /** The homepage's document title; other pages use `Page — <name>`. */
+  homeTitle: string;
+  /** The homepage's meta description. */
   description: string;
+  /** The homepage's link-preview (Open Graph and Twitter) description. */
+  shareDescription: string;
   /** Canonical origin for canonical URLs, social tags, the sitemap and RSS. */
   origin: string;
   nav: Link[];
@@ -24,11 +29,13 @@ export interface SiteConfig {
 export const site: SiteConfig = {
   name: 'Daniel Lee Holung',
   monogram: 'dlh.',
-  // Approved by the owner, 2026-11-19 (ticket 18).
-  tagline: 'Building things. Exploring ideas. Always learning.',
-  // Interim wording drawn from the project brief, not owner-approved copy.
-  // Replace with the owner's description in ticket 18.
-  description: 'Software engineering portfolio and writing by Daniel Lee Holung.',
+  // Approved by the owner in the website copy revision, 2026-11-20.
+  tagline: 'Curious about systems. Drawn to simplicity.',
+  homeTitle: 'Daniel Lee Holung — Engineer & Developer',
+  description:
+    'Daniel Lee Holung — engineer, independent developer and writer. Explore my software projects, technical writing and interests in technology, design and life.',
+  shareDescription:
+    "An engineer's corner of the internet. Software projects, technical writing and an ongoing exploration of technology and life.",
   // Interim origin: the live workers.dev address, until the owner chooses a
   // custom domain (ticket 19, architecture §12.3). Not the final canonical origin.
   origin: 'https://dlh-personal.dan-holung.workers.dev',

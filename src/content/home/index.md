@@ -1,1 +1,1 @@
-I'm a data engineer at Bloomberg, building the real-time pipelines that deliver market news to Terminal clients. I studied economics, and in my own time I build apps like LiftDay, a workout tracker.
+I'm an engineer with a background in economics and an interest in software, thoughtful design and how things work. This is where I share what I'm building, what I'm learning and the things I find interesting.

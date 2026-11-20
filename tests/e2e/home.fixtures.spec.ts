@@ -69,11 +69,17 @@ test.describe('the homepage sections', () => {
     await expect(writing.getByRole('link', { name: 'Writing archive' })).toHaveAttribute('href', '/writing');
   });
 
+  test('Selected work and Recent writing open with their introductions', async ({ page }) => {
+    await page.goto('/');
+    await expect(section(page, 'Selected work')).toContainText('A collection of personal projects and software experiments.');
+    await expect(section(page, 'Recent writing')).toContainText('Notes on software, technology, learning and life.');
+  });
+
   test('In the present shows the Now summary and links to the Now page', async ({ page }) => {
     await page.goto('/');
     const present = section(page, 'In the present');
     await expect(present).toContainText("Fixture summary of the Now entry, for the homepage's In the present section.");
-    await expect(present.getByRole('link', { name: 'Now page' })).toHaveAttribute('href', '/now');
+    await expect(present.getByRole('link', { name: 'What I’m doing now' })).toHaveAttribute('href', '/now');
   });
 });
 
@@ -98,10 +104,10 @@ test.describe('the homepage hero', () => {
   test('shows the role label, full-name wordmark, tagline and the introduction from content', async ({ page }) => {
     await page.goto('/');
     const hero = page.locator('.hero');
-    await expect(hero.locator('.hero-role')).toHaveText('Engineer / Builder');
+    await expect(hero.locator('.hero-role')).toHaveText('Engineer / Developer');
     await expect(hero.locator('.hero-role')).toHaveCSS('text-transform', 'uppercase');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Daniel Lee Holung');
-    await expect(hero).toContainText('Building things. Exploring ideas. Always learning.');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Daniel Lee Holung.');
+    await expect(hero).toContainText('Curious about systems. Drawn to simplicity.');
     await expect(hero).toContainText('Fixture introduction for the homepage hero.');
   });
 

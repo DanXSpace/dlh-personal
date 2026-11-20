@@ -24,6 +24,22 @@ test.describe('case study header', () => {
     await expect(page).toHaveTitle('Case study fixture — Daniel Lee Holung');
   });
 
+  test('a deck replaces the summary under the title, and a metaTitle replaces the whole title', async ({ page }) => {
+    await page.goto(noCover);
+    const header = page.getByRole('article').locator('header');
+    await expect(header).toContainText('Fixture deck that stands in for the summary under the title.');
+    await expect(header).not.toContainText('Test fixture with several sections and no cover image.');
+    await expect(page).toHaveTitle('No cover fixture — Full title override');
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
+      'content',
+      'No cover fixture — Full title override',
+    );
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'Test fixture with several sections and no cover image.',
+    );
+  });
+
   test('Work is the active parent section, without aria-current', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(full);

@@ -13,17 +13,22 @@ import { site } from '../../site.config.ts';
 
 interface Props {
   title?: string | undefined;
+  /** Replaces the whole document and link-preview title. */
+  fullTitle?: string | undefined;
   description: string;
+  /** The link-preview description, when it differs from the meta description. */
+  shareDescription?: string | undefined;
   seo?: SeoDetails | undefined;
 }
 
-const { title, description, seo = {} } = Astro.props;
+const { title, fullTitle, description, shareDescription = description, seo = {} } = Astro.props;
 const { indexable } = resolveSiteEnv(process.env);
 const { pathname } = Astro.url;
 const origin = site.origin;
 
 const canonical = canonicalUrl(pathname, origin);
-const shareTitle = title ?? site.name;
+const pageTitle = fullTitle ?? documentTitle(title);
+const shareTitle = fullTitle ?? title ?? site.homeTitle;
 const image = seo.image ?? defaultSocialImage;
 const imageUrl = new URL(image.src, origin).href;
 
@@ -35,14 +40,14 @@ const structuredData = [
 ];
 ---
 
-<title>{documentTitle(title)}</title>
+<title>{pageTitle}</title>
 <meta name="description" content={description} />
 {canonical && <link rel="canonical" href={canonical} />}
 {!indexable && <meta name="robots" content="noindex, nofollow" />}
 <link rel="alternate" type="application/rss+xml" title={site.name} href="/rss.xml" />
 
 <meta property="og:title" content={shareTitle} />
-<meta property="og:description" content={description} />
+<meta property="og:description" content={shareDescription} />
 {canonical && <meta property="og:url" content={canonical} />}
 <meta property="og:type" content={seo.article ? 'article' : 'website'} />
 <meta property="og:site_name" content={site.name} />
@@ -63,7 +68,7 @@ const structuredData = [
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={shareTitle} />
-<meta name="twitter:description" content={description} />
+<meta name="twitter:description" content={shareDescription} />
 <meta name="twitter:image" content={imageUrl} />
 {image.alt && <meta name="twitter:image:alt" content={image.alt} />}
 

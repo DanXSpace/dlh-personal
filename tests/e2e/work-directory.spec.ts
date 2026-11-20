@@ -15,7 +15,7 @@ test.describe('the work directory with no published projects', () => {
     test(`renders a clean empty state at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await skipUnlessEmpty(page);
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText('Things I’ve built');
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText('Things I’ve built.');
       await expect(page.getByText('No projects published yet.')).toBeVisible();
       await expect(page.getByRole('main').getByRole('list')).toHaveCount(0);
       const overflow = await page.evaluate(

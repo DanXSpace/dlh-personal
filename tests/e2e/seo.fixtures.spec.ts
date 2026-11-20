@@ -21,7 +21,9 @@ test('every page in the sitemap has a unique title, a description and its sitema
   for (const url of urls) {
     await page.goto(new URL(url).pathname);
     const meta = await headMetadata(page);
-    expect(meta.title, url).toMatch(/^(.+ — )?Daniel Lee Holung$/);
+    // Most titles follow `Page — Daniel Lee Holung`; the homepage and any case
+    // study with a `metaTitle` set their own (unit-tested in seo.test.ts).
+    expect(meta.title, url).toBeTruthy();
     expect(titles.has(meta.title), `duplicate title "${meta.title}" on ${url}`).toBe(false);
     titles.add(meta.title);
     expect(meta.description, url).toBeTruthy();
