@@ -3,10 +3,10 @@ import { expect, test } from '@playwright/test';
 // The fixture Now entry in tests/fixtures/content/now/index.md (ADR-0004).
 
 test.describe('the Now page', () => {
-  test('is titled “In the present” and marks Now as the current page', async ({ page }) => {
+  test('is titled “Now.” and marks Now as the current page', async ({ page }) => {
     await page.goto('/now');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('In the present');
-    await expect(page).toHaveTitle('In the present — Daniel Lee Holung');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Now.');
+    await expect(page).toHaveTitle('Now — Daniel Lee Holung');
     const now = page.getByRole('banner').getByRole('link', { name: 'Now', exact: true });
     await expect(now).toHaveAttribute('aria-current', 'page');
   });
@@ -24,6 +24,14 @@ test.describe('the Now page', () => {
     await expect(intro).toBeVisible();
     const firstSection = (await page.getByRole('heading', { level: 2 }).first().boundingBox())!;
     expect((await intro.boundingBox())!.y).toBeLessThan(firstSection.y);
+  });
+
+  test('closes with the line saying the page changes', async ({ page }) => {
+    await page.goto('/now');
+    const closing = page.getByRole('main').getByText('This page changes as my interests and priorities change.');
+    await expect(closing).toBeVisible();
+    const lastSection = (await page.getByRole('heading', { level: 2 }).last().boundingBox())!;
+    expect((await closing.boundingBox())!.y).toBeGreaterThan(lastSection.y);
   });
 
   test('renders the sections the entry has, in its order, and none it leaves out', async ({ page }) => {

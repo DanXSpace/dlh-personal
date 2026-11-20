@@ -15,8 +15,8 @@ test.describe('the writing archive with no published articles', () => {
     test(`renders a clean empty state with no filter links at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await skipUnlessEmpty(page);
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText('Writing');
-      await expect(page.getByText('No articles published yet.')).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText('Writing.');
+      await expect(page.getByText('Nothing published yet. More to come.')).toBeVisible();
       await expect(page.getByRole('navigation', { name: 'Categories' })).toHaveCount(0);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

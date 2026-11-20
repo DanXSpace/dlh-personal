@@ -4,7 +4,6 @@ import { render } from 'astro:content';
 import Figure from '../components/content/Figure.astro';
 import { contentComponents } from '../components/content/index.ts';
 import TextLink from '../components/ui/TextLink.astro';
-import Timeline from '../components/ui/Timeline.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { contactInvitation } from '../lib/about.ts';
 import { getSingleEntry } from '../lib/content.ts';
@@ -30,16 +29,16 @@ const nextFigure = () => ++figureCount;
 ---
 
 <!--
-  About (design-spec §4 `/about`, PRD FR-07). The opener is approved copy from
-  the design spec; everything else comes from the About entry, and each section
-  is omitted when the entry leaves it out. With no entry the page is the opener
-  alone, so nothing biographical is invented.
+  About (design-spec §4 `/about`, PRD FR-07). The headings are approved copy;
+  everything else comes from the About entry, and each section is omitted when
+  the entry leaves it out. With no entry the page is the opener alone, so
+  nothing biographical is invented. Employment history lives in the résumé.
 -->
 <BaseLayout title="About" description={description}>
   <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
     <div class="about-opener">
       <div class="about-opener-text">
-        <h1 class="text-page-heading leading-heading font-medium">More than an engineer.</h1>
+        <h1 class="text-page-heading leading-heading font-medium">A little about me.</h1>
         {
           Content && hasIntro && (
             <div class="prose">
@@ -64,23 +63,13 @@ const nextFigure = () => ++figureCount;
       }
     </div>
 
-    {
-      data?.timeline && (
-        <section aria-labelledby="about-career" class="about-section">
-          <h2 id="about-career" class="text-section-heading leading-heading font-medium">
-            Career
-          </h2>
-          <Timeline entries={data.timeline} />
-        </section>
-      )
-    }
 
     {
       data?.heritage && (
         <section aria-labelledby="about-heritage" class="about-heritage">
           <div class="about-heritage-text">
             <h2 id="about-heritage" class="text-section-heading leading-heading font-medium">
-              Heritage
+              Roots.
             </h2>
             {data.heritage.text?.map((paragraph) => (
               <p class="text-body-large">{paragraph}</p>
@@ -106,8 +95,9 @@ const nextFigure = () => ++figureCount;
       data?.interests && (
         <section aria-labelledby="about-interests" class="about-section">
           <h2 id="about-interests" class="text-section-heading leading-heading font-medium">
-            Interests
+            Away from the keyboard.
           </h2>
+          {data.interestsIntro && <p class="about-section-text text-body-large">{data.interestsIntro}</p>}
           <ul class="interests">
             {data.interests.map(({ name, detail, photo }) => (
               <li class="interest">
@@ -133,9 +123,15 @@ const nextFigure = () => ++figureCount;
       contact && (
         <section aria-labelledby="about-contact" class="about-section">
           <h2 id="about-contact" class="text-section-heading leading-heading font-medium">
-            Get in touch
+            Let’s talk.
           </h2>
-          {contact.text && <p class="about-contact-text text-body-large">{contact.text}</p>}
+          {contact.paragraphs.length > 0 && (
+            <div class="about-section-text flex flex-col gap-4">
+              {contact.paragraphs.map((paragraph) => (
+                <p class="text-body-large">{paragraph}</p>
+              ))}
+            </div>
+          )}
           <ul class="flex flex-wrap gap-x-6">
             {contact.links.map((link) => (
               <li>
@@ -190,9 +186,14 @@ const nextFigure = () => ++figureCount;
     line-height: var(--leading-prose);
   }
 
-  .about-contact-text {
+  .about-section-text {
     max-width: var(--measure);
     margin: 0;
+  }
+
+  .about-section-text p {
+    margin: 0;
+    line-height: var(--leading-prose);
   }
 
   .interests {

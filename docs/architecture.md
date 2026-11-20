@@ -128,6 +128,8 @@ All schemas live in `src/content.config.ts`, use the `glob()` loader, and use `z
 | --- | --- | --- | --- |
 | `title` | string | ✓ | |
 | `summary` | string (≤ 160) | ✓ | directory blurb + meta description |
+| `deck` | string | | optional standfirst under the case study's title, shown in place of the summary (2026-11-20) |
+| `metaTitle` | string | | optional full document and link-preview title, replacing `Title — Daniel Lee Holung` (2026-11-20) |
 | `thumbnail` | image | | directory and homepage rows only, shown only when present (approved 2026-11-19) |
 | `thumbnailAlt` | string | with `thumbnail` | required when `thumbnail` is set (refinement), so alt text is never forgotten |
 | `cover` | image | | the case study's wide image, shown only when present (approved 2026-11-19) |
@@ -167,11 +169,11 @@ Author is a single constant from `site.config.ts`, not a per-post field.
 
 Single entry (`now/index.md`) with `updated: date` (required) and a body using `##` headings for Building, Learning, Exploring, Training and Listening. The homepage summary comes from an optional `summary` frontmatter field.
 
-The schema is `nowSchema` in `lib/now.ts`. `summary` is limited to 160 characters, like the other collections' summaries. A missing or invalid `updated` fails the build with a message asking for a `YYYY-MM-DD` date. The text before the first `##` is the page's introduction, and a section the entry leaves out doesn't render. The entry has no `draft` flag. Pages read it through `getSingleEntry('now')` in `lib/content.ts`. Until the entry exists, `/now` shows its heading and "No update published yet." (ticket 11).
+The schema is `nowSchema` in `lib/now.ts`. `summary` is limited to 160 characters, like the other collections' summaries. A missing or invalid `updated` fails the build with a message asking for a `YYYY-MM-DD` date. The text before the first `##` is the page's introduction, and a section the entry leaves out doesn't render. The entry has no `draft` flag. Pages read it through `getSingleEntry('now')` in `lib/content.ts`. Until the entry exists, `/now` shows its heading and "No update published yet." (ticket 11). With an entry, a fixed closing line follows the body.
 
 ### 5.4 Site identity — `src/site.config.ts`
 
-Name, tagline, description, canonical origin, nav items, and social/contact links. **Contact fields start empty.** Components render a link only when its value is set, so nothing placeholder-shaped can reach production (FR-10, PRD §11). This file is typed so a missing required field is a type error. `lib/links.ts` gives each link its kinds, in one table: contact channels (email, LinkedIn), profiles (GitHub, LinkedIn; schema.org `sameAs`) and code (GitHub). Callers ask `visibleLinks(links, kind)` for the kind they mean: `/resume` lists contact channels, structured data lists profiles, the homepage hero shows the code link, and the footer and About's contact invitation show every set link.
+Name, tagline, the homepage's title (`homeTitle`), meta description and link-preview description (`shareDescription`), canonical origin, nav items, and social/contact links. **Contact fields start empty.** Components render a link only when its value is set, so nothing placeholder-shaped can reach production (FR-10, PRD §11). This file is typed so a missing required field is a type error. `lib/links.ts` gives each link its kinds, in one table: contact channels (email, LinkedIn), profiles (GitHub, LinkedIn; schema.org `sameAs`) and code (GitHub). Callers ask `visibleLinks(links, kind)` for the kind they mean: `/resume` lists contact channels, structured data lists profiles, the homepage hero shows the code link, and the footer and About's contact invitation show every set link.
 
 ### 5.5 Drafts and validation
 
@@ -187,14 +189,16 @@ Single entry (`about/index.md(x)`), read through `getSingleEntry('about')`, whic
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| body | MDX | the opener's introduction, under the fixed "More than an engineer." heading |
+| body | MDX | the opener's introduction, under the fixed "A little about me." heading |
 | `portrait` | `{ image, alt, label, caption? }` | numbered figure paired with the opener |
-| `timeline` | `{ period, title, detail? }[]` (≥ 1) | career timeline, in the order listed |
-| `heritage` | `{ text?: string[], figure? }` | at least one of the two (refinement); `figure` as for `portrait` |
+| `heritage` | `{ text?: string[], figure? }` | at least one of the two (refinement); `figure` as for `portrait`; shown under "Roots." |
+| `interestsIntro` | string | a sentence under "Away from the keyboard.", before the interests |
 | `interests` | `{ name, detail?, photo?: { image, alt } }[]` (≥ 1) | photo tiles shown only where `photo` is set |
-| `contact` | string | the invitation sentence; the invitation shows only site-config links (§5.4), and only once one is set |
+| `contact` | string or string[] | the invitation's paragraphs under "Let's talk."; the invitation shows only site-config links (§5.4), and only once one is set |
 | `description` | string (≤ 160) | meta description; falls back to interim, non-biographical wording |
 | `draft` | boolean | default `false` |
+
+The career timeline was removed on 2026-11-20: employment history lives only in the résumé, and public pages never name employers.
 
 With no entry, production `/about` is the opener heading alone: no copy, imagery or sections are invented (ticket 12, needs owner review).
 
@@ -286,7 +290,7 @@ No UI framework (React, Svelte, etc.) is planned. If the command palette proves 
 
 ### 10.1 `Seo` component
 
-Rendered by `BaseLayout` from page props: `<title>` (pattern `Page — Daniel Lee Holung`), meta description, canonical URL (from `site` in `astro.config.ts`), Open Graph and Twitter card tags.
+Rendered by `BaseLayout` from page props: `<title>` (pattern `Page — Daniel Lee Holung`; the homepage uses `site.homeTitle`, and a case study's `metaTitle` replaces the whole title through the `fullTitle` prop), meta description (link previews use `shareDescription` when a page passes one, as the homepage does), canonical URL (from `site` in `astro.config.ts`), Open Graph and Twitter card tags.
 
 An ordinary page passes `title` and `description` and nothing else; `description` is required, so a page without one fails `astro check`. Entry layouts (article, case study) and category pages also pass an optional `seo` object with an image, article dates, a breadcrumb trail and further structured data. Canonical URLs end in a slash (`/work/`), because Cloudflare serves `work/index.html` at `/work/` and redirects `/work` there; the sitemap and RSS use the same form. The 404 page has no canonical URL. `Seo` also renders the RSS autodiscovery link and the non-production `noindex` (§10.4). Rules live in `lib/seo.ts`.
 

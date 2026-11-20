@@ -6,16 +6,21 @@ import { headMetadata, origin } from '../support/seo.ts';
 // architecture §10). Article and case-study metadata is tested against the
 // fixture build in seo.fixtures.spec.ts.
 
+const homeTitle = 'Daniel Lee Holung — Engineer & Developer';
+const homeShareDescription =
+  "An engineer's corner of the internet. Software projects, technical writing and an ongoing exploration of technology and life.";
+
 const pages = [
-  { path: '/', title: 'Daniel Lee Holung', ogTitle: 'Daniel Lee Holung', canonical: `${origin}/` },
+  { path: '/', title: homeTitle, ogTitle: homeTitle, canonical: `${origin}/`, shareDescription: homeShareDescription },
   { path: '/about', title: 'About — Daniel Lee Holung', ogTitle: 'About', canonical: `${origin}/about/` },
-  { path: '/work', title: 'Work — Daniel Lee Holung', ogTitle: 'Work', canonical: `${origin}/work/` },
+  { path: '/work', title: 'Selected Work — Daniel Lee Holung', ogTitle: 'Selected Work', canonical: `${origin}/work/` },
   { path: '/writing', title: 'Writing — Daniel Lee Holung', ogTitle: 'Writing', canonical: `${origin}/writing/` },
-  { path: '/now', title: 'In the present — Daniel Lee Holung', ogTitle: 'In the present', canonical: `${origin}/now/` },
+  { path: '/now', title: 'Now — Daniel Lee Holung', ogTitle: 'Now', canonical: `${origin}/now/` },
+  { path: '/work/liftday', title: 'LiftDay — Strength Training for iOS', ogTitle: 'LiftDay — Strength Training for iOS', canonical: `${origin}/work/liftday/` },
   { path: '/resume', title: 'Résumé — Daniel Lee Holung', ogTitle: 'Résumé', canonical: `${origin}/resume/` },
 ];
 
-for (const { path, title, ogTitle, canonical } of pages) {
+for (const { path, title, ogTitle, canonical, shareDescription } of pages) {
   test(`${path} has a title, description, canonical URL and social tags`, async ({ page }) => {
     await page.goto(path);
     const meta = await headMetadata(page);
@@ -25,9 +30,11 @@ for (const { path, title, ogTitle, canonical } of pages) {
     expect(meta.description!.length).toBeLessThanOrEqual(160);
     expect(meta.canonical).toBe(canonical);
 
+    // Link previews use the page's description unless it sets its own (the homepage).
+    const previewDescription = shareDescription ?? meta.description;
     expect(meta.og).toEqual({
       title: ogTitle,
-      description: meta.description,
+      description: previewDescription,
       url: canonical,
       type: 'website',
       siteName: 'Daniel Lee Holung',
@@ -37,7 +44,7 @@ for (const { path, title, ogTitle, canonical } of pages) {
     expect(meta.twitter).toEqual({
       card: 'summary_large_image',
       title: ogTitle,
-      description: meta.description,
+      description: previewDescription,
       image: `${origin}/social/default.png`,
     });
   });

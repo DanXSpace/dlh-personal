@@ -7,9 +7,9 @@ import type { JsonLd } from './json-ld.ts';
 import type { Link } from './links.ts';
 import { withoutTrailingSlash } from './routes.ts';
 
-/** `Page — Daniel Lee Holung`, or the site name alone on the homepage. */
+/** `Page — Daniel Lee Holung`, or the homepage's own title (`site.homeTitle`). */
 export function documentTitle(title: string | undefined): string {
-  return title ? `${title} — ${site.name}` : site.name;
+  return title ? `${title} — ${site.name}` : site.homeTitle;
 }
 
 /**

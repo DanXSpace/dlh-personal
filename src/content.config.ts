@@ -34,6 +34,10 @@ const projects = defineCollection({
       .object({
         title: z.string().min(1),
         summary: z.string().min(1).max(160),
+        /** Optional standfirst under the case study's title; the summary shows there without one. */
+        deck: z.string().trim().min(1).optional(),
+        /** Optional full document and link-preview title, replacing `Title — Daniel Lee Holung`. */
+        metaTitle: z.string().trim().min(1).optional(),
         thumbnail: image().optional(),
         thumbnailAlt: z.string().trim().min(1).optional(),
         cover: image().optional(),
@@ -94,11 +98,6 @@ const about = defineCollection({
     return z.object({
       /** Paired with the opener; the entry's body is the opener's introduction. */
       portrait: figure.optional(),
-      /** Career timeline, in the order listed. */
-      timeline: z
-        .array(z.object({ period: text, title: text, detail: text.optional() }))
-        .min(1)
-        .optional(),
       /** Jamaican heritage: paragraphs and a landscape figure, either optional. */
       heritage: z
         .object({ text: z.array(text).min(1).optional(), figure: figure.optional() })
@@ -106,6 +105,8 @@ const about = defineCollection({
           message: 'Give `heritage` some `text`, a `figure`, or both, or leave `heritage` out.',
         })
         .optional(),
+      /** A sentence introducing the interests. */
+      interestsIntro: text.optional(),
       /** Personal interests, each with an optional photo tile. */
       interests: z
         .array(
@@ -118,10 +119,11 @@ const about = defineCollection({
         .min(1)
         .optional(),
       /**
-       * The contact invitation's sentence. The invitation itself shows only
-       * the links set in site config, and only once at least one is set.
+       * The contact invitation's text: one paragraph, or a list of them. The
+       * invitation itself shows only the links set in site config, and only
+       * once at least one is set.
        */
-      contact: text.optional(),
+      contact: z.union([text, z.array(text).min(1)]).optional(),
       /** Meta description for search results and link previews. */
       description: text.max(160).optional(),
       draft: z.boolean().default(false),

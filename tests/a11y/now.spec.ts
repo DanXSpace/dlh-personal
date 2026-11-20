@@ -15,7 +15,7 @@ for (const theme of ['light', 'dark'] as const) {
       await page.emulateMedia({ colorScheme: theme });
       await page.goto('/now');
       test.skip((await page.locator('time').count()) > 0, 'the production build has a Now entry');
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText('In the present');
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText('Now.');
       await expect(page.getByText('No update published yet.')).toBeVisible();
       await expect(page.locator('html')).toHaveCSS('color-scheme', theme);
       const results = await new AxeBuilder({ page }).withTags(wcagAA).analyze();

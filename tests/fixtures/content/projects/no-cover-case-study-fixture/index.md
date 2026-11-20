@@ -1,6 +1,8 @@
 ---
 title: No cover case study fixture
 summary: Test fixture with several sections and no cover image.
+deck: Fixture deck that stands in for the summary under the title.
+metaTitle: No cover fixture — Full title override
 thumbnail: ./thumbnail.jpg
 thumbnailAlt: A darker gray placeholder ridgeline.
 stack: [CSS]

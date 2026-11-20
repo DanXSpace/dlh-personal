@@ -10,11 +10,11 @@ async function horizontalOverflow(page: Page) {
 const portraitAlt = 'A tall gray placeholder ridgeline standing in for the portrait.';
 
 test.describe('the About opener', () => {
-  test('pairs “More than an engineer.” and the entry’s introduction with the portrait and its caption', async ({
+  test('pairs “A little about me.” and the entry’s introduction with the portrait and its caption', async ({
     page,
   }) => {
     await page.goto('/about');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('More than an engineer.');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('A little about me.');
     await expect(page.getByRole('main')).toContainText('This is fixture text for the About opener.');
     const portrait = page.getByRole('figure').filter({ has: page.getByRole('img', { name: portraitAlt }) });
     await expect(portrait).toContainText('FIG. 01 / FIXTURE PORTRAIT');
@@ -41,43 +41,15 @@ test.describe('the About opener', () => {
   });
 });
 
-test.describe('the career timeline', () => {
-  test('lists the entry’s timeline in order under “Career”, each with its period, title and any detail', async ({
-    page,
-  }) => {
-    await page.goto('/about');
-    const career = page.getByRole('region', { name: 'Career' });
-    await expect(career.getByRole('heading', { level: 2 })).toHaveText('Career');
-    const entries = career.getByRole('listitem');
-    await expect(entries.getByRole('heading', { level: 3 })).toHaveText([
-      'First fixture timeline entry',
-      'Second fixture timeline entry, with no detail',
-      'Third fixture timeline entry',
-    ]);
-    await expect(entries.nth(0)).toContainText('Fixture period one');
-    await expect(entries.nth(0)).toContainText('Fixture detail for the first timeline entry');
-    await expect(entries.nth(1).locator('p')).toHaveText(['Fixture period two']);
-  });
-
-  test('from 768px each period sits beside its title', async ({ page }) => {
-    await page.setViewportSize({ width: 768, height: 900 });
-    await page.goto('/about');
-    const first = page.getByRole('region', { name: 'Career' }).getByRole('listitem').first();
-    const period = (await first.getByText('Fixture period one').boundingBox())!;
-    const title = (await first.getByRole('heading', { level: 3 }).boundingBox())!;
-    expect(title.x).toBeGreaterThanOrEqual(period.x + period.width);
-  });
-});
-
 const landscapeAlt = 'A wide gray placeholder ridgeline standing in for the heritage landscape.';
 
 test.describe('the heritage section', () => {
-  test('shows the entry’s heritage text under “Heritage” with the landscape as the next numbered figure', async ({
+  test('shows the entry’s heritage text under “Roots.” with the landscape as the next numbered figure', async ({
     page,
   }) => {
     await page.goto('/about');
-    const heritage = page.getByRole('region', { name: 'Heritage' });
-    await expect(heritage.getByRole('heading', { level: 2 })).toHaveText('Heritage');
+    const heritage = page.getByRole('region', { name: 'Roots.' });
+    await expect(heritage.getByRole('heading', { level: 2 })).toHaveText('Roots.');
     await expect(heritage).toContainText('First fixture paragraph for the heritage section.');
     await expect(heritage).toContainText('Second fixture paragraph for the heritage section.');
     const figure = heritage.getByRole('figure');
@@ -89,7 +61,7 @@ test.describe('the heritage section', () => {
   test('from 1024px the landscape sits beside the heritage text', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 900 });
     await page.goto('/about');
-    const heritage = page.getByRole('region', { name: 'Heritage' });
+    const heritage = page.getByRole('region', { name: 'Roots.' });
     const text = (await heritage.getByText('Second fixture paragraph').boundingBox())!;
     const image = (await heritage.getByRole('img').boundingBox())!;
     expect(image.x).toBeGreaterThanOrEqual(text.x + text.width);
@@ -98,7 +70,7 @@ test.describe('the heritage section', () => {
   test('below 768px the landscape stacks below the heritage text', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 900 });
     await page.goto('/about');
-    const heritage = page.getByRole('region', { name: 'Heritage' });
+    const heritage = page.getByRole('region', { name: 'Roots.' });
     const text = (await heritage.getByText('Second fixture paragraph').boundingBox())!;
     const image = (await heritage.getByRole('img').boundingBox())!;
     expect(image.y).toBeGreaterThanOrEqual(text.y + text.height);
@@ -108,12 +80,13 @@ test.describe('the heritage section', () => {
 test.describe('the interests', () => {
   const interestAlt = 'A gray placeholder ridgeline standing in for an interest photo.';
 
-  test('list each of the entry’s interests under “Interests”, with a photo tile only where one is given', async ({
+  test('list each of the entry’s interests under “Away from the keyboard.”, after its introduction, with a photo tile only where one is given', async ({
     page,
   }) => {
     await page.goto('/about');
-    const interests = page.getByRole('region', { name: 'Interests' });
-    await expect(interests.getByRole('heading', { level: 2 })).toHaveText('Interests');
+    const interests = page.getByRole('region', { name: 'Away from the keyboard.' });
+    await expect(interests.getByRole('heading', { level: 2 })).toHaveText('Away from the keyboard.');
+    await expect(interests).toContainText('Fixture sentence introducing the interests.');
     const tiles = interests.getByRole('listitem');
     await expect(tiles.getByRole('heading', { level: 3 })).toHaveText([
       'First fixture interest',
@@ -132,7 +105,7 @@ test.describe('the interests', () => {
   test('from 1024px the tiles sit side by side', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 900 });
     await page.goto('/about');
-    const tiles = page.getByRole('region', { name: 'Interests' }).getByRole('listitem');
+    const tiles = page.getByRole('region', { name: 'Away from the keyboard.' }).getByRole('listitem');
     const first = (await tiles.nth(0).boundingBox())!;
     const second = (await tiles.nth(1).boundingBox())!;
     expect(second.x).toBeGreaterThanOrEqual(first.x + first.width);
@@ -141,7 +114,7 @@ test.describe('the interests', () => {
   test('below 768px the tiles stack', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 900 });
     await page.goto('/about');
-    const tiles = page.getByRole('region', { name: 'Interests' }).getByRole('listitem');
+    const tiles = page.getByRole('region', { name: 'Away from the keyboard.' }).getByRole('listitem');
     const first = (await tiles.nth(0).boundingBox())!;
     const second = (await tiles.nth(1).boundingBox())!;
     expect(second.y).toBeGreaterThanOrEqual(first.y + first.height);
@@ -150,20 +123,21 @@ test.describe('the interests', () => {
 
 // Both builds share site config, which now has the owner's links; the unit
 // tests for `contactInvitation` cover the invitation being omitted without them.
-test('the contact invitation shows the entry’s sentence and the links set in site config', async ({ page }) => {
+test('the contact invitation shows the entry’s paragraphs and the links set in site config', async ({ page }) => {
   await page.goto('/about');
-  const invitation = page.getByRole('region', { name: 'Get in touch' });
+  const invitation = page.getByRole('region', { name: 'Let’s talk.' });
+  await expect(invitation.getByRole('heading', { level: 2 })).toHaveText('Let’s talk.');
   await expect(invitation).toContainText('Fixture invitation sentence');
+  await expect(invitation).toContainText('Second fixture invitation paragraph.');
   await expect(invitation.getByRole('link')).toHaveText(['Email', 'GitHub', 'LinkedIn']);
 });
 
-test('sections follow the opener in order: career, heritage, interests, contact', async ({ page }) => {
+test('sections follow the opener in order: roots, interests, contact, with no career timeline', async ({ page }) => {
   await page.goto('/about');
   await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveText([
-    'Career',
-    'Heritage',
-    'Interests',
-    'Get in touch',
+    'Roots.',
+    'Away from the keyboard.',
+    'Let’s talk.',
   ]);
 });
 

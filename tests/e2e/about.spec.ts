@@ -26,7 +26,7 @@ test.describe('the About page with no About entry', () => {
       await page.setViewportSize({ width, height: 900 });
       await skipUnlessEmpty(page);
       await expect(page).toHaveTitle('About — Daniel Lee Holung');
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText('More than an engineer.');
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText('A little about me.');
       await expect(page.getByRole('main').getByRole('heading')).toHaveCount(1);
       await expect(page.getByRole('main').getByRole('img')).toHaveCount(0);
       await expect(page.getByRole('main').locator('p, li')).toHaveCount(0);

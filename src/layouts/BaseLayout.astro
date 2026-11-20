@@ -17,13 +17,17 @@ import '../styles/global.css';
 interface Props {
   /** The page's own title, shown as `Title — Daniel Lee Holung`. Omit on the homepage only. */
   title?: string;
+  /** Replaces the whole `Title — Daniel Lee Holung` pattern, e.g. a case study's `metaTitle`. */
+  fullTitle?: string | undefined;
   /** One or two sentences for search results and link previews, up to 160 characters. */
   description: string;
+  /** A different description for link previews only (the homepage's). */
+  shareDescription?: string | undefined;
   /** Entry pages only (article and case-study layouts): image, dates, breadcrumbs, structured data. */
   seo?: SeoDetails | undefined;
 }
 
-const { title, description, seo } = Astro.props;
+const { title, fullTitle, description, shareDescription, seo } = Astro.props;
 ---
 
 <!doctype html>
@@ -33,7 +37,7 @@ const { title, description, seo } = Astro.props;
     <!-- Render-blocking on purpose: applies a stored theme before first paint. -->
     <script is:inline set:html={THEME_INIT_SCRIPT} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <Seo title={title} description={description} seo={seo} />
+    <Seo title={title} fullTitle={fullTitle} description={description} shareDescription={shareDescription} seo={seo} />
     {/* The simplified `d.` monogram (design-spec §1). Drafted in ticket 18, pending owner approval. */}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <Font cssVariable="--font-geist-sans" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />

@@ -35,13 +35,19 @@ const numbers = sectionNumbers({
   Recent writing and In the present, each filled from its collection and left
   out when it has nothing to show.
 -->
-<BaseLayout description={site.description}>
+<BaseLayout description={site.description} shareDescription={site.shareDescription}>
   <div class="mx-auto flex max-w-shell flex-col gap-section px-gutter py-section">
     <Hero introduction={await getSingleEntry('home')} actions={actions} />
 
     {
       numbers.selectedWork && (
-        <HomeSection number={numbers.selectedWork} title="Selected work" id="selected-work" link={{ label: 'All work', href: '/work' }}>
+        <HomeSection
+          number={numbers.selectedWork}
+          title="Selected work"
+          id="selected-work"
+          link={{ label: 'All work', href: '/work' }}
+          intro="A collection of personal projects and software experiments. Some solve problems I encounter in everyday life; others exist simply because I wanted to understand how something works."
+        >
           <ul class="home-list">
             {featured.map(({ id, data }) => (
               <li class="home-row project-row selected-work-row">
@@ -76,6 +82,7 @@ const numbers = sectionNumbers({
           title="Recent writing"
           id="recent-writing"
           link={{ label: 'Writing archive', href: '/writing' }}
+          intro="Notes on software, technology, learning and life."
         >
           <ol class="home-list">
             {articles.map(({ id, data }) => (
@@ -101,7 +108,12 @@ const numbers = sectionNumbers({
 
     {
       numbers.inThePresent && (
-        <HomeSection number={numbers.inThePresent} title="In the present" id="in-the-present" link={{ label: 'Now page', href: '/now' }}>
+        <HomeSection
+          number={numbers.inThePresent}
+          title="In the present"
+          id="in-the-present"
+          link={{ label: 'What I’m doing now', href: '/now' }}
+        >
           <div class="now-row">
             <p class="now-summary text-body-large">{nowSummary}</p>
           </div>

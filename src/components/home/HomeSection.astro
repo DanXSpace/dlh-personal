@@ -15,9 +15,11 @@ interface Props {
   id: string;
   /** The page this section summarizes. */
   link: Link;
+  /** An optional sentence or two introducing the section, under its label. */
+  intro?: string | undefined;
 }
 
-const { number, title, id, link } = Astro.props;
+const { number, title, id, link, intro } = Astro.props;
 ---
 
 <section class="home-section" aria-labelledby={id}>
@@ -27,6 +29,7 @@ const { number, title, id, link } = Astro.props;
     </h2>
     <TextLink href={link.href}>{link.label}</TextLink>
   </header>
+  {intro && <p class="home-section-intro text-body-large text-muted">{intro}</p>}
   <slot />
 </section>
 
@@ -47,5 +50,11 @@ const { number, title, id, link } = Astro.props;
 
   .home-section-title {
     text-transform: uppercase;
+  }
+
+  .home-section-intro {
+    max-width: var(--measure);
+    margin: 0;
+    margin-block-end: calc(var(--space-unit) * 4);
   }
 </style>

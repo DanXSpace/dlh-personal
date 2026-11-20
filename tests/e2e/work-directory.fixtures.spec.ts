@@ -8,11 +8,12 @@ async function horizontalOverflow(page: Page) {
 }
 
 test.describe('the work directory', () => {
-  test('is titled “Things I’ve built” and marks Work as the current page', async ({ page }) => {
+  test('is titled “Things I’ve built.” and marks Work as the current page', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/work');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Things I’ve built');
-    await expect(page).toHaveTitle('Work — Daniel Lee Holung');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Things I’ve built.');
+    await expect(page.getByRole('main').locator('header')).toContainText('My interests tend to turn into projects.');
+    await expect(page).toHaveTitle('Selected Work — Daniel Lee Holung');
     const work = page.getByRole('banner').getByRole('link', { name: 'Work', exact: true });
     await expect(work).toHaveAttribute('aria-current', 'page');
   });
@@ -125,7 +126,7 @@ test.describe('the work directory with a single project', () => {
         await page.goto('/work');
         await keepOnlyRow(page, title);
         const only = page.locator('.work-row');
-        await expect(page.getByRole('heading', { level: 1 })).toHaveText('Things I’ve built');
+        await expect(page.getByRole('heading', { level: 1 })).toHaveText('Things I’ve built.');
         await expect(only).toHaveCSS('border-top-width', '1px');
         await expect(only).toHaveCSS('border-bottom-width', '1px');
         await expect(only.getByRole('link', { name: title })).toBeVisible();

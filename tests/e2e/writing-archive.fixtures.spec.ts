@@ -8,10 +8,13 @@ function years(page: Page) {
 }
 
 test.describe('the writing archive', () => {
-  test('is titled Writing', async ({ page }) => {
+  test('is titled Writing, with its deck and introduction', async ({ page }) => {
     await page.goto('/writing');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Writing');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Writing.');
     await expect(page).toHaveTitle('Writing — Daniel Lee Holung');
+    const header = page.getByRole('main').locator('header');
+    await expect(header).toContainText('Thinking in public.');
+    await expect(header).toContainText('I write to make sense of things.');
   });
 
   test('lists published articles newest first, grouped by year, without drafts', async ({ page }) => {
@@ -78,7 +81,9 @@ test.describe('category filter', () => {
 test.describe('a category page', () => {
   test('lists only that category, newest first, grouped by year', async ({ page }) => {
     await page.goto('/writing/category/learning');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Writing');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Writing.');
+    // The deck and introduction belong to the full archive only.
+    await expect(page.getByRole('main')).not.toContainText('Thinking in public.');
     await expect(page).toHaveTitle('Learning — Writing — Daniel Lee Holung');
     await expect(years(page).getByRole('heading', { level: 2 })).toHaveText(['2026', '2025']);
     await expect(years(page).getByRole('heading', { level: 3 })).toHaveText([
