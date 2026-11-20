@@ -350,7 +350,11 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 
 ### 12.3 Domain
 
-The custom domain and canonical origin (`site` in `astro.config.ts`) are not yet decided. Sitemap, RSS, canonical URLs and OG tags all depend on it. Until then, `site` reads `origin` in `site.config.ts`, which holds the live `workers.dev` address as a clearly marked interim origin, and the production deployment ticket is blocked on this decision. The domain must be on a Cloudflare-managed zone (ADR-0001).
+The custom domain is **danielholung.dev** (ticket 19, 2026-11-20), registered through Cloudflare, so its zone is Cloudflare-managed (ADR-0001). `site` in `astro.config.ts` reads `origin` in `site.config.ts` (`https://danielholung.dev`), and sitemap, RSS, canonical URLs and OG tags are built from it.
+
+- The apex is attached to the Worker as a custom domain in the Cloudflare dashboard, which creates its DNS record and certificate. `wrangler.jsonc` has no `routes` key, so deploys leave dashboard-managed domains alone.
+- `www.danielholung.dev` is also attached as a custom domain, and a Cloudflare redirect rule sends it to the apex with a 301, keeping path and query. Workers static assets `_redirects` cannot redirect by host.
+- The production `workers.dev` address is off (`workers_dev: false` in `wrangler.jsonc`; a deploy would otherwise re-enable a dashboard-only change). Branch preview and version URLs stay on `workers.dev` (`preview_urls: true`), and the branch check in §10.4 keeps them `noindex`.
 
 ## 13. Testing and verification
 
@@ -391,10 +395,9 @@ Resolved 2026-11-18:
 | Real-user performance data | Lab-only at launch; revisit after launch | §13 |
 | Palette | Design-spec §2 values approved as final | design-spec §2 |
 | Heritage gold keyline | Subtle dark keyline on gold in light mode | design-spec §1 |
+| Custom domain | `danielholung.dev`, apex canonical, www redirects to it (2026-11-20) | §12.3 |
 
-Still open:
-
-- **Custom domain** and canonical origin. Blocks the production deployment ticket only (§12.3).
+Nothing is still open.
 
 ## 16. Environment prerequisite
 
