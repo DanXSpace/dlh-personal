@@ -1,0 +1,258 @@
+---
+# Adapted from the final case study and the owner's uploaded Markdown draft.
+# Implementation checked against DanXSpace/apartment-hunter at b534391.
+title: Apartment Hunter
+metaTitle: Apartment Hunter — Rental Alerts in Discord
+summary: A self-hosted Discord bot that watches rental sites across the US, UK and Europe and delivers new listings and price drops based on your search criteria.
+deck: Your apartment search, on autopilot.
+platform: Discord, self-hosted
+role: Independent developer
+stack: [Python, discord.py, SQLite, curl_cffi, Photon, Docker, GitHub Actions]
+status: active
+type: application
+year: 2026
+repo: https://github.com/DanXSpace/apartment-hunter
+---
+
+import ApartmentHunterArchitecture from '../../../components/diagrams/ApartmentHunterArchitecture.astro';
+import ApartmentHunterEvolution from '../../../components/diagrams/ApartmentHunterEvolution.astro';
+import alerts from './listing-alerts.webp';
+import autocomplete from './search-autocomplete.webp';
+import commands from './slash-commands.webp';
+
+<Figure
+  src={alerts}
+  number={1}
+  label="Listing alerts"
+  alt="Two Discord rental alerts show a $2,400 Zillow listing in Plainsboro with two beds and two baths, and a $2,399 Craigslist listing in North Brunswick. Both footers identify the saved Plainsboro search."
+  caption="New listings from Zillow and Craigslist in the search channel. The footer names the saved search."
+  priority
+/>
+
+## The idea
+
+I wanted an easier way to find an apartment on my own terms.
+
+Most rental websites have their own search tools, but I found myself bouncing between different sites, adjusting the same filters and checking repeatedly for new listings. I wanted to define exactly what I was looking for, have those searches run automatically and only hear about places that matched.
+
+Apartment Hunter started as an attempt to make that process simpler.
+
+Over time, the project evolved into a Discord bot. I could set up searches using my preferred criteria and have new listings and price drops delivered to a channel without constantly revisiting rental websites.
+
+What began as a tool for my own apartment search became something I could share with friends.
+
+## How it works
+
+Apartment Hunter lives entirely inside Discord.
+
+Creating a search starts with `/search new`. You choose a city, neighborhood or postcode from location suggestions, then specify what you're looking for, including your budget, bedrooms and other preferences.
+
+Once the search is active, the bot checks supported rental websites roughly every 15 minutes.
+
+When it discovers a new listing, it posts an alert directly to the channel where the search was created. Alerts include the property's name or address, price, available bedroom and bathroom information, and a link to the original listing. Images appear when the source provides them.
+
+Searches can be edited, paused, resumed, checked immediately or deleted using Discord's slash commands.
+
+The goal is to make searching for an apartment something you configure once, rather than something you have to keep remembering to do.
+
+<Figure
+  src={autocomplete}
+  number={2}
+  label="Location autocomplete"
+  alt="Typing new york into the area field of /search new suggests New York City and two places named New York Mills, with state and country labels."
+  caption="Location suggestions distinguish places with similar names."
+/>
+
+<Figure
+  src={commands}
+  number={3}
+  label="Slash commands"
+  alt="Discord shows the Apartment Hunter commands: list, new, check, delete, edit, help, pause and resume."
+  caption="Search creation and management happen in Discord."
+/>
+
+## Three iterations, one simpler architecture
+
+Apartment Hunter didn't start as a Discord bot.
+
+The first version was an experiment with Apache Kafka. I built a pipeline that scraped apartment listings, published them to a Kafka topic and consumed them to identify new apartments before sending notifications to Discord.
+
+It was an interesting way to explore event streaming, but it also introduced infrastructure that wasn't necessary for a personal apartment search.
+
+The second version removed Kafka and focused on monitoring apartment listings through browser automation. It supported multiple searches, price-drop detection and Discord notifications, but running Chromium introduced its own operational complexity.
+
+Eventually, I reconsidered what the application actually needed.
+
+The current version replaces browser automation with HTTP requests and uses SQLite to persist searches, listings, prices and source health. I also moved the user experience into Discord itself, allowing searches to be created and managed using slash commands.
+
+What started as an experiment with streaming infrastructure became a lightweight, self-hosted tool designed around the problem I actually wanted to solve.
+
+The biggest lesson was learning to recognize when complexity wasn't buying me anything.
+
+<Diagram
+  number={4}
+  label="Architecture evolution"
+  alt="Three versions of Apartment Hunter."
+  description="The first version streamed listings through Kafka to a Discord webhook. The second used Chromium to monitor Apartments.com and sent alerts by webhook. The current bot uses HTTP source adapters and SQLite, with search management and alerts in Discord."
+  caption="Each iteration removed infrastructure and kept Discord as the delivery channel."
+>
+  <ApartmentHunterEvolution />
+</Diagram>
+
+## How it's built
+
+The architecture separates the Discord interface from the logic responsible for managing searches and monitoring rental websites.
+
+The Discord layer is deliberately thin. It translates slash commands into operations on the search service, then turns their results into messages.
+
+The search service owns the application rules: limits per server, isolation between servers, country-specific source selection and the handling of new or modified searches.
+
+A scheduler runs searches at regular intervals. The runner queries each relevant listing source, compares the results with previously observed listings and determines which changes require notifications.
+
+Each rental website is implemented as a Source behind a common interface. A Source translates search criteria into requests, parses the results into a consistent listing format and reports failures.
+
+The shared interface keeps site-specific request and parsing logic in the source adapters.
+
+Apartment Hunter currently supports nine rental websites across eight countries: the United States, United Kingdom, Germany, Netherlands, France, Spain, Italy and Portugal.
+
+### Resolving locations
+
+Rental websites describe locations in different ways.
+
+A neighborhood might be represented by coordinates on one site, a location identifier on another and a URL slug somewhere else.
+
+Apartment Hunter uses Photon, a geocoding service based on OpenStreetMap data, to resolve user-entered locations into geographic information.
+
+Each Source then translates that location into whatever representation its website requires.
+
+Those resolved identifiers are stored with the search, so routine checks don't need to repeat the location lookup.
+
+<Diagram
+  number={5}
+  label="System architecture"
+  alt="Search setup, scheduled checks and alert delivery."
+  description="Discord commands go to the search service, which resolves areas through Photon and source adapters and saves searches in SQLite. The scheduler invokes the runner, which fetches listings through HTTP source adapters and compares them against SQLite. The runner posts alerts to Discord and records notified listings after delivery succeeds."
+  caption="The search service manages setup. The runner handles scheduled checks and delivery."
+>
+  <ApartmentHunterArchitecture />
+</Diagram>
+
+## Decisions worth explaining
+
+### No browser, and proof before code.
+
+Running a full browser for every search was more expensive than the problem justified.
+
+The current implementation fetches results over HTTP and can run without Chromium. I tested candidate sources from my home connection before building integrations. Zillow and Craigslist passed the documented feasibility run. Site layout changes and access restrictions remain ongoing constraints.
+
+### No alert flood on day one.
+
+A newly created search can already have many matching listings.
+
+Sending every one of them to Discord immediately would make the channel noisy before the search had even started doing anything useful.
+
+Instead, Apartment Hunter begins with a seeding run.
+
+The first successful check seeds each source with a bounded number of result pages, without posting listing alerts. Later checks alert users to newly discovered listings and price drops.
+
+Changing the criteria of a search starts that process again. Simply renaming it doesn't.
+
+This keeps notifications focused on what's changed rather than everything that happens to match.
+
+### An alert only counts after delivery.
+
+I wanted Apartment Hunter to recover gracefully when Discord was unavailable.
+
+When a new listing appears, the bot attempts to send the notification before recording it as seen. If delivery fails, the listing remains eligible for another attempt when a later check finds it again. Large batches can be delivered as a summary.
+
+This creates an intentional trade-off.
+
+A crash between successful delivery and the database write could result in a duplicate notification. But a failed delivery won't silently mark the listing as handled.
+
+For a personal apartment search tool, I'd rather occasionally receive a duplicate than miss a promising apartment because a notification failed.
+
+### Failures should be visible.
+
+Rental websites change their layouts, restrict requests and occasionally stop responding.
+
+For a tool that runs in the background, silently failing is particularly problematic. If a source stops working, a user might assume there simply aren't any new apartments.
+
+Apartment Hunter tracks the health of each source independently.
+
+After three consecutive failed checks, it sends a warning to the relevant Discord channel. When the source recovers, it sends another notification.
+
+If a source reaches the failure threshold in every active search using it, the bot attempts to message the configured owner.
+
+The goal is to distinguish an empty search from a search that isn't working.
+
+### A wider search is never silent.
+
+Not every rental website supports the same geographic precision or property filters.
+
+A site might recognize a district but not an individual neighborhood. Another might combine townhomes and houses into a single property category.
+
+Rather than quietly broadening a search, Apartment Hunter tells the user when a Source can't honor their criteria exactly.
+
+For example, if a website doesn't recognize Montmartre but supports Paris's 18th arrondissement, the bot can explain that it's using the broader area.
+
+If a Source can't search the requested area at all, it's excluded from that search with an explanation.
+
+I wanted the system to be transparent about what it was actually monitoring rather than imply that every search was equally precise.
+
+### Polite by default.
+
+Apartment Hunter processes requests sequentially, spaces requests to the same source and distributes search checks across their intervals.
+
+Location lookups are cached and rate-limited to reduce unnecessary requests to Photon.
+
+These decisions reduce resource usage and avoid placing unnecessary load on external services. They don't eliminate the need to respect website access restrictions, but they make the application more considerate to operate.
+
+## Testing and validation
+
+Apartment Hunter's test suite covers application rules, search management, listing parsing, source behavior and failure handling.
+
+The tests use saved responses and controlled test data to exercise behavior without depending on live rental websites, Photon or Discord.
+
+Testing each Source against saved HTML makes parser behavior reproducible and helps identify regressions when source integrations change.
+
+The CI workflow runs on Linux, macOS and Windows, with linting, type checking and Docker image builds incorporated into the development process.
+
+Live rental websites are evaluated separately through feasibility checks. I also manually test the Discord experience in a private server to verify that commands, responses and notifications behave as expected.
+
+Keeping automated tests separate from live integrations makes the main test suite faster and less dependent on services outside my control.
+
+## How I build
+
+Apartment Hunter uses the same structured, AI-assisted development approach I've been exploring with LiftDay.
+
+Each development phase begins with a written specification and a glossary of the project's terminology. The work is then divided into narrowly scoped GitHub tickets.
+
+A coordinating agent assigns tasks to implementation agents working in isolated Git worktrees. Changes go through independent reviews focused on both coding standards and the original specification.
+
+I'm interested in using AI agents to reduce the repetitive parts of development while keeping technical decisions, testing and review explicit.
+
+The tooling is useful, but the more interesting challenge is designing a workflow where the resulting software remains understandable and maintainable.
+
+## What I'd do differently
+
+The current architecture is intentionally small, but that simplicity comes with trade-offs.
+
+Relying on rental websites' HTML makes individual Sources vulnerable to layout changes and access restrictions. Saved-page tests can identify parser regressions, but they can't prevent external websites from changing.
+
+Running everything in a single container also keeps deployment straightforward, although it limits how independently the different parts of the system can scale.
+
+At the project's current size, those compromises make sense.
+
+If I were designing it for significantly more users, I'd revisit how work is scheduled, how source failures are isolated and how notifications are delivered.
+
+For now, I'd rather maintain a small system that solves the problem than introduce infrastructure for a scale I haven't reached.
+
+## Current status
+
+Apartment Hunter runs on a home computer and is used by a small group of friends.
+
+It's designed for personal, self-hosted use rather than as a public rental-search service. Its dependencies on third-party rental websites mean that source reliability and access restrictions remain ongoing considerations.
+
+The next improvements I'm considering are deeper periodic searches to detect price changes more reliably and deduplication across rental websites, so the same property doesn't generate multiple alerts.
+
+Apartment Hunter began as a way to make my own apartment search easier. It's now also a project that has taught me when to simplify an architecture, how to design around unreliable external services and why small operational details matter.

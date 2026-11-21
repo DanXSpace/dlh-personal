@@ -1,0 +1,20 @@
+---
+const versions = [
+  { stage: '01 / Kafka pipeline', detail: 'Scraper → Kafka → Discord webhook' },
+  { stage: '02 / Browser monitor', detail: 'Chromium → Discord webhook' },
+  { stage: '03 / Discord bot', detail: 'HTTP sources · SQLite · Discord' },
+];
+---
+
+<svg viewBox="0 0 360 204" aria-hidden="true" focusable="false">
+  {versions.map(({ stage, detail }, index) => (
+    <g transform={`translate(0 ${index * 72})`}>
+      <rect class="d-rule" x="1" y="1" width="358" height="56" rx="4" fill="none" />
+      <text class="d-label" x="14" y="23">{stage}</text>
+      <text class="d-muted" x="14" y="43">{detail}</text>
+      {index < versions.length - 1 && (
+        <path class="d-muted" d="M180 57v13m-4-4 4 4 4-4" fill="none" />
+      )}
+    </g>
+  ))}
+</svg>
