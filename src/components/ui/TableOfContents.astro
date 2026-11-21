@@ -8,6 +8,10 @@
  * disclosure below 1024px, where it would otherwise push the body down; from
  * 1024px the full list shows beside the reading column as usual. Only one of
  * the two is ever displayed, so assistive technology meets a single list.
+ *
+ * While reading, the link to the current section gets `aria-current="location"`
+ * and the active style (text color plus underline, never color alone). Without
+ * JavaScript the lists are plain anchors.
  */
 import type { TocItem } from '../../lib/toc.ts';
 
@@ -66,6 +70,48 @@ const { items, collapsible = false } = Astro.props;
     }
   </ol>
 </nav>
+
+<script>
+  import { activeHeadingIndex } from '../../lib/toc.ts';
+
+  /** Where a heading counts as read: near the top, below where anchor jumps land. */
+  const LINE_RATIO = 0.3;
+
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.contents-list a[href^="#"]')];
+  const slugs = [...new Set(links.map((link) => decodeURIComponent(link.hash.slice(1))))];
+  const headings = slugs
+    .map((slug) => document.getElementById(slug))
+    .filter((heading): heading is HTMLElement => heading !== null);
+
+  let current: string | undefined;
+  let queued = false;
+
+  function update() {
+    queued = false;
+    const tops = headings.map((heading) => heading.getBoundingClientRect().top);
+    const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    const index = activeHeadingIndex(tops, window.innerHeight * LINE_RATIO, atEnd);
+    const slug = index >= 0 ? headings[index]?.id : undefined;
+    if (slug === current) return;
+    current = slug;
+    for (const link of links) {
+      if (slug !== undefined && decodeURIComponent(link.hash.slice(1)) === slug) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    }
+  }
+
+  function schedule() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(update);
+  }
+
+  if (headings.length > 0) {
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule, { passive: true });
+    update();
+  }
+</script>
 
 <style>
   @reference '../../styles/global.css';
@@ -158,6 +204,12 @@ const { items, collapsible = false } = Astro.props;
   }
 
   .contents-list a:hover {
+    color: var(--color-text);
+    text-decoration-color: currentColor;
+  }
+
+  /* The section being read: text color plus an underline, matching the header's active link. */
+  .contents-list a[aria-current] {
     color: var(--color-text);
     text-decoration-color: currentColor;
   }

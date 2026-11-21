@@ -134,6 +134,22 @@ test.describe('contents', () => {
     await expect(page.locator('#lessons')).toBeInViewport();
   });
 
+  test('marks the section being read as the current location while scrolling', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(full);
+    const contents = page.getByRole('navigation', { name: 'Contents' });
+    const current = contents.locator('a[aria-current="location"]');
+
+    await page.locator('#architecture').evaluate((heading) => window.scrollTo(0, heading.getBoundingClientRect().top + window.scrollY - 40));
+    await expect(current).toHaveText(['Architecture']);
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect(current).toHaveText(['Lessons']);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(current).toHaveCount(0);
+  });
+
   test('a case study with a single section has no contents', async ({ page }) => {
     await page.goto(minimal);
     await expect(page.getByRole('navigation', { name: 'Contents' })).toHaveCount(0);
