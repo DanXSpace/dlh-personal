@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tableOfContents } from '../../src/lib/toc.ts';
+import { activeHeadingIndex, tableOfContents } from '../../src/lib/toc.ts';
 
 const h = (depth: number, text: string) => ({ depth, slug: text.toLowerCase(), text });
 
@@ -31,4 +31,21 @@ test('an h3 before the first h2 is listed at the top level rather than dropped',
     { slug: 'aside', text: 'Aside', children: [] },
     { slug: 'one', text: 'One', children: [] },
   ]);
+});
+
+test('no section is active before the first heading reaches the line', () => {
+  assert.equal(activeHeadingIndex([200, 900, 1600], 100, false), -1);
+});
+
+test('the active section is the last heading above the line', () => {
+  assert.equal(activeHeadingIndex([-800, -50, 400], 100, false), 1);
+  assert.equal(activeHeadingIndex([-800, -50, 100], 100, false), 2);
+});
+
+test('at the end of the page the last section is active even below the line', () => {
+  assert.equal(activeHeadingIndex([-800, -50, 400], 100, true), 2);
+});
+
+test('no headings means no active section', () => {
+  assert.equal(activeHeadingIndex([], 100, true), -1);
 });
