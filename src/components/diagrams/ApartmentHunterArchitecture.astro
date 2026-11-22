@@ -1,31 +1,109 @@
-<svg viewBox="0 0 360 270" aria-hidden="true" focusable="false">
-  <g class="d-rule" fill="none">
-    <rect x="1" y="1" width="358" height="40" rx="4" />
-    <rect x="1" y="73" width="170" height="50" rx="4" />
-    <rect x="189" y="73" width="170" height="50" rx="4" />
-    <rect x="1" y="153" width="170" height="50" rx="4" />
-    <rect x="189" y="153" width="170" height="50" rx="4" />
-    <rect x="1" y="231" width="358" height="38" rx="4" />
-  </g>
-  <g class="d-muted" fill="none">
-    <path d="M86 41v30m-4-4 4 4 4-4" />
-    <path d="M274 73V43m-4 4 4-4 4 4" />
-    <path d="M86 123v28m-4-4 4 4 4-4" />
-    <path d="M274 123v28m-4-4 4 4 4-4" />
-    <path d="M14 123H0v120h2" />
-    <path d="M346 123h14v120h-2" />
-  </g>
-  <text class="d-label" x="14" y="26">Discord</text>
-  <text class="d-muted" x="86" y="59" text-anchor="end" dx="-8">Commands</text>
-  <text class="d-muted" x="274" y="59" dx="8">Alerts</text>
-  <text x="14" y="94">Search service</text>
-  <text class="d-muted" x="14" y="113">Search setup</text>
-  <text x="202" y="94">Runner</text>
-  <text class="d-muted" x="202" y="113">Scheduled checks</text>
-  <text x="14" y="174">Location lookup</text>
-  <text class="d-muted" x="14" y="193">Photon + adapters</text>
-  <text x="202" y="174">Source adapters</text>
-  <text class="d-muted" x="202" y="193">HTTP listing results</text>
-  <text class="d-label" x="14" y="254">SQLite</text>
-  <text class="d-muted" x="80" y="254">Searches, prices, source health</text>
-</svg>
+---
+/**
+ * Apartment Hunter case study, figure: search setup, scheduled checks and
+ * alert delivery. The search service saves searches and resolves areas; the
+ * scheduler starts the runner, which fetches listings, compares them against
+ * SQLite and posts alerts back to Discord.
+ * Drawn twice: wide from 768px, stacked below (Diagram's `d-wide`/`d-narrow`).
+ */
+import { arrow, boxLines, type Box, type TextLine } from './svg.ts';
+
+interface Drawing {
+  viewBox: string;
+  boxes: Box[];
+  arrows: ReturnType<typeof arrow>[];
+  texts: TextLine[];
+}
+
+const discord = { lines: ['Discord'], subtitle: ['slash commands and alerts'] };
+const searchService = { lines: ['Search service'], subtitle: ['search setup'] };
+const runner = { lines: ['Runner'], subtitle: ['scheduled checks'] };
+const lookup = { lines: ['Location lookup'], subtitle: ['Photon + adapters'] };
+const adapters = { lines: ['Source adapters'], subtitle: ['HTTP listings'] };
+const sqlite = { lines: ['SQLite'], subtitle: ['searches, listings, prices, source health'] };
+
+// Four 165-unit columns with 20-unit gaps: x = 0, 185, 370, 555.
+const wide: Drawing = {
+  viewBox: '0 0 720 300',
+  boxes: [
+    { x: 0, y: 0, w: 720, h: 52, ...discord },
+    { x: 0, y: 110, w: 165, h: 60, ...searchService },
+    { x: 370, y: 110, w: 165, h: 60, lines: ['Scheduler'], subtitle: ['regular intervals'] },
+    { x: 555, y: 110, w: 165, h: 60, ...runner },
+    { x: 0, y: 240, w: 165, h: 60, ...lookup },
+    { x: 185, y: 240, w: 350, h: 60, ...sqlite },
+    { x: 555, y: 240, w: 165, h: 60, ...adapters },
+  ],
+  arrows: [
+    arrow([[82, 52], [82, 110]]),
+    arrow([[637, 110], [637, 52]]),
+    arrow([[535, 140], [555, 140]]),
+    arrow([[82, 170], [82, 240]]),
+    arrow([[165, 140], [260, 140], [260, 240]]),
+    arrow([[637, 170], [637, 240]]),
+    arrow([[580, 170], [580, 205], [460, 205], [460, 240]]),
+  ],
+  texts: [
+    { x: 92, y: 86, text: 'commands', muted: true },
+    { x: 627, y: 86, text: 'alerts', anchor: 'end', muted: true },
+  ],
+};
+
+// Two 150-unit columns with a 40-unit channel between them for the SQLite arrows.
+const narrow: Drawing = {
+  viewBox: '0 0 340 342',
+  boxes: [
+    { x: 0, y: 0, w: 340, h: 44, lines: ['Discord'] },
+    { x: 0, y: 96, w: 150, h: 50, ...searchService },
+    { x: 190, y: 96, w: 150, h: 50, ...runner },
+    { x: 0, y: 196, w: 150, h: 50, ...lookup },
+    { x: 190, y: 196, w: 150, h: 50, ...adapters },
+    { x: 0, y: 296, w: 340, h: 46, lines: ['SQLite'], subtitle: ['searches, listings, prices, health'] },
+  ],
+  arrows: [
+    arrow([[75, 44], [75, 96]]),
+    arrow([[265, 96], [265, 44]]),
+    arrow([[75, 146], [75, 196]]),
+    arrow([[265, 146], [265, 196]]),
+    arrow([[150, 121], [162, 121], [162, 296]]),
+    arrow([[190, 121], [178, 121], [178, 296]]),
+  ],
+  texts: [
+    { x: 67, y: 74, text: 'commands', anchor: 'end', muted: true },
+    { x: 273, y: 74, text: 'alerts', muted: true },
+  ],
+};
+
+const drawings = [
+  { className: 'd-wide', drawing: wide },
+  { className: 'd-narrow', drawing: narrow },
+];
+---
+
+{
+  drawings.map(({ className, drawing }) => (
+    <svg class={className} viewBox={drawing.viewBox} aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      {drawing.boxes.map((box) => (
+        <>
+          <rect x={box.x + 0.5} y={box.y + 0.5} width={box.w - 1} height={box.h - 1} rx="2" fill="none" stroke="currentColor" stroke-width="1" />
+          {boxLines(box).map((t) => (
+            <text x={t.x} y={t.y} text-anchor={t.anchor} class:list={{ 'd-muted': t.muted }}>
+              {t.text}
+            </text>
+          ))}
+        </>
+      ))}
+      {drawing.arrows.map((a) => (
+        <>
+          <path d={a.path} fill="none" stroke="currentColor" stroke-width="1" />
+          <polygon points={a.head} fill="currentColor" />
+        </>
+      ))}
+      {drawing.texts.map((t) => (
+        <text x={t.x} y={t.y} text-anchor={t.anchor ?? 'start'} class:list={{ 'd-muted': t.muted, 'd-label': t.label }}>
+          {t.text}
+        </text>
+      ))}
+    </svg>
+  ))
+}
