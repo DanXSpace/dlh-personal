@@ -52,6 +52,8 @@
 .prose :is(h2, h3, h4, h5, h6) {
   margin: 0;
   font-weight: var(--font-weight-medium);
+  /* Anchor jumps land below the top edge, level with the sticky contents and above the active line. */
+  scroll-margin-top: calc(var(--space-unit) * 8);
 }
 
 .prose h2 {
