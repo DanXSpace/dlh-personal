@@ -60,6 +60,8 @@
     line-height: var(--leading-body);
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* In-page links glide; the reduced-motion override below keeps them instant. */
+    scroll-behavior: smooth;
   }
 
   body {

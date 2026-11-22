@@ -150,6 +150,34 @@ test.describe('contents', () => {
     await expect(current).toHaveCount(0);
   });
 
+  test('a contents link glides to its section, which lands below the top edge and becomes current', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(full);
+    await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'smooth');
+
+    const contents = page.getByRole('navigation', { name: 'Contents' });
+    await contents.getByRole('link', { name: 'Architecture' }).click();
+    // Smooth scrolling takes a moment; wait for it to settle 32px (space-unit × 8) below the top.
+    await expect
+      .poll(() => page.locator('#architecture').evaluate((heading) => Math.round(heading.getBoundingClientRect().top)))
+      .toBe(32);
+    await expect(contents.locator('a[aria-current="location"]')).toHaveText(['Architecture']);
+  });
+
+  test('with reduced motion, a contents link jumps straight to its section', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(full);
+    await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');
+
+    // Read the position in the same task as the click: an instant jump has already landed.
+    const top = await page.evaluate(() => {
+      document.querySelector<HTMLAnchorElement>('.toc a[href="#architecture"]')!.click();
+      return Math.round(document.getElementById('architecture')!.getBoundingClientRect().top);
+    });
+    expect(top).toBe(32);
+  });
+
   test('a case study with a single section has no contents', async ({ page }) => {
     await page.goto(minimal);
     await expect(page.getByRole('navigation', { name: 'Contents' })).toHaveCount(0);
