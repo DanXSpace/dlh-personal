@@ -35,3 +35,20 @@ export function tableOfContents(headings: MarkdownHeading[], toc: boolean | unde
   }
   return items;
 }
+
+/**
+ * The section being read: the last heading whose top has scrolled past
+ * `line` (px from the viewport top). `tops` are the headings' viewport tops in
+ * document order. At the end of the page the last heading wins, since a short
+ * closing section may never reach the line. Before the first heading, none.
+ */
+export function activeHeadingIndex(tops: number[], line: number, atEnd: boolean): number {
+  if (tops.length === 0) return -1;
+  if (atEnd) return tops.length - 1;
+  let active = -1;
+  for (const [index, top] of tops.entries()) {
+    if (top <= line) active = index;
+    else break;
+  }
+  return active;
+}
