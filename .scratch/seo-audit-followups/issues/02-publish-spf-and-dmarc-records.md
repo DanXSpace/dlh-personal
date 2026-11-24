@@ -1,6 +1,6 @@
 # 02 — Publish SPF and DMARC records
 
-Status: ready-for-human
+Status: resolved
 Type: task
 
 ## Problem
@@ -34,3 +34,6 @@ curl -s -H 'accept: application/dns-json' 'https://cloudflare-dns.com/dns-query?
 The first answer contains `v=spf1 -all`; the second contains `v=DMARC1; p=reject;`.
 
 ## Comments
+
+- 2026-11-23, done in the Cloudflare dashboard: added TXT `@` = `v=spf1 -all` and TXT `_dmarc` = `v=DMARC1; p=reject;` (DNS only, TTL Auto). Before this the zone had no SPF or DMARC record, only the two Worker records for `@` and `www`.
+- 2026-11-23, verified: public DNS (Google and Cloudflare resolvers) returns both records.

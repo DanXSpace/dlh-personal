@@ -312,7 +312,7 @@ The default is `public/social/default.png`, 1200 × 630: the light palette, the 
 
 - Drafts are never built in production (§5.5).
 - A build-time env var `PUBLIC_SITE_ENV` is `production` only on the production deployment. Any other value adds `<meta name="robots" content="noindex, nofollow">` to every page and writes a disallow-all `robots.txt`.
-- Workers Builds shares build variables across branches, so a Workers Builds run of any branch other than `main` (`WORKERS_CI_BRANCH`) is non-indexable even when `PUBLIC_SITE_ENV` is `production` (ADR-0005).
+- Workers Builds keeps separate build variables for production and previews, and only production has `PUBLIC_SITE_ENV=production`. As a second safeguard, a Workers Builds run of any branch other than `main` (`WORKERS_CI_BRANCH`) is non-indexable even when `PUBLIC_SITE_ENV` is `production` (ADR-0005).
 - An indexable build fails while `origin` in `src/site.config.ts` is still a `*.workers.dev` address (`launchOriginProblem()` in `src/lib/site-env.ts`, checked in `astro.config.ts`), so canonical URLs, the sitemap and RSS can't go live on the interim origin (owner decision, 2026-11-19).
 - Production `robots.txt` allows all and points to the sitemap.
 
@@ -349,7 +349,7 @@ The build output (`dist/`) is uploaded as a Worker's static assets with **no Wor
 ### 12.2 Pipeline
 
 1. **GitHub Actions (on every push and PR):** `npm ci` → `astro check` → unit tests → `astro build` (which writes the Pagefind index, §9) → Playwright e2e + axe against `astro preview` → `npm audit --audit-level=high`.
-2. **Cloudflare Workers Builds**, connected to the GitHub repo, builds and deploys `main` to production and non-`main` branches to preview URLs, with `PUBLIC_SITE_ENV` set as a build variable. Previews stay non-indexable through the branch check in §10.4 (ADR-0005).
+2. **Cloudflare Workers Builds**, connected to the GitHub repo, builds and deploys `main` to production and non-`main` branches to preview URLs, with `PUBLIC_SITE_ENV=production` set as a production-only build variable. Previews stay non-indexable through the branch check in §10.4 (ADR-0005).
 3. Branch protection on `main` requires step 1 to pass.
 
 ### 12.3 Domain

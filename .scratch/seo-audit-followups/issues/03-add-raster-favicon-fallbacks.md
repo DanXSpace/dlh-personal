@@ -1,6 +1,6 @@
 # 03 — Add raster favicon fallbacks
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 
 ## Problem
@@ -34,3 +34,4 @@ The CSP (`src/lib/csp.ts`) governs scripts and styles, not icon links, so it nee
 
 - 2026-11-23, owner: the `d.` monogram in `public/favicon.svg` is approved as the favicon. Status set to `ready-for-agent`.
 - 2026-11-23, agent: implemented on branch `feat/raster-favicons`. `scripts/render-favicons.ts` renders `public/favicon.ico` (16 + 32, PNG-encoded) and `public/apple-touch-icon.png` (180, square, opaque); `BaseLayout.astro` links the touch icon; `tests/e2e/seo.spec.ts` covers all three icon URLs. `npm run verify` passes (402 passed, 24 content-conditional skips).
+- 2026-11-24, merged in PR #20. Verified live: `/favicon.ico` returns 200 `image/vnd.microsoft.icon`, and `/apple-touch-icon.png` returns 200 `image/png`.

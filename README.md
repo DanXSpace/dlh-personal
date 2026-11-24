@@ -78,8 +78,9 @@ The site deploys to [Cloudflare Workers static assets](docs/adr/0001-cloudflare-
   `npm run verify`, and `npm audit --audit-level=high`. It validates but does not deploy.
 - **Cloudflare Workers Builds**, connected to the GitHub repository, runs `npm run build`
   then `npx wrangler deploy`. `main` deploys to production, and other branches get preview URLs.
-  Workers Builds build variables apply to every branch, so `PUBLIC_SITE_ENV` is set once
-  (Settings → Build → Variables and secrets) and previews stay `noindex` through the branch check above.
+  `PUBLIC_SITE_ENV=production` is set on production builds only (Settings → Builds → Production →
+  Variables and secrets). Previews have their own list ("Previews Base"), which must not include it,
+  and the branch check above keeps them `noindex` regardless.
   Deployment credentials live only in Cloudflare and GitHub settings, never in this repository.
 
 ### Run the deployed configuration locally
