@@ -33,3 +33,4 @@ The CSP (`src/lib/csp.ts`) governs scripts and styles, not icon links, so it nee
 ## Comments
 
 - 2026-11-23, owner: the `d.` monogram in `public/favicon.svg` is approved as the favicon. Status set to `ready-for-agent`.
+- 2026-11-23, agent: implemented on branch `feat/raster-favicons`. `scripts/render-favicons.ts` renders `public/favicon.ico` (16 + 32, PNG-encoded) and `public/apple-touch-icon.png` (180, square, opaque); `BaseLayout.astro` links the touch icon; `tests/e2e/seo.spec.ts` covers all three icon URLs. `npm run verify` passes (402 passed, 24 content-conditional skips).

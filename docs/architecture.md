@@ -64,7 +64,9 @@ This document records how the site is built and why. Visual decisions (tokens, t
 │   ├── _redirects                # /sitemap.xml → /sitemap-index.xml (§4)
 │   ├── social/default.png        # default link-preview image (§10.2)
 │   ├── resume.pdf                # only once supplied by the owner
-│   └── favicon.svg
+│   ├── favicon.svg               # the `d.` monogram; switches with the theme
+│   ├── favicon.ico               # raster fallbacks rendered from favicon.svg
+│   └── apple-touch-icon.png      #   by scripts/render-favicons.ts
 ├── src/
 │   ├── site.config.ts            # identity, nav, links (§5.4)
 │   ├── content.config.ts         # collection schemas (§5)
