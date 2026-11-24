@@ -5,10 +5,10 @@
  * makes a build indexable; anything else, including unset, is treated as a
  * preview so nothing is indexed by accident. See `docs/architecture.md` §10.4.
  *
- * Cloudflare Workers Builds shares build variables across every branch, so a
- * Workers Builds run (`WORKERS_CI_BRANCH` set) is only indexable on `main`,
- * the production branch. Preview URLs stay out of search indexes even after
- * `production` is set at launch. See ADR-0005.
+ * A Workers Builds run (`WORKERS_CI_BRANCH` set) is only indexable on `main`,
+ * the production branch. Previews have their own build variables and don't get
+ * `production`, so this is a second safeguard that keeps preview URLs out of
+ * search indexes even if they ever do. See ADR-0005.
  */
 export interface SiteEnv {
   indexable: boolean;
