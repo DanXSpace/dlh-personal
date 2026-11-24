@@ -1,6 +1,6 @@
 # SEO audit follow-ups
 
-Status: ready-for-human
+Status: resolved
 
 ## Context
 

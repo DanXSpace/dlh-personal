@@ -1,6 +1,6 @@
 # 01 — Turn on search indexing
 
-Status: ready-for-human
+Status: resolved
 Type: task
 
 ## Problem
@@ -35,3 +35,8 @@ All of these hold against the live site:
 Add the domain to Google Search Console and submit `https://danielholung.dev/sitemap-index.xml` so crawling starts sooner. Verifying ownership with a DNS TXT record keeps the site free of verification markup.
 
 ## Comments
+
+- 2026-11-23, owner: site confirmed ready to launch. Checklist: owner go-ahead given; `src/assets/hero.ts` has `preview: false`; drafts are excluded from production builds by design.
+- 2026-11-23, done in the Cloudflare dashboard: `PUBLIC_SITE_ENV=production` added as a plain-text variable under Worker `dlh-personal` → Settings → Builds → Production → Variables and secrets. The latest `main` build (from PR #20) was retried and deployed as version `a20b841c`.
+- 2026-11-23, verified live: `/robots.txt` reads `Allow: /` with `Sitemap: https://danielholung.dev/sitemap-index.xml` (which returns 200), and `/`, `/about/`, `/work/`, `/writing/`, `/now/` and `/resume/` have no robots meta tag. No branch preview existed to check; check the first non-`main` preview's `/robots.txt` when one exists.
+- Note for ADR-0005: the Worker now uses Worker Previews, whose "Previews Base" settings have their own variable list (empty). So preview builds no longer inherit `PUBLIC_SITE_ENV`, and the ADR's premise that build variables apply to every branch no longer holds. The `WORKERS_CI_BRANCH` check in `src/lib/site-env.ts` stays as a second safeguard. Update the ADR's context if the owner wants it current.
