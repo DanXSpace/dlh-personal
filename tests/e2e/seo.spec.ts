@@ -50,6 +50,22 @@ for (const { path, title, ogTitle, canonical, shareDescription } of pages) {
   });
 }
 
+test('the favicon has raster fallbacks for clients without SVG support', async ({ page, request }) => {
+  await page.goto('/');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
+
+  for (const [path, type] of [
+    ['/favicon.svg', 'image/svg+xml'],
+    ['/favicon.ico', /^image\/(x-icon|vnd\.microsoft\.icon)/],
+    ['/apple-touch-icon.png', 'image/png'],
+  ] as const) {
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(200);
+    expect(response.headers()['content-type'], path).toMatch(type);
+  }
+});
+
 test('the 404 page has a title and description but no canonical URL', async ({ page }) => {
   await page.goto('/this-page-does-not-exist');
   const meta = await headMetadata(page);

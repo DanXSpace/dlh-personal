@@ -38,8 +38,10 @@ const { title, fullTitle, description, shareDescription, seo } = Astro.props;
     <script is:inline set:html={THEME_INIT_SCRIPT} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Seo title={title} fullTitle={fullTitle} description={description} shareDescription={shareDescription} seo={seo} />
-    {/* The simplified `d.` monogram (design-spec §1). Drafted in ticket 18, pending owner approval. */}
+    {/* The simplified `d.` monogram (design-spec §1), approved by the owner 2026-11-23.
+        `/favicon.ico` needs no tag; it and the touch icon come from scripts/render-favicons.ts. */}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <Font cssVariable="--font-geist-sans" preload={[{ weight: 400, style: 'normal', subset: 'latin' }]} />
     <Font cssVariable="--font-geist-mono" />
   </head>
