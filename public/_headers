@@ -13,3 +13,9 @@
 # always gets a new URL and these can be cached for a year.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+# The résumé page shows the PDF in a same-origin frame. `frame-ancestors`
+# takes precedence over the site-wide `X-Frame-Options: DENY`, so only pages
+# on this origin can frame it.
+/resume.pdf
+  Content-Security-Policy: frame-ancestors 'self'

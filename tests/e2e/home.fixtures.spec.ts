@@ -101,13 +101,12 @@ for (const width of [320, 390, 768, 1024, 1440]) {
 }
 
 test.describe('the homepage hero', () => {
-  test('shows the role label, full-name wordmark, tagline and the introduction from content', async ({ page }) => {
+  test('shows the full-name wordmark, the title in mono and the introduction from content', async ({ page }) => {
     await page.goto('/');
     const hero = page.locator('.hero');
-    await expect(hero.locator('.hero-role')).toHaveText('Engineer / Developer');
-    await expect(hero.locator('.hero-role')).toHaveCSS('text-transform', 'uppercase');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Daniel Lee Holung.');
-    await expect(hero).toContainText('Curious about systems. Drawn to simplicity.');
+    await expect(hero.locator('.hero-role')).toHaveText('Data Engineer, FinTech');
+    await expect(hero.locator('.hero-role')).toHaveCSS('font-family', /Geist Mono/);
     await expect(hero).toContainText('Fixture introduction for the homepage hero.');
   });
 

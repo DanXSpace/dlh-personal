@@ -2,6 +2,7 @@
 import { Picture } from 'astro:assets';
 import Hero from '../components/home/Hero.astro';
 import HomeSection from '../components/home/HomeSection.astro';
+import ProjectMeta from '../components/work/ProjectMeta.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { categoryLabels } from '../lib/categories.ts';
 import { getPublished, getSingleEntry } from '../lib/content.ts';
@@ -68,6 +69,7 @@ const numbers = sectionNumbers({
                     </a>
                   </h3>
                   <p class="text-muted">{data.summary}</p>
+                  <ProjectMeta data={data} />
                 </div>
               </li>
             ))}
@@ -139,13 +141,13 @@ const numbers = sectionNumbers({
     border-block-end: var(--rule-width) solid var(--color-rule);
   }
 
-  /* Row layout, thumbnail and title links (as on /work): src/styles/project-rows.css. */
+  /* Row layout, thumbnail, title links and meta (as on /work): src/styles/project-rows.css. */
   .selected-work-row {
     padding-block: calc(var(--space-unit) * 8);
   }
 
   .selected-work-body {
-    gap: calc(var(--space-unit) * 3);
+    gap: calc(var(--space-unit) * 4);
   }
 
   .article-row {

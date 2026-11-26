@@ -8,6 +8,7 @@ import { defineConfig, fontProviders, sharpImageService } from 'astro/config';
 import type { AstroIntegration } from 'astro';
 import { resolveContentSource } from './src/lib/content-source.ts';
 import { scriptHash } from './src/lib/csp.ts';
+import { draftAssets } from './src/lib/draft-assets.ts';
 import { searchIndex } from './src/lib/search-index.ts';
 import { launchOriginProblem, resolveSiteEnv } from './src/lib/site-env.ts';
 import { THEME_INIT_SCRIPT } from './src/lib/theme.ts';
@@ -89,8 +90,9 @@ export default defineConfig({
   // The sitemap lists every built route; drafts are never built in production
   // (architecture §5.5), and the 404 page is left out by the integration.
   // `searchIndex` writes the Pagefind index for the palette's full-text search
-  // into this build's output (architecture §9).
-  integrations: [mdx(), sitemap(), publicOverlay, searchIndex()],
+  // into this build's output (architecture §9). `draftAssets` then removes the
+  // copies Astro makes of draft entries' images (architecture §5.5).
+  integrations: [mdx(), sitemap(), publicOverlay, searchIndex(), draftAssets(contentSource.contentRoot)],
   security: {
     // Astro emits the policy as a <meta> tag on every page and adds `script-src`
     // and `style-src` with hashes of the inline scripts and styles it renders, so

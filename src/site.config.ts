@@ -1,5 +1,5 @@
 /**
- * Site identity: the single source for name, tagline, navigation and links
+ * Site identity: the single source for name, role, navigation and links
  * (architecture §5.4). Typed, so a missing required field is a type error.
  *
  * Contact and professional links start empty and are filled only with values
@@ -13,7 +13,8 @@ export interface SiteConfig {
   name: string;
   /** Lowercase monogram used as the home link. */
   monogram: string;
-  tagline: string;
+  /** The concrete title under the homepage wordmark. */
+  role: string;
   /** The homepage's document title; other pages use `Page — <name>`. */
   homeTitle: string;
   /** The homepage's meta description. */
@@ -29,9 +30,9 @@ export interface SiteConfig {
 export const site: SiteConfig = {
   name: 'Daniel Lee Holung',
   monogram: 'dlh.',
-  // Approved by the owner in the website copy revision, 2026-11-20.
-  tagline: 'Curious about systems. Drawn to simplicity.',
-  homeTitle: 'Daniel Lee Holung — Engineer & Developer',
+  // Chosen by the owner after mentor feedback, 2026-11-25. No employer named, by choice.
+  role: 'Data Engineer, FinTech',
+  homeTitle: 'Daniel Lee Holung — Data Engineer, FinTech',
   description:
     'Daniel Lee Holung — engineer, independent developer and writer. Explore my software projects, technical writing and interests in technology, design and life.',
   shareDescription:

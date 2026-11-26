@@ -2,7 +2,8 @@
 
 /*
  * Project rows, shared by `/work` and the homepage's Selected work
- * (design-spec §4). Each page sets its own row padding, rules and body gap.
+ * (design-spec §4), with the project meta (`ProjectMeta.astro`). Each page
+ * sets its own row padding, rules and body gap.
  * Below 768px the thumbnail stacks above the text; from 768px it takes the
  * leading four grid columns and the text the rest, so a row without a
  * thumbnail keeps its text aligned with the others.
@@ -14,10 +15,47 @@
   gap: calc(var(--space-unit) * 6);
 }
 
+/*
+ * Screenshots come in every shape (tall phone captures, wide Discord ones), so
+ * a thumbnail is cropped to one 4:3 frame from the top, where an app's screen
+ * title sits. The width and height attributes still reserve space.
+ */
 .project-thumbnail {
   width: 100%;
   height: auto;
   border-radius: var(--radius-sm);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: top;
+  border: var(--rule-width) solid var(--color-rule);
+}
+
+/* Year, type, status and stack under a project's summary. */
+.project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space-unit) * 3) calc(var(--space-unit) * 8);
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.project-meta dt {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.project-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The stack can be long, so it takes its own line below year, type and status. */
+.project-stack {
+  flex-basis: 100%;
 }
 
 .project-body {

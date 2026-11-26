@@ -1,0 +1,33 @@
+---
+/**
+ * A project's year, type, status and stack, shared by `/work` and the
+ * homepage's Selected work. Styles: src/styles/project-rows.css.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { projectStatusLabels, projectTypeLabels } from '../../lib/projects.ts';
+
+interface Props {
+  data: CollectionEntry<'projects'>['data'];
+}
+
+const { data } = Astro.props;
+---
+
+<dl class="project-meta">
+  <div>
+    <dt>Year</dt>
+    <dd>{data.year}</dd>
+  </div>
+  <div>
+    <dt>Type</dt>
+    <dd>{projectTypeLabels[data.type]}</dd>
+  </div>
+  <div>
+    <dt>Status</dt>
+    <dd>{projectStatusLabels[data.status]}</dd>
+  </div>
+  <div class="project-stack">
+    <dt>Stack</dt>
+    <dd>{data.stack.join(', ')}</dd>
+  </div>
+</dl>

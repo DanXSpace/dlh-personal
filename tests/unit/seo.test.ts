@@ -9,7 +9,7 @@ test('a page title is followed by the site name', () => {
 });
 
 test('the homepage, with no page title, uses its own title from site config', () => {
-  assert.equal(documentTitle(undefined), 'Daniel Lee Holung — Engineer & Developer');
+  assert.equal(documentTitle(undefined), 'Daniel Lee Holung — Data Engineer, FinTech');
 });
 
 test('the canonical URL of the homepage is the site origin', () => {

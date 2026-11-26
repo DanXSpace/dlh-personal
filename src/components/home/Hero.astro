@@ -1,10 +1,11 @@
 ---
 /**
- * The homepage hero (design-spec §4 `/`, §5; PRD FR-02): role label,
- * full-name wordmark, tagline, the introduction from `home/index.md`, calls
- * to action, and the landscape with its figure caption. Copy and actions
- * come first in the source, so they stack before the image below 1024px; from
- * 1024px the copy takes seven grid columns and the image five.
+ * The homepage hero (design-spec §4 `/`, §5; PRD FR-02): full-name wordmark,
+ * the owner's title, the introduction from `home/index.md`, calls to action,
+ * and the landscape with its figure caption. Below 1024px the landscape is a
+ * short, wide strip under the calls to action, so the heritage accent stays
+ * while the reader still reaches Selected work quickly (mentor feedback,
+ * 2026-11-25); from 1024px the copy takes seven grid columns and the image five.
  */
 import { Picture } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
@@ -28,9 +29,8 @@ const hasActions = actions.primary !== undefined || actions.secondary.length > 0
 
 <div class="hero">
   <div class="hero-copy">
-    <p class="hero-role font-mono text-label tracking-label text-muted">Engineer / Developer</p>
     <h1 class="text-hero leading-heading font-medium">{site.name}.</h1>
-    <p class="text-body-large">{site.tagline}</p>
+    <p class="hero-role font-mono text-body-large">{site.role}</p>
     {
       Introduction && (
         <div class="hero-introduction text-body-large text-muted">
@@ -92,10 +92,6 @@ const hasActions = actions.primary !== undefined || actions.secondary.length > 0
     min-width: 0;
   }
 
-  .hero-role {
-    text-transform: uppercase;
-  }
-
   .hero-copy h1 {
     overflow-wrap: anywhere;
   }
@@ -155,13 +151,14 @@ const hasActions = actions.primary !== undefined || actions.secondary.length > 0
    * Each breakpoint crops the image to its own shape; the width and height
    * attributes still reserve space before it loads. `object-position` is the
    * image's focal point (src/assets/hero.ts), so every crop keeps it in view.
-   * It lives here because the CSP blocks inline `style` attributes.
+   * It lives here because the CSP blocks inline `style` attributes. Below
+   * 1024px it is a 3:1 strip, so it doesn't push Selected work far down.
    */
   .hero-image {
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 3 / 1;
     object-fit: cover;
     object-position: 75% 60%;
     border-radius: var(--radius-sm);
@@ -173,12 +170,6 @@ const hasActions = actions.primary !== undefined || actions.secondary.length > 0
     column-gap: calc(var(--space-unit) * 3);
     margin-block-start: calc(var(--space-unit) * 3);
     line-height: var(--leading-body);
-  }
-
-  @media (width >= theme(--breakpoint-md)) {
-    .hero-image {
-      aspect-ratio: 2 / 1;
-    }
   }
 
   /* 1024px and up: the 7/5 split, copy and image aligned along their lower edge. */
