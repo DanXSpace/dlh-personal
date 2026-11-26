@@ -19,6 +19,21 @@ test.describe('the résumé page with a hosted PDF', () => {
     });
   }
 
+  test('shows the PDF inline from 768px, framed from this origin only', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/resume');
+    const viewer = page.getByTitle('Résumé (PDF)');
+    await expect(viewer).toBeVisible();
+    await expect(viewer).toHaveAttribute('src', '/resume.pdf');
+    await expect(page.getByRole('link', { name: 'Open in a new tab (PDF)' })).toHaveAttribute('target', '_blank');
+  });
+
+  test('leaves the inline viewer out below 768px, where phones cannot show it', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.goto('/resume');
+    await expect(page.getByTitle('Résumé (PDF)')).toBeHidden();
+  });
+
   test('serves the PDF it links to', async ({ request }) => {
     const response = await request.get('/resume.pdf');
     expect(response.status()).toBe(200);

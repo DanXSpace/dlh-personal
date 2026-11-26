@@ -3,7 +3,9 @@ import TextLink from '../components/ui/TextLink.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { siteResumeAccess } from '../lib/resume.ts';
 
-// Download once `public/resume.pdf` exists; otherwise on request (PRD FR-10).
+// Read inline (from 768px), open in a new tab, or download once `public/resume.pdf`
+// exists; otherwise on request (PRD FR-10). `/resume.pdf` allows same-origin
+// framing in `public/_headers` so the viewer can show it.
 const access = siteResumeAccess();
 ---
 
@@ -11,16 +13,28 @@ const access = siteResumeAccess();
 <!-- Interim description in plain, factual terms; the owner may replace it (ticket 18). -->
 <BaseLayout title="Résumé" description="The résumé of Daniel Lee Holung.">
   <div class="mx-auto max-w-shell px-gutter py-section">
-    <div class="flex max-w-measure flex-col items-start gap-6">
+    <div class="flex flex-col items-start gap-6">
       <h1 class="text-page-heading leading-heading font-medium">Résumé</h1>
       {
         access.kind === 'pdf' ? (
-          <TextLink href={access.href} type="application/pdf" download class="uppercase tracking-label">
-            Download résumé (PDF)
-          </TextLink>
+          <>
+            <ul class="flex flex-wrap gap-x-6">
+              <li>
+                <TextLink href={access.href} type="application/pdf" download class="uppercase tracking-label">
+                  Download résumé (PDF)
+                </TextLink>
+              </li>
+              <li>
+                <TextLink href={access.href} type="application/pdf" target="_blank" rel="noopener" class="uppercase tracking-label">
+                  Open in a new tab<span class="sr-only"> (PDF)</span>
+                </TextLink>
+              </li>
+            </ul>
+            <iframe src={access.href} title="Résumé (PDF)" class="resume-viewer" loading="lazy"></iframe>
+          </>
         ) : (
           <>
-            <p class="text-body-large text-muted">My résumé is available on request.</p>
+            <p class="max-w-measure text-body-large text-muted">My résumé is available on request.</p>
             {access.contacts.length > 0 && (
               <ul class="flex flex-wrap gap-x-6" aria-label="Contact">
                 {access.contacts.map((link) => (
@@ -36,3 +50,29 @@ const access = siteResumeAccess();
     </div>
   </div>
 </BaseLayout>
+
+<style>
+  @reference '../styles/global.css';
+
+  /*
+   * Phone browsers can't show a PDF in a frame (Android shows nothing, iOS only
+   * the first page), so below 768px the links above are the way in.
+   */
+  .resume-viewer {
+    display: none;
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    .resume-viewer {
+      display: block;
+      /* A letter-size page at the reading measure. */
+      width: 100%;
+      max-width: var(--measure);
+      aspect-ratio: 17 / 22;
+      height: auto;
+      margin-block-start: calc(var(--space-unit) * 4);
+      border: var(--rule-width) solid var(--color-rule);
+      border-radius: var(--radius-sm);
+    }
+  }
+</style>

@@ -6,7 +6,7 @@ import { headMetadata, origin } from '../support/seo.ts';
 // architecture §10). Article and case-study metadata is tested against the
 // fixture build in seo.fixtures.spec.ts.
 
-const homeTitle = 'Daniel Lee Holung — Engineer & Developer';
+const homeTitle = 'Daniel Lee Holung — Data Engineer, FinTech';
 const homeShareDescription =
   "An engineer's corner of the internet. Software projects, technical writing and an ongoing exploration of technology and life.";
 

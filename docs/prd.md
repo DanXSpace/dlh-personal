@@ -82,7 +82,7 @@ Provide active navigation indicators, visible keyboard focus states and a respon
 
 The homepage must include:
 
-1. An asymmetrical hero containing the owner's full name, tagline, short introduction and monochrome Jamaican landscape photography.
+1. An asymmetrical hero containing the owner's full name, title, short introduction and monochrome Jamaican landscape photography.
 2. A primary link to the project directory.
 3. GitHub and résumé links, plus accessible contact information.
 4. A selected work section displaying one to three featured projects.
