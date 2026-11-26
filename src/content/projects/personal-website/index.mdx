@@ -1,17 +1,16 @@
 ---
-# PLACEHOLDER: this website as a project (mentor feedback, 2026-11-25).
-# The frontmatter facts come from this repo (package.json, astro.config.ts,
-# docs/adr/). The summary, deck and body are a first draft for the owner to
-# rewrite or approve. Delete `draft: true` to publish; until then
-# `npm run dev` shows it and production builds leave it out.
-draft: true
+# Case study (ticket 02, mentor feedback). The motivation, goals, workflow
+# framing and lessons come from the owner's written answers (2026-11-26).
+# Technical claims are checked against this repo: docs/adr/0001–0005,
+# astro.config.ts, package.json, public/_headers, tests/ and git history.
+# Copy approved by the owner, 2026-11-26.
 
 title: danielholung.dev
 metaTitle: Daniel Lee Holung — Personal Website
-summary: This website. A static, content-driven portfolio and blog built with Astro, designed and tested in the open.
-deck: A personal site, built like a product.
+summary: An independently designed and developed personal website, built around simplicity, performance and a structured engineering workflow.
+deck: A personal site, built with the care of a product.
 platform: Web
-role: Designer and developer
+role: Independent developer
 stack: [Astro, TypeScript, MDX, Tailwind CSS, Pagefind, Playwright, Cloudflare Workers]
 status: active
 type: application
@@ -20,8 +19,172 @@ featured: true                      # shows it in the homepage's Selected Work
 order: 3
 repo: https://github.com/DanXSpace/dlh-personal
 live: https://danielholung.dev
-thumbnail: ./homepage.png
-thumbnailAlt: The homepage of this website in the light theme, with the name Daniel Lee Holung, the title Data Engineer, FinTech, a black-and-white Jamaican landscape, and the start of Selected work.
+thumbnail: ./homepage-light.png
+thumbnailAlt: The homepage of this website in the light theme, with the name Daniel Lee Holung, the title Data Engineer, FinTech, a black-and-white photo of a Jamaican beach cove, and the start of Selected work.
 ---
 
-**Placeholder.** The owner will write this case study. Until then this entry is a draft and does not appear in production.
+import PersonalWebsiteBuild from '../../../components/diagrams/PersonalWebsiteBuild.astro';
+import homepageLight from './homepage-light.png';
+import homepageDark from './homepage-dark.png';
+
+<Gallery
+  priority
+  figures={[
+    {
+      src: homepageLight,
+      alt: 'The homepage in the light theme: the name Daniel Lee Holung, the title Data Engineer, FinTech, a short introduction with Explore my work, GitHub and Résumé links, a black-and-white photo of a Jamaican beach cove captioned FIG. 01 / ROOTS, and the start of Selected work with LiftDay.',
+      number: 1,
+      label: 'Light',
+      caption: 'The homepage in the light theme.',
+    },
+    {
+      src: homepageDark,
+      alt: 'The same homepage in the dark theme, with light text on a near-black background and the same black-and-white beach photo.',
+      number: 2,
+      label: 'Dark',
+      caption: 'The dark theme. Both follow the system setting.',
+    },
+  ]}
+/>
+
+## The idea
+
+I wanted a place on the internet that felt like mine.
+
+I needed somewhere to show my software projects, but I didn't want another developer portfolio that was essentially an online résumé. I wanted something that could be a personal blog, a collection of things I've built and a record of what I'm learning.
+
+I also wanted colleagues and potential collaborators to understand more about me than my professional experience alone.
+
+A template or a hosted website builder would have been faster. Building it myself gave me control over the whole experience, so the typography, layout, interactions and content could feel intentional. It was also another chance to practice software development, make architectural decisions and build something I'd keep maintaining.
+
+## What it should say
+
+I want visitors to come away with three impressions.
+
+That I'm a capable engineer who enjoys understanding how things work and making thoughtful technical decisions.
+
+That I care about the details. Functionality and design shouldn't be treated as separate concerns, and even a simple personal website deserves attention to usability, accessibility, performance and presentation.
+
+That I'm genuinely curious. My interests extend beyond software into music, basketball, gaming and technology, and I want the site to reflect that rather than a carefully manufactured professional persona.
+
+I want the projects and case studies to be evidence of how I approach problems, weigh trade-offs and learn from what I build, for anyone who works with me now or might in the future.
+
+I didn't need the site to look technically impressive for its own sake. I'd rather it feel well considered, easy to use and thoughtfully engineered.
+
+## Quiet Precision
+
+Before any code, I defined the site's purpose, audience and visual identity.
+
+I called the design direction Quiet Precision. It combines engineering minimalism with Japanese composition and an understated expression of my Jamaican heritage.
+
+In practice, that means a monochrome palette, Geist Sans and Geist Mono, generous whitespace and asymmetrical layouts. The homepage leads with a photo I took of a beach cove in Jamaica, in black and white. Light and dark themes follow the system setting. There are no gradients, and very little motion.
+
+Every color, size and duration lives in a single token file. A unit test fails `npm run verify` if a raw value appears anywhere else, so the system can't drift one page at a time.
+
+## How I build
+
+I built this site with AI coding agents, and I want to be open about that.
+
+The agents didn't start from a prompt. They started from a product requirements document, a design specification and an architecture document, all written before implementation began. The build was split into narrowly scoped tickets, from a walking skeleton to a launch gate.
+
+When a decision outlived a single ticket, it became an architectural decision record. There are five so far, covering hosting, routing, tooling, testing and deployment.
+
+The agents work under written rules. One ticket at a time, reuse existing tokens and components, keep the site static-first. They're also told never to invent accomplishments, metrics or articles, and placeholder content is kept as drafts that production builds leave out.
+
+Every change is reviewed, and the decisions that are mine to make, such as copy, design and trade-offs, come back to me before they merge.
+
+The agents implemented most of the code. The product direction, requirements and design decisions came first, and they're what kept the result coherent. The interesting part isn't that AI generated code. It's how the process around it is structured.
+
+## How it's built
+
+The site is built with Astro and written in TypeScript. Articles and case studies are Markdown and MDX files in content collections.
+
+Every page is prerendered to static HTML. There's no server, no database and no client-side framework, and pages ship JavaScript only for small features such as the theme toggle and the command palette.
+
+The output is deployed to Cloudflare Workers as static assets, with no Worker script. Security and caching headers are served from a `_headers` file alongside the pages.
+
+The same codebase builds twice: once from the real content, and once from fixture content written for testing.
+
+<Diagram
+  number={3}
+  label="Two builds"
+  alt="The production build and the fixture build."
+  description="The production build reads the real entries in src/content, leaves drafts out and writes static pages to dist/, which Cloudflare Workers serves as static assets. The fixture build reads test entries from tests/fixtures, writes to dist-fixtures/ and is used only by the Playwright and axe browser tests. It is never deployed."
+  caption="Only dist/ is deployed. The fixture build exists so templates can be tested against realistic content."
+>
+  <PersonalWebsiteBuild />
+</Diagram>
+
+## Decisions worth explaining
+
+### Workers, not Pages.
+
+The original plan named Cloudflare Pages. Cloudflare now puts new platform features, such as gradual deployments and rollbacks, into Workers static assets instead.
+
+Because every route is prerendered, the site can deploy its build output as a Worker's static assets without an Astro adapter. The cost was a little configuration that Pages would have inferred, such as serving the custom 404 page.
+
+### Filters are pages, not scripts.
+
+The writing archive can be filtered by category.
+
+Rather than a script that hides rows, each category is its own prerendered page, and the filter chips are plain links. The archive needs no JavaScript, filtered views can be shared and indexed, and keyboard access comes for free.
+
+The trade-off is a handful of extra routes.
+
+### Test content never reaches production.
+
+Templates need realistic content to test against: long titles, every project status, drafts and every MDX component. My real content was going to be sparse for a while.
+
+Fixture entries live in their own directory. Setting one build variable points the content collections at them and writes the output to a separate directory. A production build never reads them, and only the production directory is deployed.
+
+An unrecognized value fails the build instead of quietly falling back.
+
+### Previews stay out of search engines.
+
+Every branch gets a preview deployment, and none of them should be indexed.
+
+Indexing is allowed only when the production build variable is set. The build also checks which branch it came from, and anything other than `main` stays non-indexable whatever the variable says.
+
+That check can only make a build less indexable, so a misconfiguration fails safe.
+
+### A strict Content Security Policy.
+
+Each page carries a Content Security Policy that allows scripts and styles only from the site itself, plus hashes of the inline scripts and styles it renders. `'unsafe-inline'` is never needed.
+
+The script that sets the theme before the first paint is supplied by hash, because Astro doesn't hash it automatically.
+
+### Search loads on the first keystroke.
+
+The command palette searches the full text of articles and case studies with Pagefind, an index generated at build time.
+
+The search bundle downloads only once a visitor types a query. Pages that never use search never pay for it.
+
+## Testing and validation
+
+One command, `npm run verify`, runs everything. It type-checks the project, runs the unit tests, builds both the production site and the fixture site, then runs the browser tests.
+
+The unit tests cover content rules such as draft exclusion, routing, SEO metadata and the design-token check.
+
+The browser tests run in Playwright against both builds. They check navigation, theming, search, feeds and image delivery, and that the security policy and indexing rules are present. Accessibility tests run axe against every main page template.
+
+Checks that drafts stay out run against the production build, because that’s what visitors see.
+
+## Lessons
+
+Planning and design shaped the result more than anything else.
+
+It's relatively easy to generate a working website quickly. It's much harder to make one feel deliberate and personal. I spent a lot of time on typography, whitespace, navigation, visual hierarchy and how professional and personal content sit together. Small decisions added up to the site's identity.
+
+Defining requirements before handing work to coding agents paid off. A consistent design specification and development process kept implementation decisions aligned with the original vision.
+
+Minimalism isn't easier to implement. With fewer visual elements, spacing, alignment, typography and interaction details become more noticeable.
+
+If I started again, I'd finalize more of the content and copy before building individual pages. The structure came together relatively quickly. Making the writing sound like me took more iteration than I expected.
+
+## Current status
+
+The site launched in November 2026 and is live at [danielholung.dev](https://danielholung.dev). The source, the planning documents and the decision records are public on [GitHub](https://github.com/DanXSpace/dlh-personal).
+
+I'm still finding the right balance between a professional portfolio and a genuinely personal website. I don't want it to be something I only update when I'm looking for a job. I want the writing, projects and personal sections to keep evolving.
+
+I don't consider it finished. It's an ongoing project that will change as I do.
