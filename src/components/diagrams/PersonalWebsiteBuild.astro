@@ -1,0 +1,110 @@
+---
+/**
+ * Personal website case study, figure: two builds from one codebase. The
+ * production build reads `src/content/` and writes `dist/`, which Workers
+ * static assets serves. The fixture build (`CONTENT_SOURCE=fixtures`, ADR-0004)
+ * reads `tests/fixtures/content/` and writes `dist-fixtures/`, which only the
+ * browser tests use.
+ * Drawn twice: wide from 768px, stacked below (Diagram's `d-wide`/`d-narrow`).
+ */
+import { arrow, boxLines, type Box, type TextLine } from './svg.ts';
+
+interface Drawing {
+  viewBox: string;
+  boxes: Box[];
+  arrows: ReturnType<typeof arrow>[];
+  texts: TextLine[];
+}
+
+// Each row is one build, in pipeline order. Both drawings place these labels.
+const production = [
+  { lines: ['src/content'], subtitle: ['real entries'] },
+  { lines: ['Astro build'], subtitle: ['drafts left out'] },
+  { lines: ['dist/'], subtitle: ['static pages'] },
+  { lines: ['Workers'], subtitle: ['static assets'] },
+];
+const fixtures = [
+  { lines: ['tests/fixtures'], subtitle: ['test entries'] },
+  { lines: ['Astro build'], subtitle: ['fixture mode'] },
+  { lines: ['dist-fixtures/'], subtitle: ['never deployed'] },
+  { lines: ['Browser tests'], subtitle: ['Playwright + axe'] },
+];
+
+// Four 165-unit columns with 20-unit gaps: x = 0, 185, 370, 555.
+// Production on the top row, the fixture build below it.
+const wide: Drawing = {
+  viewBox: '0 0 720 186',
+  boxes: [
+    ...production.map((label, i) => ({ x: i * 185, y: 20, w: 165, h: 60, ...label })),
+    ...fixtures.map((label, i) => ({ x: i * 185, y: 126, w: 165, h: 60, ...label })),
+  ],
+  arrows: [
+    arrow([[165, 50], [185, 50]]),
+    arrow([[350, 50], [370, 50]]),
+    arrow([[535, 50], [555, 50]]),
+    arrow([[165, 156], [185, 156]]),
+    arrow([[350, 156], [370, 156]]),
+    arrow([[535, 156], [555, 156]]),
+  ],
+  texts: [
+    { x: 0, y: 10, text: 'Production', label: true },
+    { x: 0, y: 116, text: 'Fixtures', label: true },
+  ],
+};
+
+// Two 150-unit columns, each read top to bottom. Rows are 96 units apart;
+// the last row is 4 units taller.
+const narrowRow = (i: number) => ({ y: 20 + i * 96, h: i === 3 ? 54 : 50 });
+const narrow: Drawing = {
+  viewBox: '0 0 340 362',
+  boxes: [
+    ...production.map((label, i) => ({ x: 0, w: 150, ...narrowRow(i), ...label })),
+    ...fixtures.map((label, i) => ({ x: 190, w: 150, ...narrowRow(i), ...label })),
+  ],
+  arrows: [
+    arrow([[75, 70], [75, 116]]),
+    arrow([[75, 166], [75, 212]]),
+    arrow([[75, 262], [75, 308]]),
+    arrow([[265, 70], [265, 116]]),
+    arrow([[265, 166], [265, 212]]),
+    arrow([[265, 262], [265, 308]]),
+  ],
+  texts: [
+    { x: 0, y: 10, text: 'Production', label: true },
+    { x: 190, y: 10, text: 'Fixtures', label: true },
+  ],
+};
+
+const drawings = [
+  { className: 'd-wide', drawing: wide },
+  { className: 'd-narrow', drawing: narrow },
+];
+---
+
+{
+  drawings.map(({ className, drawing }) => (
+    <svg class={className} viewBox={drawing.viewBox} aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      {drawing.boxes.map((box) => (
+        <>
+          <rect x={box.x + 0.5} y={box.y + 0.5} width={box.w - 1} height={box.h - 1} rx="2" fill="none" stroke="currentColor" stroke-width="1" />
+          {boxLines(box).map((t) => (
+            <text x={t.x} y={t.y} text-anchor={t.anchor} class:list={{ 'd-muted': t.muted }}>
+              {t.text}
+            </text>
+          ))}
+        </>
+      ))}
+      {drawing.arrows.map((a) => (
+        <>
+          <path d={a.path} fill="none" stroke="currentColor" stroke-width="1" />
+          <polygon points={a.head} fill="currentColor" />
+        </>
+      ))}
+      {drawing.texts.map((t) => (
+        <text x={t.x} y={t.y} text-anchor={t.anchor ?? 'start'} class:list={{ 'd-muted': t.muted, 'd-label': t.label }}>
+          {t.text}
+        </text>
+      ))}
+    </svg>
+  ))
+}

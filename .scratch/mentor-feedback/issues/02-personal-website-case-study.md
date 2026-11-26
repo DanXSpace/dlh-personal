@@ -1,6 +1,6 @@
 # 02 — Case study for this website
 
-Status: needs-triage
+Status: resolved
 Type: task
 Blocked by: 01
 
@@ -43,3 +43,11 @@ A published case study at `/work/personal-website` that matches the other two in
 - `/work/personal-website` renders in production with no placeholder text.
 - Every claim traces to the repo or to the owner.
 - `npm run verify` passes. The page has been checked at 320px, 768px and 1440px in both themes.
+
+## Comments
+
+**2026-11-26:** The owner answered the motivation, goals, workflow and lessons questions. A full draft of the body and the `PersonalWebsiteBuild` diagram is on `feat/personal-website-case-study`, and it stays `draft: true`. Role changed to "Independent developer" because the owner said "Designer and developer" isn't accurate. The summary now uses the owner's wording, and the repo is confirmed public. Still to do: the owner's line-by-line approval, fresh light and dark screenshots with matching `asset-rights.md` entries, then removing `draft: true`.
+
+**2026-11-26:** The owner approved the copy, and `draft: true` is removed. Light and dark homepage screenshots are captured from the production build, and `homepage-light.png` replaces `homepage.png` as the thumbnail. Both are recorded in `docs/asset-rights.md`. `npm run verify` passes. The page has been checked at 320, 768 and 1440 px in both themes: no horizontal scroll, no axe violations and no console errors. `tests/e2e/search.spec.ts` needed no change because it counts entries dynamically.
+
+**2026-11-26 (review):** Reviewed on both axes (standards and spec). Fixes: two claims reworded (the token test fails `npm run verify`, and only the draft checks, not placeholder text, run against production), an approval tag added to the design-spec photography line, a reuse note added to the light screenshot's asset-rights row, and the diagram labels defined once.
